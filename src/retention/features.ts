@@ -65,7 +65,7 @@ export interface CustomerFeature {
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 };
 
 export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOverrides): CustomerFeature[] {
@@ -89,7 +89,7 @@ export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOve
     const counts = new Map<string, number>();
     for (const o of completed) for (const it of o.items) counts.set(it.productId, (counts.get(it.productId) ?? 0) + 1);
     // relevant product = most frequently completed purchase (ties: most recent)
-    let relevantId = orders[0]?.items[0].productId ?? "P01";
+    let relevantId = orders[0]?.items[0]?.productId ?? "P01";
     let best = -1;
     for (const o of completed) for (const it of o.items) {
       const c = counts.get(it.productId)!;
@@ -98,7 +98,7 @@ export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOve
     const relevantProduct = productById(relevantId);
     const relevantCompletedDays = completed.filter((o) => o.items.some((i) => i.productId === relevantId)).map((o) => o.day).sort((a, b) => b - a);
     const intervals: number[] = [];
-    for (let i = 0; i < relevantCompletedDays.length - 1; i++) intervals.push(relevantCompletedDays[i] - relevantCompletedDays[i + 1]);
+    for (let i = 0; i < relevantCompletedDays.length - 1; i++) intervals.push(relevantCompletedDays[i]! - relevantCompletedDays[i + 1]!);
     const lastRelevantDay = relevantCompletedDays[0] ?? orders[0]?.day ?? -999;
     const lastAnyOrderDay = orders.filter((o) => o.status !== "cancelled")[0]?.day ?? -999;
     const daysSince = -lastRelevantDay;
