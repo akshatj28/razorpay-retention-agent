@@ -1,0 +1,165 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { CheckCircle2, Pause, Play, Rocket, Send, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { CustomerDrawer } from "@/components/retention/CustomerDrawer";
+import { CheckPill, KindTag, Note, PageHeader, Pill, Stat } from "@/components/retention/bits";
+import { BATCH_SIZE, approve, launch, organicPurchase, pause, recordOutcome, replayLast, resume, results, sendBatch, spentExposure, type CampaignStatus, type OutcomeType } from "@/retention/campaign";
+import { productById } from "@/retention/data";
+import { clockLabel, inr } from "@/retention/format";
+import { useDemo } from "@/retention/store";
+
+export const Route = createFileRoute("/review")({
+  head: () => ({
+    meta: [
+      { title: "Review, approval & execution — Retention Agent" },
+      { name: "description", content: "Approve, launch, pause and observe a simulated replenishment campaign with pre-send policy rechecks and an event timeline." },
+      { property: "og:title", content: "Review, approval & execution — Retention Agent" },
+      { property: "og:description", content: "Controlled simulated execution with holdout, outcomes and forecast-versus-observed tracking." },
+    ],
+  }),
+  component: Review,
+});
+
+const STEPS: CampaignStatus[] = ["draft", "approved", "running", "completed"];
+const resultTone = { ok: "success", skipped: "warning", blocked: "danger", ignored: "neutral", info: "info" } as const;
+
+function Review() {
+  const { d, state, update, run } = useDemo();
+  const [open, setOpen] = useState<string | null>(null);
+  const c = state.campaign;
+  const p = d.plan;
+  const queue = c.queue;
+  const r = results(state);
+  const blocked = p.checks.filter((x) => x.status === "blocked");
+  const doRun = (fn: Parameters<typeof run>[0], ok: string) => { const e = run(fn); if (e) toast.error(e); else toast.success(ok); };
+  const name = (id: string | null) => (id ? d.byId.get(id)?.customer.name ?? id : "—");
+  const outcomeBtn = (t: OutcomeType, id: string, label: string) => <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => update((s) => recordOutcome(s, t, id))}>{label}</Button>;
+
+  let primary: React.ReactNode;
+  if (c.status === "draft") primary = <Button size="lg" disabled={blocked.length > 0} onClick={() => doRun(approve, "Campaign approved")}><CheckCircle2 className="size-4" aria-hidden />Approve campaign</Button>;
+  else if (c.status === "approved") primary = <Button size="lg" onClick={() => doRun(launch, "Campaign launched (simulated)")}><Rocket className="size-4" aria-hidden />Launch campaign</Button>;
+  else if (c.status === "running") primary = <><Button size="lg" onClick={() => update(sendBatch)}><Send className="size-4" aria-hidden />Send next demo batch ({BATCH_SIZE})</Button><Button variant="outline" size="lg" onClick={() => update(pause)}><Pause className="size-4" aria-hidden />Pause</Button></>;
+  else if (c.status === "paused") primary = <><Button size="lg" onClick={() => doRun(resume, "Resumed")}><Play className="size-4" aria-hidden />Resume</Button><Button size="lg" disabled>Send next demo batch</Button></>;
+  else primary = <Pill t="success">Completed</Pill>;
+
+  return (
+    <div className="space-y-4 animate-enter">
+      <PageHeader title="Review & execution" subtitle={`Replenishment campaign · ${state.config.timing} · simulated WhatsApp`} actions={primary} />
+
+      <ol className="panel flex items-center gap-2 px-4 py-2.5 text-sm" aria-label="Campaign state">
+        {STEPS.map((s, i) => {
+          const idx = STEPS.indexOf(c.status === "paused" ? "running" : c.status);
+          return (
+            <li key={s} className="flex items-center gap-2">
+              <span className={`flex size-5 items-center justify-center rounded-full text-xs ${i <= idx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
+              <span className={`capitalize ${i === idx ? "font-semibold" : "text-muted-foreground"}`}>{s === "running" && c.status === "paused" ? "Paused" : s}</span>
+              {i < STEPS.length - 1 && <span className="mx-2 h-px w-8 bg-border" aria-hidden />}
+            </li>
+          );
+        })}
+        {c.status === "draft" && blocked.length > 0 && <span className="ml-auto text-xs text-destructive">{blocked.length} blocked check{blocked.length > 1 ? "s" : ""} — approval disabled</span>}
+        {c.status === "approved" && <span className="ml-auto text-xs text-muted-foreground">Any edit to audience, offer, timing or policy invalidates approval.</span>}
+      </ol>
+      {c.invalidatedNotice && c.status === "draft" && <Note t="warning">Approval was invalidated by a change after approval. Review the plan below and approve again.</Note>}
+
+      {!queue ? (
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <section className="panel p-4">
+            <h2 className="section-title">Final plan</h2>
+            <div className="mt-3 grid grid-cols-3 gap-4">
+              <Stat label="Audience" kind="derived" value={p.contacted.length} hint={`Holdout ${p.holdout.length} · no outreach ${p.noOutreach.length}`} />
+              <Stat label="Budget exposure" kind="derived" value={inr(p.totals.exposure)} hint={`Budget ${inr(state.config.budget)}`} />
+              <Stat label="Expected contribution" kind="forecast" value={inr(p.totals.expected)} hint="Net of messaging cost" />
+            </div>
+            <div className="mt-4 text-sm">
+              <div className="label-text mb-1">Offer summary</div>
+              {[0, 10, 20].map((x) => { const n = p.contacted.filter((r2) => r2.offerPct === x).length; return n ? <div key={x} className="num flex justify-between"><span>{x === 0 ? "No-discount reminder" : `${x}% offer`}</span><span>{n} customers</span></div> : null; })}
+              <div className="num flex justify-between text-muted-foreground"><span>Excluded / needs review</span><span>{p.excluded.length} / {p.review.length}</span></div>
+            </div>
+            <div className="mt-4">
+              <div className="label-text mb-1">Message previews (simulated)</div>
+              <ul className="space-y-2">{p.contacted.slice(0, 2).map((r2) => <li key={r2.feature.customer.id} className="rounded-md border bg-surface p-2 text-xs"><b>{r2.feature.customer.name}</b>: {r2.message}</li>)}</ul>
+            </div>
+            <div className="mt-4"><Note>Assumptions: per-product fixture purchase probabilities, Rs 1 per message, exposure = maximum discount liability + messaging. Holdout ≈10% by stable hash, experimental design only — not proof of uplift.</Note></div>
+          </section>
+          <section className="panel p-4">
+            <h2 className="section-title">Policy checks</h2>
+            <ul className="mt-3 space-y-2.5">{p.checks.map((x) => <li key={x.id} className="flex items-start gap-3 text-sm"><CheckPill s={x.status} /><div><div className="font-medium">{x.label}</div><div className="text-xs text-muted-foreground">{x.detail}</div></div></li>)}
+              <li className="flex items-start gap-3 text-sm"><CheckPill s={c.status === "approved" && d.approvalValid ? "passed" : "blocked"} /><div><div className="font-medium">Merchant approval</div><div className="text-xs text-muted-foreground">{c.status === "approved" ? "Approved for this exact plan." : "Launch is blocked until approved."}</div></div></li>
+            </ul>
+          </section>
+        </div>
+      ) : (
+        <>
+          <section className="panel p-4">
+            <div className="flex items-center justify-between"><h2 className="section-title">Outcome tracking</h2><span className="text-xs text-muted-foreground">Simulated events · sent {r.sent}/{queue.length} · exposure used {inr(spentExposure(state))} of {inr(state.config.budget)}</span></div>
+            <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-6">
+              <Stat label="Sent" kind="observed" value={r.sent} hint={`${r.skipped} skipped at recheck`} />
+              <Stat label="Delivered / failed" kind="observed" value={`${r.delivered} / ${r.failed}`} />
+              <Stat label="Attributed orders" kind="observed" value={r.attributedOrders} hint={`${r.optOuts} opt-outs`} />
+              <Stat label="Realised contribution" kind="observed" value={inr(r.realised)} hint="From synthetic orders" />
+              <Stat label="Message cost" kind="observed" value={inr(r.messaging)} />
+              <Stat label="Forecast vs observed" value={<span className="text-base">{inr(r.forecast)} → {inr(r.observedNet)}</span>} hint="Net, for sent customers" />
+            </div>
+            <div className="mt-3"><Note t="warning">Insufficient evidence to estimate uplift. Attributed purchases are not incremental revenue; with {r.sent} sends and {p.holdout.length} holdout customers no causal estimate is made. Outcomes are recorded for future evaluation — no model is retrained.</Note></div>
+          </section>
+
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+            <section className="panel overflow-hidden">
+              <div className="flex items-center justify-between p-4 pb-2"><h2 className="section-title">Send queue</h2><Button size="sm" variant="ghost" disabled={!c.lastOutcome} onClick={() => update(replayLast)}>Replay last outcome event</Button></div>
+              <div className="max-h-[420px] overflow-auto">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground"><tr className="border-b"><th className="px-4 py-2 font-medium">Customer</th><th className="px-2 font-medium">Offer</th><th className="px-2 font-medium">State</th><th className="px-4 font-medium">Simulate</th></tr></thead>
+                  <tbody>{queue.map((q, i) => {
+                    const sent = c.sent[q.customerId]; const o = c.outcomes[q.customerId] ?? {};
+                    const skipped = !sent && i < c.cursor;
+                    return (
+                      <tr key={q.customerId} className="border-b last:border-0">
+                        <td className="px-4 py-1.5"><button type="button" className="text-primary hover:underline" onClick={() => setOpen(q.customerId)}>{name(q.customerId)}</button><div className="text-xs text-muted-foreground">{productById(q.productId).name}</div></td>
+                        <td className="num px-2 text-xs">{q.offerPct ? `${q.offerPct}%` : "None"}</td>
+                        <td className="px-2 text-xs">
+                          {sent ? <span className="flex flex-wrap gap-1"><Pill t="info">Sent</Pill>{o.delivered && <Pill t="success">Delivered</Pill>}{o.failed && <Pill t="danger">Failed</Pill>}{o.purchased && <Pill t="success">Purchased</Pill>}{o.optedOut && <Pill t="warning">Opted out</Pill>}</span>
+                            : skipped ? <Pill t="warning">Skipped</Pill> : <Pill>Queued</Pill>}
+                        </td>
+                        <td className="px-4">
+                          <div className="flex flex-wrap gap-1 py-1">
+                            {sent ? <>{outcomeBtn("deliver", q.customerId, "Delivered")}{outcomeBtn("fail", q.customerId, "Failed")}{outcomeBtn("purchase", q.customerId, "Purchase")}{outcomeBtn("optout", q.customerId, "Opt out")}</>
+                              : !skipped && <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => update((s) => organicPurchase(s, q.customerId))}><ShoppingCart className="size-3" aria-hidden />Organic purchase</Button>}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}</tbody>
+                </table>
+              </div>
+            </section>
+            <section className="panel overflow-hidden">
+              <div className="flex items-center justify-between p-4 pb-2"><h2 className="section-title">Event timeline</h2><KindTag kind="observed" /></div>
+              <Timeline events={c.events} name={name} />
+            </section>
+          </div>
+        </>
+      )}
+      {!queue && c.events.length > 0 && <section className="panel overflow-hidden"><div className="p-4 pb-2"><h2 className="section-title">Event timeline</h2></div><Timeline events={c.events} name={name} /></section>}
+      <CustomerDrawer id={open} onClose={() => setOpen(null)} />
+    </div>
+  );
+
+  function Timeline({ events, name: nm }: { events: typeof c.events; name: (id: string | null) => string }) {
+    return (
+      <div className="max-h-[420px] overflow-auto">
+        <table className="w-full text-xs">
+          <thead className="sticky top-0 bg-surface text-left text-muted-foreground"><tr className="border-b"><th className="px-4 py-2 font-medium">Event</th><th className="px-2 font-medium">Time</th><th className="px-2 font-medium">Customer</th><th className="px-2 font-medium">Action</th><th className="px-2 font-medium">Result</th><th className="px-4 font-medium">Reason</th></tr></thead>
+          <tbody>{[...events].reverse().map((e) => (
+            <tr key={e.id} className="border-b align-top last:border-0">
+              <td className="num px-4 py-1.5 font-mono">{e.id}</td><td className="num px-2 whitespace-nowrap">{clockLabel(e.at).slice(13)}</td><td className="px-2">{nm(e.customerId)}</td><td className="px-2">{e.action}</td>
+              <td className="px-2"><Pill t={resultTone[e.result]}>{e.result}</Pill></td><td className="px-4 text-muted-foreground">{e.reason}</td>
+            </tr>))}</tbody>
+        </table>
+        {events.length === 0 && <p className="p-4 text-center text-xs text-muted-foreground">No events yet.</p>}
+      </div>
+    );
+  }
+}
