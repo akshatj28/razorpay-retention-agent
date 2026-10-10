@@ -44,7 +44,7 @@ function Cohort() {
       <div className="panel flex flex-wrap items-center gap-6 p-4">
         <div className="w-72">
           <label htmlFor="tol" className="label-text">Reorder-window tolerance: <span className="num font-semibold text-foreground">±{state.config.tolerancePct}%</span></label>
-          <Slider id="tol" className="mt-2" min={5} max={50} step={5} value={[state.config.tolerancePct]} disabled={launched} onValueChange={([v]) => update((s) => editConfig(s, { tolerancePct: v }))} aria-label="Reorder-window tolerance percent" />
+          <Slider id="tol" className="mt-2" min={5} max={50} step={5} value={[state.config.tolerancePct]} disabled={launched} onValueChange={([v]) => v != null && update((s) => editConfig(s, { tolerancePct: v }))} aria-label="Reorder-window tolerance percent" />
         </div>
         <p className="max-w-md text-xs text-muted-foreground">A customer is due when days since their last relevant purchase fall within typical interval × (1 ± tolerance). Typical interval = median gap between completed purchases (needs ≥3).</p>
         <div className="relative ml-auto">

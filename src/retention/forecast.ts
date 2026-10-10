@@ -14,7 +14,7 @@ export interface OfferEvaluation {
   probability: number;
   expectedContribution: number; // per contacted customer, net of messaging cost
   permitted: boolean;
-  blockReason?: string;
+  blockReason?: string | undefined;
 }
 
 /** E = p × (contribution before incentive − discount) − messaging cost */

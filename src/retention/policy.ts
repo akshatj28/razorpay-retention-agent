@@ -22,7 +22,7 @@ export interface PlanRow {
   source: "recommended" | "uniform" | "override";
   evaluation: OfferEvaluation;
   valid: boolean;
-  blockReason?: string;
+  blockReason?: string | undefined;
   exposure: number;
   message: string;
 }

@@ -108,6 +108,7 @@ function scenarioOrders(customerId: string, productId: string, days: number[], o
 export function generateDataset(seed = SEED): Dataset {
   const rnd = mulberry32(seed);
   const int = (a: number, b: number) => a + Math.floor(rnd() * (b - a + 1));
+  const pick = <T,>(xs: T[]): T => xs[int(0, xs.length - 1)] as T;
   const customers: Customer[] = [];
   const orders: Order[] = [];
   const contacts: Contact[] = [];
@@ -137,10 +138,10 @@ export function generateDataset(seed = SEED): Dataset {
 
   for (let i = 8; i <= 300; i++) {
     const id = `CUS-${String(i).padStart(4, "0")}`;
-    const name = `${FIRST[int(0, FIRST.length - 1)]} ${LAST[int(0, LAST.length - 1)]}`;
+    const name = `${pick(FIRST)} ${pick(LAST)}`;
     const consent = rnd() < 0.88;
-    customers.push({ id, name, city: CITIES[int(0, CITIES.length - 1)], consent });
-    const primary = PRODUCTS[int(0, PRODUCTS.length - 1)];
+    customers.push({ id, name, city: pick(CITIES), consent });
+    const primary = pick(PRODUCTS);
     const cadence = primary.defaultIntervalDays + int(-5, 5);
     const sparse = rnd() < 0.07;
     const lastDay = -int(0, Math.round(cadence * 1.7));
@@ -155,7 +156,7 @@ export function generateDataset(seed = SEED): Dataset {
     days.forEach((day, k) => {
       const items = [{ productId: primary.id, qty: 1, unitPrice: primary.price }];
       if (rnd() < 0.2) {
-        const extra = PRODUCTS[int(0, PRODUCTS.length - 1)];
+        const extra = pick(PRODUCTS);
         if (extra.id !== primary.id) items.push({ productId: extra.id, qty: 1, unitPrice: extra.price });
       }
       const value = items.reduce((s, it) => s + it.unitPrice * it.qty, 0);

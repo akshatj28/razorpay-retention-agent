@@ -59,7 +59,7 @@ export interface CustomerFeature {
   status: Eligibility;
   reasons: Reason[];
   reviewResolvable: boolean;
-  reviewResolveBlocker?: string;
+  reviewResolveBlocker?: string | undefined;
 }
 
 const median = (xs: number[]) => {

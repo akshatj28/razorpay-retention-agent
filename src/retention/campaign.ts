@@ -117,7 +117,7 @@ export function sendBatch(s0: DemoState): DemoState {
   const queue = s0.campaign.queue;
   let processed = 0;
   while (s.campaign.cursor < queue.length && processed < BATCH_SIZE) {
-    const item = queue[s.campaign.cursor];
+    const item = queue[s.campaign.cursor]!;
     s = { ...s, campaign: { ...s.campaign, cursor: s.campaign.cursor + 1 } };
     processed++;
     if (s.campaign.sent[item.customerId]) { s = log(s, { customerId: item.customerId, action: "Send", result: "ignored", reason: "Already sent — duplicate prevented." }); continue; }
