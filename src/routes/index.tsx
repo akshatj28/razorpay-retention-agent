@@ -57,7 +57,7 @@ function Opportunities() {
           <h2 className="section-title">Supporting signals</h2>
           <p className="mt-2 text-xs text-muted-foreground">Exclusion reasons overlap: a customer may appear in multiple reason counts. Do not sum them; {p.excluded.length} distinct customers are excluded.</p>
           <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex justify-between gap-4"><span>Typical reorder interval across eligible customers (median of each customer’s own purchases)</span><span className="num font-medium">{avgInterval} days</span></li>
+            <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-4"><span>Mean typical reorder interval across eligible customers (each history-derived interval uses the customer’s median)</span><span className="num shrink-0 font-medium">{avgInterval} days</span></li>
             <li className="flex justify-between gap-4"><span>Reorder-window tolerance</span><span className="num font-medium">±{state.config.tolerancePct}%</span></li>
             <li className="flex justify-between gap-4"><span>Excluded for no consent / opt-out</span><span className="num font-medium">{reasonCount("no_consent")}</span></li>
             <li className="flex justify-between gap-4"><span>Excluded for unresolved refund</span><span className="num font-medium">{reasonCount("refund_pending")}</span></li>

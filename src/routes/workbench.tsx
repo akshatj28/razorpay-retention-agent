@@ -136,8 +136,8 @@ function Workbench() {
               {!p.comparison.some((c) => c.launchable === valid) && <p className="mt-1 text-xs text-muted-foreground">None under the current constraints.</p>}
             </div>
           ))}
-          <div className="mt-3 rounded-md border p-3">
-            <div className="flex items-center justify-between"><span className="text-sm font-medium">Selected plan: {modeLabel(cfg.offerMode)}</span><span className="num text-sm">Exposure <b>{inr(p.totals.exposure)}</b> / budget {inr(cfg.budget)}</span></div>
+          <div className="mt-3 border-t pt-3">
+            <div className="grid min-w-0 gap-2"><span className="text-sm font-medium">Selected plan: {modeLabel(cfg.offerMode)}</span><span className="num text-sm">Exposure <b>{inr(p.totals.exposure)}</b> / budget {inr(cfg.budget)}</span></div>
             <ul className="mt-2 space-y-1">{p.checks.filter((c) => ["cap", "floor", "budget", "audience"].includes(c.id)).map((c) => <li key={c.id} className="flex items-start gap-2 text-xs"><CheckPill s={c.status} /><span><b>{c.label}.</b> {c.detail}</span></li>)}</ul>
             {blocked.length === 0 && <p className="mt-2 text-xs text-success">Ready for review.</p>}
           </div>
