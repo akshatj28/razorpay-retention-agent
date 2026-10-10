@@ -1,16 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { derive, initialState, type DemoState, type Derived } from "./campaign";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { derive, initialState, type DemoState } from "./campaign";
+import { DemoContext } from "./demo-context";
 
 const KEY = "retention-agent-demo-v1";
 
-interface Ctx {
-  state: DemoState;
-  d: Derived;
-  update: (fn: (s: DemoState) => DemoState) => void;
-  run: (fn: (s: DemoState) => { state: DemoState; error?: string }) => string | undefined;
-  reset: () => void;
-}
-const StoreCtx = createContext<Ctx | null>(null);
 
 export function DemoStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(initialState);
@@ -34,11 +27,11 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     return r.error;
   }, []);
   const reset = useCallback(() => { localStorage.removeItem(KEY); setState(initialState()); }, []);
-  return <StoreCtx.Provider value={{ state, d, update, run, reset }}>{children}</StoreCtx.Provider>;
+  return <DemoContext.Provider value={{ state, d, update, run, reset }}>{children}</DemoContext.Provider>;
 }
 
 export function useDemo() {
-  const c = useContext(StoreCtx);
+  const c = useContext(DemoContext);
   if (!c) throw new Error("useDemo outside provider");
   return c;
 }
