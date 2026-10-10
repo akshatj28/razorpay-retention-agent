@@ -11,6 +11,6 @@ export interface DemoContextValue {
 
 // Keep the context identity outside the React Refresh component module.
 // When this module itself is replaced, retain only the context, never demo data.
-const retained = import.meta.hot?.data.demoContext as ReturnType<typeof createContext<DemoContextValue | null>> | undefined;
+const retained = import.meta.hot?.data?.demoContext as ReturnType<typeof createContext<DemoContextValue | null>> | undefined;
 export const DemoContext = retained ?? createContext<DemoContextValue | null>(null);
-if (import.meta.hot) import.meta.hot.data.demoContext = DemoContext;
+if (import.meta.hot?.data) import.meta.hot.data.demoContext = DemoContext;
