@@ -15,6 +15,8 @@ import { useDemo } from "@/retention/store";
 export const Route = createFileRoute("/cohort")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Cohort intelligence — Retention Agent" },
       { name: "description", content: "Inspect eligible, excluded and needs-review customers with evidence, reorder intervals and policy reasons." },
       { property: "og:title", content: "Cohort intelligence — Retention Agent" },
@@ -41,20 +43,20 @@ function Cohort() {
       <PageHeader title="Cohort intelligence" subtitle="Who to contact — derived from each customer’s own completed purchases of the relevant product."
         actions={<Button asChild><Link to="/workbench">Continue to decision <ArrowRight className="size-4" aria-hidden /></Link></Button>} />
 
-      <div className="panel flex flex-wrap items-center gap-6 p-4">
-        <div className="w-72">
+      <div className="panel grid gap-4 p-4 lg:grid-cols-3">
+        <div className="w-full min-w-0 max-w-72">
           <label htmlFor="tol" className="label-text">Reorder-window tolerance: <span className="num font-semibold text-foreground">±{state.config.tolerancePct}%</span></label>
           <Slider id="tol" className="mt-2" min={5} max={50} step={5} value={[state.config.tolerancePct]} disabled={launched} onValueChange={([v]) => v != null && update((s) => editConfig(s, { tolerancePct: v }))} aria-label="Reorder-window tolerance percent" />
         </div>
         <p className="max-w-md text-xs text-muted-foreground">A customer is due when days since their last relevant purchase fall within typical interval × (1 ± tolerance). Typical interval = median gap between completed purchases (needs ≥3).</p>
-        <div className="relative ml-auto">
+        <div className="relative min-w-0">
           <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search customer or product" className="w-64 pl-8" aria-label="Search customers" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search customer or product" className="w-full pl-8" aria-label="Search customers" />
         </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Eligibility)}>
-        <TabsList>
+        <TabsList className="h-auto w-full flex-wrap justify-start sm:w-auto">
           <TabsTrigger value="eligible">Eligible <span className="num ml-1.5 text-muted-foreground">{d.plan.eligible.length}</span></TabsTrigger>
           <TabsTrigger value="excluded">Excluded <span className="num ml-1.5 text-muted-foreground">{d.plan.excluded.length}</span></TabsTrigger>
           <TabsTrigger value="review">Needs review <span className="num ml-1.5 text-muted-foreground">{d.plan.review.length}</span></TabsTrigger>
@@ -63,7 +65,7 @@ function Cohort() {
 
       <div className="panel overflow-hidden">
         <div className="max-h-[520px] overflow-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[950px] text-sm">
             <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground">
               <tr className="border-b">
                 <th className="px-3 py-2 font-medium">Customer</th><th className="px-3 py-2 font-medium">Last purchase</th><th className="px-3 py-2 font-medium">Relevant product</th>
@@ -83,10 +85,10 @@ function Cohort() {
                     </td>
                     <td className="num px-3 py-2">{dayToDate(f.lastRelevantDay)}<div className="text-xs text-muted-foreground">{f.daysSince}d ago</div></td>
                     <td className="px-3 py-2">{f.relevantProduct.name}</td>
-                    <td className="num px-3 py-2 text-right">{f.typicalInterval ? `${f.typicalInterval}d` : "—"}{f.windowLow != null && <div className="text-xs text-muted-foreground">window {Math.round(f.windowLow)}–{Math.round(f.windowHigh!)}d</div>}</td>
+                    <td className="num px-3 py-2 text-right">{f.typicalInterval ? `${f.typicalInterval}d` : "—"}{f.windowLow != null && <div className="text-xs text-muted-foreground">window {Math.round(f.windowLow)}–{Math.round(f.windowHigh ?? 0)}d</div>}</td>
                     <td className="num px-3 py-2 text-right">{f.offerUsage.discounted}/{f.offerUsage.completed} orders</td>
                     <td className="px-3 py-2"><EligibilityPill s={f.status} />{holdoutIds.has(f.customer.id) && <Pill className="ml-1">Holdout</Pill>}</td>
-                    <td className="px-3 py-2 text-xs">{f.reasons[0]?.label ?? (f.intervalSource === "merchant_default" ? "Resolved by merchant" : "In reorder window")}</td>
+                    <td className="px-3 py-2 text-xs">{f.reasons.length ? f.reasons.map((r) => r.label).join("; ") : (f.intervalSource === "merchant_default" ? "Resolved by merchant" : "In reorder window")}</td>
                     <td className="px-3 py-2 text-right">
                       {!hard && (tab !== "review") && (tab === "eligible" || merchant) && (
                         <Button size="sm" variant="ghost" onClick={() => update((s) => toggleExclude(s, f.customer.id))}>{merchant ? "Include" : "Exclude"}</Button>
@@ -100,7 +102,8 @@ function Cohort() {
           </table>
         </div>
       </div>
-      <Note>Merchant overrides cannot bypass consent, refund, recent-purchase, stock or frequency blocks. Holdout is assigned by a stable hash of customer and campaign ID only. Observed offer usage is not evidence that discounts caused purchases.</Note>
+      <p className="text-xs text-muted-foreground">Reasons may overlap; each customer appears once in a status tab. Holdout: {d.plan.holdout.length} of {d.plan.eligible.length} eligible ({d.plan.holdoutPct.toFixed(1)}%).</p>
+      <Note>Merchant overrides cannot bypass consent, refund, recent-purchase, stock or frequency blocks. Holdout is assigned by a stable hash of customer and campaign ID only (hash threshold &lt;10%, not exactly 10% of the audience). Observed offer usage is not evidence that discounts caused purchases.</Note>
       <CustomerDrawer id={open} onClose={() => setOpen(null)} />
     </div>
   );

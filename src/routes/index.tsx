@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Repeat, ShoppingBag, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PlanSummary } from "@/components/retention/PlanSummary";
 import { KindTag, Note, PageHeader, Pill, RecLabel, Stat } from "@/components/retention/bits";
 import { inr } from "@/retention/format";
 import { useDemo } from "@/retention/store";
@@ -8,6 +9,8 @@ import { useDemo } from "@/retention/store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Retention opportunities — Retention Agent" },
       { name: "description", content: "Find customers approaching their reorder window and decide who to contact, what to recommend and which incentive to use." },
       { property: "og:title", content: "Retention opportunities — Retention Agent" },
@@ -36,10 +39,10 @@ function Opportunities() {
             {p.eligible.length} customers are inside their personal reorder window for a product they buy repeatedly, have consent, and pass refund, stock and contact-frequency checks.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-6 md:grid-cols-4">
-            <Stat label="Eligible customers" kind="derived" value={p.eligible.length} hint={`${p.contacted.length} to contact · ${p.holdout.length} holdout · ${p.noOutreach.length} no outreach`} />
+            <Stat label="Eligible customers" kind="derived" value={p.eligible.length} hint={`${p.contacted.length} to contact · ${p.holdout.length} holdout (${p.holdoutPct.toFixed(1)}%) · ${p.noOutreach.length} no outreach`} />
             <Stat label="Excluded" kind="derived" value={p.excluded.length} hint={`${hardExcluded} by hard policy blocks`} />
             <Stat label="Needs review" kind="derived" value={p.review.length} hint="Insufficient purchase history" />
-            <Stat label="Expected contribution" kind="forecast" value={inr(p.totals.expected)} hint={`Exposure ${inr(p.totals.exposure)} of ${inr(state.config.budget)} budget`} />
+            <Stat label={p.totals.invalid || p.totals.exposure > state.config.budget ? "Counterfactual · blocked plan" : "Forecast contribution"} kind="forecast" value={inr(p.totals.expected)} hint={`Exposure ${inr(p.totals.exposure)} of ${inr(state.config.budget)} budget`} />
           </div>
           <div className="mt-5 flex items-center gap-3">
             <Button asChild size="lg"><Link to="/cohort">Review opportunity <ArrowRight className="size-4" aria-hidden /></Link></Button>
@@ -48,11 +51,13 @@ function Opportunities() {
         </div>
       </section>
 
+      <PlanSummary />
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <section className="panel p-5">
           <h2 className="section-title">Supporting signals</h2>
+          <p className="mt-2 text-xs text-muted-foreground">Exclusion reasons overlap: a customer may appear in multiple reason counts. Do not sum them; {p.excluded.length} distinct customers are excluded.</p>
           <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex justify-between gap-4"><span>Typical reorder interval across eligible customers (median of each customer’s own purchases)</span><span className="num font-medium">{avgInterval} days</span></li>
+            <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-4"><span>Mean typical reorder interval across eligible customers (each history-derived interval uses the customer’s median)</span><span className="num shrink-0 font-medium">{avgInterval} days</span></li>
             <li className="flex justify-between gap-4"><span>Reorder-window tolerance</span><span className="num font-medium">±{state.config.tolerancePct}%</span></li>
             <li className="flex justify-between gap-4"><span>Excluded for no consent / opt-out</span><span className="num font-medium">{reasonCount("no_consent")}</span></li>
             <li className="flex justify-between gap-4"><span>Excluded for unresolved refund</span><span className="num font-medium">{reasonCount("refund_pending")}</span></li>

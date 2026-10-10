@@ -13,6 +13,8 @@ import { useDemo } from "@/retention/store";
 export const Route = createFileRoute("/review")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Review, approval & execution — Retention Agent" },
       { name: "description", content: "Approve, launch, pause and observe a simulated replenishment campaign with pre-send policy rechecks and an event timeline." },
       { property: "og:title", content: "Review, approval & execution — Retention Agent" },
@@ -48,7 +50,7 @@ function Review() {
     <div className="space-y-4 animate-enter">
       <PageHeader title="Review & execution" subtitle={`Replenishment campaign · ${state.config.timing} · simulated WhatsApp`} actions={primary} />
 
-      <ol className="panel flex items-center gap-2 px-4 py-2.5 text-sm" aria-label="Campaign state">
+      <ol className="panel flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm" aria-label="Campaign state">
         {STEPS.map((s, i) => {
           const idx = STEPS.indexOf(c.status === "paused" ? "running" : c.status);
           return (
@@ -68,10 +70,10 @@ function Review() {
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
           <section className="panel p-4">
             <h2 className="section-title">Final plan</h2>
-            <div className="mt-3 grid grid-cols-3 gap-4">
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Stat label="Audience" kind="derived" value={p.contacted.length} hint={`Holdout ${p.holdout.length} · no outreach ${p.noOutreach.length}`} />
               <Stat label="Budget exposure" kind="derived" value={inr(p.totals.exposure)} hint={`Budget ${inr(state.config.budget)}`} />
-              <Stat label="Expected contribution" kind="forecast" value={inr(p.totals.expected)} hint="Net of messaging cost" />
+              <Stat label={blocked.length ? "Counterfactual · blocked plan" : "Forecast contribution"} kind="forecast" value={inr(p.totals.expected)} hint="Net of messaging cost" />
             </div>
             <div className="mt-4 text-sm">
               <div className="label-text mb-1">Offer summary</div>
@@ -82,7 +84,7 @@ function Review() {
               <div className="label-text mb-1">Message previews (simulated)</div>
               <ul className="space-y-2">{p.contacted.slice(0, 2).map((r2) => <li key={r2.feature.customer.id} className="rounded-md border bg-surface p-2 text-xs"><b>{r2.feature.customer.name}</b>: {r2.message}</li>)}</ul>
             </div>
-            <div className="mt-4"><Note>Assumptions: per-product fixture purchase probabilities, Rs 1 per message, exposure = maximum discount liability + messaging. Holdout ≈10% by stable hash, experimental design only — not proof of uplift.</Note></div>
+            <div className="mt-4"><Note>Assumptions: per-product fixture purchase probabilities, Rs 1 per message, exposure = maximum discount liability + messaging. Holdout {p.holdout.length} of {p.eligible.length} eligible ({p.holdoutPct.toFixed(1)}%) by stable hash threshold &lt;10%, not an exact-size sample; experimental design only — not proof of uplift.</Note></div>
           </section>
           <section className="panel p-4">
             <h2 className="section-title">Policy checks</h2>
@@ -110,7 +112,7 @@ function Review() {
             <section className="panel overflow-hidden">
               <div className="flex items-center justify-between p-4 pb-2"><h2 className="section-title">Send queue</h2><Button size="sm" variant="ghost" disabled={!c.lastOutcome} onClick={() => update(replayLast)}>Replay last outcome event</Button></div>
               <div className="max-h-[420px] overflow-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[600px] text-sm">
                   <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground"><tr className="border-b"><th className="px-4 py-2 font-medium">Customer</th><th className="px-2 font-medium">Offer</th><th className="px-2 font-medium">State</th><th className="px-4 font-medium">Simulate</th></tr></thead>
                   <tbody>{queue.map((q, i) => {
                     const sent = c.sent[q.customerId]; const o = c.outcomes[q.customerId] ?? {};
@@ -150,7 +152,7 @@ function Review() {
   function Timeline({ events, name: nm }: { events: typeof c.events; name: (id: string | null) => string }) {
     return (
       <div className="max-h-[420px] overflow-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[650px] text-xs">
           <thead className="sticky top-0 bg-surface text-left text-muted-foreground"><tr className="border-b"><th className="px-4 py-2 font-medium">Event</th><th className="px-2 font-medium">Time</th><th className="px-2 font-medium">Customer</th><th className="px-2 font-medium">Action</th><th className="px-2 font-medium">Result</th><th className="px-4 font-medium">Reason</th></tr></thead>
           <tbody>{[...events].reverse().map((e) => (
             <tr key={e.id} className="border-b align-top last:border-0">

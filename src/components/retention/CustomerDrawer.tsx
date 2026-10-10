@@ -18,7 +18,7 @@ export function CustomerDrawer({ id, onClose }: { id: string | null; onClose: ()
 
   return (
     <Sheet open={!!f} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-[520px] overflow-y-auto sm:max-w-[520px]">
+      <SheetContent className="w-full max-w-[520px] overflow-y-auto sm:max-w-[520px]">
         {f && rec && (
           <>
             <SheetHeader>
@@ -64,18 +64,18 @@ export function CustomerDrawer({ id, onClose }: { id: string | null; onClose: ()
                 {holdout ? <p className="mt-2">In the no-contact holdout (stable hash of customer and campaign ID). Will not be messaged.</p>
                   : f.status !== "eligible" ? <p className="mt-2 text-muted-foreground">No action — customer is not eligible.</p>
                   : <p className="mt-2">{rec.explanation}</p>}
-                <table className="num mt-3 w-full text-xs">
+                <p className="mt-2 text-xs text-muted-foreground">P(purchase) is a per-product fixture assumption, identical for all customers buying this product—not learned from customer history.</p><div className="overflow-x-auto"><table className="num mt-3 w-full min-w-[440px] text-xs">
                   <thead className="text-muted-foreground"><tr><th className="text-left font-medium">Offer</th><th className="text-right font-medium">P(purchase)</th><th className="text-right font-medium">Order contrib.</th><th className="text-right font-medium">Expected / contact</th><th className="text-right font-medium">Status</th></tr></thead>
                   <tbody>{rec.evaluations.map((e) => (
                     <tr key={e.pct} className={e.pct === rec.offerPct ? "font-semibold" : ""}>
                       <td>{e.pct === 0 ? "No discount" : `${e.pct}%`}</td><td className="text-right">{pct(e.probability)}</td><td className="text-right">{inr(e.contributionAfterDiscount)}</td><td className="text-right">{inr(e.expectedContribution, true)}</td><td className="text-right">{e.permitted ? "Permitted" : "Blocked"}</td>
                     </tr>))}</tbody>
-                </table>
+                </table></div>
                 <div className="mt-2"><KindTag kind="forecast" /></div>
               </section>
               <section>
                 <h3 className="section-title text-base">Order history</h3>
-                <table className="num mt-2 w-full text-xs">
+                <div className="overflow-x-auto"><table className="num mt-2 w-full min-w-[440px] text-xs">
                   <thead className="text-muted-foreground"><tr><th className="text-left font-medium">Date</th><th className="text-left font-medium">Items</th><th className="text-right font-medium">Value</th><th className="text-right font-medium">Discount</th><th className="text-right font-medium">Contrib.</th><th className="text-right font-medium">Status</th></tr></thead>
                   <tbody>{f.orders.map((o) => (
                     <tr key={o.id} className="border-t">
@@ -83,7 +83,7 @@ export function CustomerDrawer({ id, onClose }: { id: string | null; onClose: ()
                       <td className="text-right">{inr(orderValue(o))}</td><td className="text-right">{o.discount ? inr(o.discount) : "—"}</td><td className="text-right">{inr(orderContribution(o))}</td>
                       <td className="text-right">{o.status.replace("_", " ")}{o.source === "simulated" ? " (sim)" : ""}</td>
                     </tr>))}</tbody>
-                </table>
+                </table></div>
               </section>
               <div className="flex flex-wrap gap-2 border-t pt-4">
                 {!hardBlocked && (

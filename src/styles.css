@@ -124,7 +124,7 @@
     font-family: var(--font-sans);
     font-size: 14px;
   }
-  h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.01em; }
+  h1, h2, h3 { font-family: var(--font-heading); letter-spacing: 0; }
   :focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
 }
 
@@ -145,4 +145,24 @@
 @utility animate-enter { animation: fade-up 160ms ease-out both; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Constrain intrinsic table widths to their own scrolling containers. */
+main .grid > *, main section, main details, main .panel { min-width: 0; }
+@media (max-width: 1279px) {
+  .app-header { grid-template-columns: minmax(0, 1fr); }
+  .header-controls { width: 100%; }
+}
+@media (max-width: 1023px) {
+  .app-sidebar > div:first-child, .app-sidebar > div:last-child,
+  .app-sidebar nav > .label-text, .app-sidebar nav > div, .app-sidebar nav > ul:last-child { display: none; }
+  .app-sidebar nav { padding: 8px 12px; }
+}
+@media (max-width: 639px) {
+  main .flex.items-center.justify-between { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  main .flex.items-center.justify-between > * { min-width: 0; }
+  main .flex.items-center.justify-between > .inline-flex { white-space: normal; }
+  main .flex.items-center.gap-2, main .flex.items-center.gap-3 { flex-wrap: wrap; }
+  .label-text.flex { flex-wrap: wrap; }
+  .page-title { font-size: 26px; }
 }

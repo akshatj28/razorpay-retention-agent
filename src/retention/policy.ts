@@ -40,6 +40,16 @@ export const isHoldout = (customerId: string, campaignId: string) => stableUnit(
 
 export interface Totals { contacted: number; expected: number; exposure: number; messaging: number; invalid: number }
 
+export interface StrategyComparison {
+  mode: OfferMode;
+  rows: PlanRow[];
+  noOutreach: Plan["noOutreach"];
+  totals: Totals; // counterfactual totals if launchable is false
+  executableTotals: Totals | null;
+  launchable: boolean;
+  blockers: string[];
+}
+
 function totalsOf(rows: PlanRow[]): Totals {
   return rows.reduce((t, r) => ({
     contacted: t.contacted + 1,
@@ -58,7 +68,10 @@ export interface Plan {
   contacted: PlanRow[];
   noOutreach: { feature: CustomerFeature; rec: Recommendation }[];
   totals: Totals;
-  comparison: { mode: OfferMode; totals: Totals }[];
+  comparisonAudienceIds: string[];
+  comparison: StrategyComparison[];
+  recommended: StrategyComparison;
+  holdoutPct: number;
   checks: PolicyCheck[];
   hash: string;
 }
@@ -94,14 +107,26 @@ export function buildPlan(features: CustomerFeature[], cfg: PlanConfig, override
 
   const { rows: contacted, none: noOutreach } = rowsFor(cfg.offerMode, true);
   const totals = totalsOf(contacted);
-  const comparison = (["recommended", ...OFFER_OPTIONS] as OfferMode[]).map((mode) => ({ mode, totals: totalsOf(rowsFor(mode, false).rows) }));
+  const comparison = (["recommended", ...OFFER_OPTIONS] as OfferMode[]).map((mode): StrategyComparison => {
+    const { rows, none } = rowsFor(mode, false);
+    const totals = totalsOf(rows);
+    const blockers: string[] = [];
+    if (totals.invalid) blockers.push(`${totals.invalid} offers break the discount cap or contribution floor`);
+    if (totals.exposure > cfg.budget) blockers.push(`Exposure exceeds budget Rs ${cfg.budget}`);
+    if (!rows.length) blockers.push("No customers to contact");
+    const launchable = blockers.length === 0;
+    return { mode, rows, noOutreach: none, totals, executableTotals: launchable ? totals : null, launchable, blockers };
+  });
+  const recommended = comparison[0];
+  if (!recommended) throw new Error("Recommended comparison missing");
+  const holdoutPct = eligible.length ? holdout.length / eligible.length * 100 : 0;
 
   const checks: PolicyCheck[] = [];
   checks.push({ id: "consent", label: "Marketing consent", status: "passed", detail: `${excluded.filter((f) => f.reasons.some((r) => r.code === "no_consent")).length} customers without consent are blocked and cannot be messaged.` });
   const hardCount = excluded.filter((f) => f.reasons.some((r) => r.hard)).length;
   checks.push({ id: "hard", label: "Refund, recent purchase, stock & frequency blocks", status: "passed", detail: `${hardCount} customers held back by hard policy blocks; rechecked before every send.` });
   checks.push({ id: "review", label: "Needs-review items", status: review.length ? "review" : "passed", detail: review.length ? `${review.length} customers need review and are not included until resolved.` : "No pending review items." });
-  checks.push({ id: "holdout", label: "Holdout separation", status: "passed", detail: `${holdout.length} eligible customers reserved as no-contact holdout; excluded from costs and exposure.` });
+  checks.push({ id: "holdout", label: "Holdout separation", status: "passed", detail: `${holdout.length} of ${eligible.length} eligible customers (${holdoutPct.toFixed(1)}%) reserved as no-contact holdout; excluded from costs and exposure. Stable hash threshold <10%, not an exact-size sample.` });
   const capInvalid = contacted.filter((r) => r.offerPct > cfg.maxDiscount).length;
   checks.push({ id: "cap", label: `Maximum discount (${cfg.maxDiscount}%)`, status: capInvalid ? "blocked" : "passed", detail: capInvalid ? `${capInvalid} customers have an offer above the cap. Change the offer or exclude them.` : "All offers are within the cap." });
   const floorInvalid = contacted.filter((r) => r.offerPct <= cfg.maxDiscount && !r.valid).length;
@@ -109,8 +134,7 @@ export function buildPlan(features: CustomerFeature[], cfg: PlanConfig, override
   if (contacted.length === 0) checks.push({ id: "audience", label: "Audience", status: "blocked", detail: "No customer has a permitted, sensible action. Decision: no outreach." });
   else checks.push({ id: "audience", label: "Audience", status: "passed", detail: `${contacted.length} customers to contact; ${noOutreach.length} with a no-outreach decision.` });
   if (totals.exposure > cfg.budget) {
-    const zero = comparison.find((c) => c.mode === 0)!.totals;
-    checks.push({ id: "budget", label: "Budget exposure", status: "blocked", detail: `Exposure Rs ${Math.round(totals.exposure)} exceeds budget Rs ${cfg.budget}. Raise the budget, exclude customers, or switch to a no-discount offer (exposure Rs ${Math.round(zero.exposure)}). Partial sends are not allowed.` });
+    checks.push({ id: "budget", label: "Budget exposure", status: "blocked", detail: `Exposure Rs ${Math.round(totals.exposure)} exceeds budget Rs ${cfg.budget}. Raise the budget, exclude customers, or review a lower-exposure strategy and its offer constraints. Partial sends are not allowed.` });
   } else checks.push({ id: "budget", label: "Budget exposure", status: "passed", detail: `Exposure Rs ${Math.round(totals.exposure)} within budget Rs ${cfg.budget}.` });
 
   const hash = String(stableUnit(JSON.stringify({
@@ -119,5 +143,5 @@ export function buildPlan(features: CustomerFeature[], cfg: PlanConfig, override
     t: cfg.timing, m: cfg.maxDiscount, f: cfg.minContribution, b: cfg.budget, q: cfg.freqDays, w: cfg.tolerancePct,
   })));
 
-  return { eligible, excluded, review, holdout, contacted, noOutreach, totals, comparison, checks, hash };
+  return { eligible, excluded, review, holdout, holdoutPct, contacted, noOutreach, totals, comparisonAudienceIds: treat.map((f) => f.customer.id), comparison, recommended, checks, hash };
 }
