@@ -126,7 +126,7 @@ export function sendBatch(s0: DemoState): DemoState {
     if (block) { s = log(s, { customerId: item.customerId, action: "Pre-send recheck", result: "skipped", reason: block.label }); continue; }
     if (spentExposure(s) + item.exposure > s.config.budget) { s = log(s, { customerId: item.customerId, action: "Pre-send recheck", result: "skipped", reason: "Budget exposure would be exceeded." }); continue; }
     s = log(s, { customerId: item.customerId, action: `Message sent (simulated WhatsApp, ${item.offerPct ? `${item.offerPct}% offer` : "no discount"})`, result: "ok", reason: "All pre-send checks passed." });
-    const ev = s.campaign.events[s.campaign.events.length - 1];
+    const ev = s.campaign.events[s.campaign.events.length - 1]!;
     s = { ...s, simContacts: [...s.simContacts, { customerId: item.customerId, day: 0, type: "promotional", channel: "whatsapp" }], campaign: { ...s.campaign, sent: { ...s.campaign.sent, [item.customerId]: { eventId: ev.id, at: ev.at } } } };
   }
   if (s.campaign.cursor >= queue.length) s = log({ ...s, campaign: { ...s.campaign, status: "completed" } }, { customerId: null, action: "Campaign completed", result: "info", reason: "Queue exhausted. Outcomes can still be recorded." });
