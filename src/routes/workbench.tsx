@@ -131,7 +131,7 @@ function Workbench() {
                       <td className="text-right">{inr(c.totals.expected)}</td><td className="px-2 text-right">{inr(c.totals.exposure)}</td><td>{valid ? "Yes, after approval" : <span className="text-destructive">No · {c.blockers.join("; ")}</span>}</td>
                     </tr>
                   ))}</tbody>
-                </table></div>
+                </table>
               </div>
               {!p.comparison.some((c) => c.launchable === valid) && <p className="mt-1 text-xs text-muted-foreground">None under the current constraints.</p>}
             </div>

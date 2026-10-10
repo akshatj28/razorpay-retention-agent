@@ -149,15 +149,6 @@
 
 /* Constrain intrinsic table widths to their own scrolling containers. */
 main .grid > *, main section, main details, main .panel { min-width: 0; }
-main .grid { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 768px) {
-  main .grid.md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  main .grid.md\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-}
-@media (min-width: 1024px) {
-  main .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  main .grid.lg\:grid-cols-\[1fr_1fr\], main .grid.lg\:grid-cols-\[1\.1fr_1fr\], main .grid.lg\:grid-cols-\[1\.3fr_1fr\], main .grid.lg\:grid-cols-\[1\.4fr_1fr\] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 1279px) {
   .app-header { grid-template-columns: minmax(0, 1fr); }
   .header-controls { width: 100%; }
