@@ -24,7 +24,7 @@ Demo mode · Synthetic data · Simulated recommendations and messaging.
 Recommendations (deterministic adapter `deterministic-simulated-v1`), WhatsApp messages, deliveries, purchases and opt-outs. No external AI, messaging, payment, database or auth services are used or contacted.
 
 ## Data and forecast assumptions
-- Each product has explicit fixture purchase probabilities for 0% / 10% / 20% offers (`src/retention/data.ts`). They are illustrative assumptions, not measurements.
+- Each product has explicit fixture purchase probabilities for 0% / 10% / 20% offers (`src/retention/data.ts`). They are illustrative assumptions, not measurements or learned customer-level predictions. Customer history controls relevance and eligibility, not purchase probabilities.
 - Contribution before incentive = price − assumed variable order costs. Messaging cost Rs 1 per contacted customer.
 - Hero fixture (CUS-0001, coffee beans): basket Rs 1000, contribution Rs 400, P = 0.10 / 0.15 / 0.18 → Rs 39 / 44 / 35 → 10% recommended.
 - Second fixture (CUS-0002, laundry liquid): basket Rs 500, contribution Rs 200, P = 0.20 / 0.21 / 0.22 → Rs 39 / 30.5 / 21 → no discount recommended.
@@ -52,3 +52,7 @@ Implement `RecommendationAdapter` (`src/retention/recommend.ts`) with a service 
 
 ## Module layout
 `src/retention/`: `data.ts` (seeded fixtures) · `features.ts` (feature derivation) · `forecast.ts` (calculations) · `policy.ts` (plan + checks) · `recommend.ts` (mock adapter) · `campaign.ts` (state transitions) · `store.tsx` (persistence). UI in `src/routes/` and `src/components/retention/`.
+
+## Strategy comparison semantics
+All baselines evaluate the same explicitly listed eligible non-holdout IDs after exclusions and review resolution. Offer overrides are ignored by baselines and retained by the selected plan. No outreach has zero forecast contribution, exposure and messaging cost; contact counts can therefore differ without changing the decision audience. A strategy with any invalid offer, excessive budget exposure, or no contacts is not executable: its full totals are labelled counterfactual, never a partial executable forecast. Assumptions are unchanged across strategies. The recommended mix maximises positive permitted expected contribution per customer but does not solve budget allocation.
+Holdout membership remains the existing stable campaign/customer FNV threshold <0.1; actual count and percentage of currently eligible customers are displayed, not an exact 10% claim.
