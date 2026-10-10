@@ -26,11 +26,11 @@ test("acceptance", () => {
   expect(C.launch(s9).error).toBeTruthy();
   // launch
   s = C.launch(s).state; expect(s.campaign.status).toBe("running");
-  const target = s.campaign.queue![2].customerId;
+  const target = s.campaign.queue![2]!.customerId;
   s = C.organicPurchase(s, target);
   s = C.sendBatch(s);
   expect(s.campaign.sent[target]).toBeUndefined(); // 10
-  const sentId = Object.keys(s.campaign.sent)[0];
+  const sentId = Object.keys(s.campaign.sent)[0]!;
   s = C.pause(s); const before = Object.keys(s.campaign.sent).length; s = C.sendBatch(s);
   expect(Object.keys(s.campaign.sent).length).toBe(before); // 11
   s = C.recordOutcome(s,"purchase",sentId); s = C.replayLast(s); s = C.replayLast(s);
