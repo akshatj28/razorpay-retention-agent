@@ -114,13 +114,13 @@ function Workbench() {
         <section className="panel p-4">
           <div className="flex items-center justify-between"><h2 className="section-title">Compare offer strategies</h2><KindTag kind="forecast" /></div>
           <table className="num mt-3 w-full text-sm">
-            <thead className="text-xs text-muted-foreground"><tr className="border-b"><th className="py-1.5 text-left font-medium">Strategy</th><th className="text-right font-medium">Contacted</th><th className="text-right font-medium">Expected contribution</th><th className="text-right font-medium">Budget exposure</th><th className="text-right font-medium">Invalid offers</th></tr></thead>
+            <thead className="text-xs text-muted-foreground"><tr className="border-b"><th className="py-1.5 text-left font-medium">Strategy</th><th className="px-2 text-right font-medium">Contacted</th><th className="px-2 text-right font-medium">Expected</th><th className="px-2 text-right font-medium">Exposure</th><th className="pl-2 text-right font-medium">Invalid offers</th></tr></thead>
             <tbody>{p.comparison.map((c) => (
               <tr key={String(c.mode)} className={`border-b last:border-0 ${c.mode === cfg.offerMode ? "bg-primary-subtle font-medium" : ""}`}>
                 <td className="py-1.5">{modeLabel(c.mode)}{c.mode === "recommended" && <span className="ml-1"><RecLabel>Recommended</RecLabel></span>}</td>
-                <td className="text-right">{c.totals.contacted}</td><td className="text-right">{inr(c.totals.expected)}</td>
-                <td className={`text-right ${c.totals.exposure > cfg.budget ? "text-destructive" : ""}`}>{inr(c.totals.exposure)}</td>
-                <td className="text-right">{c.totals.invalid ? <span className="text-destructive">{c.totals.invalid} blocked</span> : "0"}</td>
+                <td className="px-2 text-right">{c.totals.contacted}</td><td className="px-2 text-right">{inr(c.totals.expected)}</td>
+                <td className={`px-2 text-right ${c.totals.exposure > cfg.budget ? "text-destructive" : ""}`}>{inr(c.totals.exposure)}</td>
+                <td className="pl-2 text-right">{c.totals.invalid ? <span className="text-destructive">{c.totals.invalid} blocked</span> : "0"}</td>
               </tr>))}</tbody>
           </table>
           <p className="mt-2 text-xs text-muted-foreground">Sums of customer-level calculations. Uniform options contact every non-holdout eligible customer; customers whose uniform offer breaks the cap or floor are counted as invalid and would block launch. Customer-level overrides ({Object.keys(state.overrides).length}) are kept and never silently overwritten.</p>
