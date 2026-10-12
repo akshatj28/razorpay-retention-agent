@@ -47,10 +47,10 @@ function Review() {
   else primary = <Pill t="success">Completed</Pill>;
 
   return (
-    <div className="space-y-4 animate-enter">
+    <div data-tour="outcomes" className="space-y-4 animate-enter">
       <PageHeader title="Review & execution" subtitle={`Replenishment campaign · ${state.config.timing} · simulated WhatsApp`} actions={primary} />
 
-      <ol className="panel flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm" aria-label="Campaign state">
+      <ol data-tour="approval" className="panel flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm" aria-label="Campaign state">
         {STEPS.map((s, i) => {
           const idx = STEPS.indexOf(c.status === "paused" ? "running" : c.status);
           return (

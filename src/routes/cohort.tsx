@@ -40,7 +40,7 @@ function Cohort() {
 
   return (
     <div className="space-y-4 animate-enter">
-      <PageHeader title="Cohort intelligence" subtitle="Who to contact — derived from each customer’s own completed purchases of the relevant product."
+      <PageHeader title="Find customers ready to return." subtitle="Cohort intelligence · Purchase rhythm meets policy checks."
         actions={<Button asChild><Link to="/workbench">Continue to decision <ArrowRight className="size-4" aria-hidden /></Link></Button>} />
 
       <div className="panel grid gap-4 p-4 lg:grid-cols-3">
@@ -48,7 +48,7 @@ function Cohort() {
           <label htmlFor="tol" className="label-text">Reorder-window tolerance: <span className="num font-semibold text-foreground">±{state.config.tolerancePct}%</span></label>
           <Slider id="tol" className="mt-2" min={5} max={50} step={5} value={[state.config.tolerancePct]} disabled={launched} onValueChange={([v]) => v != null && update((s) => editConfig(s, { tolerancePct: v }))} aria-label="Reorder-window tolerance percent" />
         </div>
-        <p className="max-w-md text-xs text-muted-foreground">A customer is due when days since their last relevant purchase fall within typical interval × (1 ± tolerance). Typical interval = median gap between completed purchases (needs ≥3).</p>
+        <details className="self-center text-xs text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">How is the reorder window calculated?</summary><p className="mt-2 leading-relaxed">Days since last relevant purchase must fall within typical interval × (1 ± tolerance). Typical interval is the median gap between completed purchases (at least 3 required).</p></details>
         <div className="relative min-w-0">
           <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search customer or product" className="w-full pl-8" aria-label="Search customers" />
@@ -63,7 +63,7 @@ function Cohort() {
         </TabsList>
       </Tabs>
 
-      <div className="panel overflow-hidden">
+      <div data-tour="cohort" className="panel overflow-hidden">
         <div className="max-h-[520px] overflow-auto">
           <table className="w-full min-w-[950px] text-sm">
             <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground">

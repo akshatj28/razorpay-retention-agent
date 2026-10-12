@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDemo } from "@/retention/store";
 import { Pill } from "./bits";
+import { EvaluatorTour } from "./EvaluatorTour";
 
 const NAV = [
   { to: "/", label: "Opportunities", icon: LayoutGrid },
@@ -24,7 +25,8 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="app-shell flex min-h-screen flex-col lg:flex-row">
       <aside className="app-sidebar flex w-full shrink-0 flex-col border-b bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:border-r">
         <div className="border-b p-3">
-          <div className="label-text mb-1 px-1">Merchant</div>
+          <div className="mb-5 flex items-center gap-2 px-1 font-heading text-lg font-bold"><span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Bot className="size-5" aria-hidden /></span>Agent Studio</div>
+          <div className="label-text mb-2 px-1">YOUR WORKSPACE</div>
           <button type="button" className="flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-sm font-medium" aria-label="Merchant: Everyday Essentials (only demo merchant)" title="Only one demo merchant available">
             <Store className="size-4 text-muted-foreground" aria-hidden />
             <span className="flex-1 truncate">Everyday Essentials</span>
@@ -39,7 +41,7 @@ export function Shell({ children }: { children: ReactNode }) {
               const active = path === n.to;
               return (
                 <li key={n.to}>
-                  <Link to={n.to} className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground" : "hover:bg-muted"}`} aria-current={active ? "page" : undefined}>
+                  <Link to={n.to} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${active ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground" : "hover:bg-muted"}`} aria-current={active ? "page" : undefined}>
                     <n.icon className="size-4 shrink-0" aria-hidden /><span className="min-w-0">{n.label}</span>
                   </Link>
                 </li>
@@ -78,8 +80,9 @@ export function Shell({ children }: { children: ReactNode }) {
               <li className="font-medium text-foreground" aria-current="page">{CRUMB[path] ?? ""}</li>
             </ol>
           </nav>
-          <div className="header-controls grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 xl:ml-auto xl:flex">
-            <span role="status" className="rounded border border-warning/40 bg-warning-subtle px-2 py-1 text-xs font-medium text-warning">Demo mode · Synthetic data · Simulated recommendations and messaging</span>
+          <div className="header-controls flex min-w-0 flex-wrap items-center gap-2 xl:ml-auto">
+            <EvaluatorTour />
+            <span role="status" title="All customers and orders are synthetic. Recommendations, messages and outcomes are simulated." className="flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-xs text-muted-foreground"><FlaskConical className="size-3.5 shrink-0" aria-hidden />Demo data · No live customer data</span>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm"><RotateCcw className="size-3.5" aria-hidden />Reset demo</Button>
@@ -98,7 +101,7 @@ export function Shell({ children }: { children: ReactNode }) {
             {done && <span role="status" className="text-xs text-success">Demo reset</span>}
           </div>
         </header>
-        <main className="mx-auto w-full min-w-0 max-w-[1200px] flex-1 px-3 py-5 sm:px-6">{children}</main>
+        <main className="mx-auto w-full min-w-0 max-w-[1280px] flex-1 px-3 py-6 sm:px-7 sm:py-8">{children}</main>
         <footer className="border-t px-6 py-2 text-xs text-muted-foreground">Retention Agent — Proposed extension for Razorpay Agent Studio · Independent buildathon concept · Not an official Razorpay product</footer>
       </div>
     </div>

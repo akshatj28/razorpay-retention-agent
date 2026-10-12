@@ -1,82 +1,81 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Repeat, ShoppingBag, Undo2 } from "lucide-react";
+import { ArrowRight, ChevronDown, Clock3, Repeat2, ShieldCheck, ShoppingBag, Undo2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PlanSummary } from "@/components/retention/PlanSummary";
-import { KindTag, Note, PageHeader, Pill, RecLabel, Stat } from "@/components/retention/bits";
+import { PageHeader, Pill, RecLabel } from "@/components/retention/bits";
 import { inr } from "@/retention/format";
 import { useDemo } from "@/retention/store";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { title: "Retention opportunities — Retention Agent" },
-      { name: "description", content: "Find customers approaching their reorder window and decide who to contact, what to recommend and which incentive to use." },
-      { property: "og:title", content: "Retention opportunities — Retention Agent" },
-      { property: "og:description", content: "A merchant workspace concept for replenishment campaigns with policy checks and illustrative forecasts." },
-    ],
-  }),
+  head: () => ({ meta: [
+    { title: "Retention opportunities — Retention Agent" },
+    { name: "description", content: "Find the next repeat purchase. Review audiences, offers and safe campaign execution." },
+  ] }),
   component: Opportunities,
 });
 
 function Opportunities() {
   const { d, state } = useDemo();
   const p = d.plan;
-  const reasonCount = (code: string) => p.excluded.filter((f) => f.reasons.some((r) => r.code === code)).length;
-  const hardExcluded = p.excluded.filter((f) => f.reasons.some((r) => r.hard)).length;
-  const avgInterval = Math.round(p.eligible.reduce((t, f) => t + (f.typicalInterval ?? 0), 0) / Math.max(1, p.eligible.length));
-
+  const r = p.recommended;
+  const total = p.eligible.length + p.excluded.length + p.review.length;
+  const groups = [
+    { label: "Ready to evaluate", count: p.eligible.length, color: "bg-primary", text: "text-primary" },
+    { label: "Needs your review", count: p.review.length, color: "bg-warning", text: "text-warning" },
+    { label: "Excluded", count: p.excluded.length, color: "bg-slate-300", text: "text-muted-foreground" },
+  ];
+  const mix = [0, 10, 20].map((offer) => ({ offer, count: r.rows.filter((row) => row.offerPct === offer).length })).filter((x) => x.count);
+  const reasonCount = (code: string) => p.excluded.filter((f) => f.reasons.some((x) => x.code === code)).length;
   return (
-    <div className="space-y-5 animate-enter">
-      <PageHeader title="Retention Agent" subtitle="Proposed extension for Razorpay Agent Studio · Everyday Essentials · Snapshot 10 Oct 2026" />
-
-      <section className="panel rec-accent geo-accent overflow-hidden" aria-labelledby="opp-title">
-        <div className="bg-card/90 p-5">
-          <div className="flex items-center gap-2"><RecLabel>Recommended opportunity · simulated</RecLabel><Pill t="success">Playbook 1 · Implemented</Pill></div>
-          <h2 id="opp-title" className="mt-3 font-heading text-[22px] font-semibold">Bring back customers approaching their reorder window.</h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            {p.eligible.length} customers are inside their personal reorder window for a product they buy repeatedly, have consent, and pass refund, stock and contact-frequency checks.
-          </p>
-          <div className="mt-5 grid grid-cols-2 gap-6 md:grid-cols-4">
-            <Stat label="Eligible customers" kind="derived" value={p.eligible.length} hint={`${p.contacted.length} to contact · ${p.holdout.length} holdout (${p.holdoutPct.toFixed(1)}%) · ${p.noOutreach.length} no outreach`} />
-            <Stat label="Excluded" kind="derived" value={p.excluded.length} hint={`${hardExcluded} by hard policy blocks`} />
-            <Stat label="Needs review" kind="derived" value={p.review.length} hint="Insufficient purchase history" />
-            <Stat label={p.totals.invalid || p.totals.exposure > state.config.budget ? "Counterfactual · blocked plan" : "Forecast contribution"} kind="forecast" value={inr(p.totals.expected)} hint={`Exposure ${inr(p.totals.exposure)} of ${inr(state.config.budget)} budget`} />
+    <div className="space-y-6 animate-enter">
+      <PageHeader title="Make the next purchase happen." subtitle="Retention Agent · Everyday Essentials" actions={<span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Clock3 className="size-3.5" aria-hidden />10 Oct 2026 snapshot</span>} />
+      <section data-tour="opportunity" className="relative overflow-hidden rounded-2xl bg-[#102b62] p-6 text-white sm:p-8" aria-labelledby="opp-title">
+        <div className="pointer-events-none absolute -top-24 -right-16 size-80 rounded-full border-[48px] border-white/5" aria-hidden />
+        <div className="relative grid gap-7 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-2"><span className="flex size-9 items-center justify-center rounded-xl bg-white/10"><Repeat2 className="size-5" aria-hidden /></span><span className="text-xs font-medium tracking-widest text-blue-200 uppercase">Replenishment opportunity</span><span className="rounded-full bg-white/10 px-2 py-1 text-[11px]">Demo recommendation</span></div>
+            <h2 id="opp-title" className="mt-5 max-w-lg font-heading text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Right customer.<br />Right moment. Right offer.</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100">{p.eligible.length} customers are in their reorder window. Review who to contact and protect contribution—not just conversions.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3"><Button asChild size="lg" className="bg-white text-[#102b62] hover:bg-blue-50"><Link to="/cohort">Explore the cohort <ArrowRight className="size-4" aria-hidden /></Link></Button><span className="flex items-center gap-1.5 text-xs text-blue-100"><ShieldCheck className="size-4" aria-hidden />You approve before sending</span></div>
           </div>
-          <div className="mt-5 flex items-center gap-3">
-            <Button asChild size="lg"><Link to="/cohort">Review opportunity <ArrowRight className="size-4" aria-hidden /></Link></Button>
-            <span className="text-xs text-muted-foreground">Next: inspect cohort evidence and exclusions</span>
+          <div className="rounded-xl border border-white/15 bg-white/10 p-5">
+            <div className="text-xs text-blue-100">Agent's recommended plan · simulated</div>
+            <div className="mt-2 flex items-baseline gap-2"><span className="num font-heading text-5xl font-semibold">{r.rows.length}</span><span className="text-sm text-blue-100">customers to contact</span></div>
+            <div className="mt-4 space-y-2.5">{mix.map((x) => <div key={x.offer} className="flex items-center gap-3"><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10"><div className={x.offer ? "h-full rounded-full bg-cyan-300" : "h-full rounded-full bg-blue-300"} style={{ width: x.count / Math.max(1, r.rows.length) * 100 + "%" }} /></div><span className="num w-36 text-right text-xs">{x.count} · {x.offer ? x.offer + "% offer" : "no discount"}</span></div>)}</div>
+            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/15 pt-4"><div><div className="text-xs text-blue-100">Illustrative contribution</div><div className="num mt-1 text-2xl font-semibold">{inr(r.totals.expected)}</div></div><div><div className="text-xs text-blue-100">Maximum exposure</div><div className="num mt-1 text-2xl font-semibold">{inr(r.totals.exposure)}</div></div></div>
+            <div className="mt-3 text-xs text-blue-100">{r.launchable ? "Ready for merchant review" : "Counterfactual only · blocked"} · Budget {inr(state.config.budget)}</div>
           </div>
         </div>
       </section>
-
-      <PlanSummary />
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <section className="panel p-5">
-          <h2 className="section-title">Supporting signals</h2>
-          <p className="mt-2 text-xs text-muted-foreground">Exclusion reasons overlap: a customer may appear in multiple reason counts. Do not sum them; {p.excluded.length} distinct customers are excluded.</p>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-4"><span>Mean typical reorder interval across eligible customers (each history-derived interval uses the customer’s median)</span><span className="num shrink-0 font-medium">{avgInterval} days</span></li>
-            <li className="flex justify-between gap-4"><span>Reorder-window tolerance</span><span className="num font-medium">±{state.config.tolerancePct}%</span></li>
-            <li className="flex justify-between gap-4"><span>Excluded for no consent / opt-out</span><span className="num font-medium">{reasonCount("no_consent")}</span></li>
-            <li className="flex justify-between gap-4"><span>Excluded for unresolved refund</span><span className="num font-medium">{reasonCount("refund_pending")}</span></li>
-            <li className="flex justify-between gap-4"><span>Excluded: relevant product out of stock</span><span className="num font-medium">{reasonCount("out_of_stock")}</span></li>
-            <li className="flex justify-between gap-4"><span>Excluded: contacted within {state.config.freqDays} days</span><span className="num font-medium">{reasonCount("frequency")}</span></li>
-            <li className="flex justify-between gap-4"><span>Outside reorder window (not due, or win-back)</span><span className="num font-medium">{reasonCount("outside_window")}</span></li>
-          </ul>
-          <div className="mt-4"><Note>Forecast figures are illustrative, computed from explicit fixture assumptions <KindTag kind="forecast" />. They are not evidence of causal uplift.</Note></div>
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <section className="panel p-5 sm:p-6" aria-labelledby="audience-title">
+          <div className="flex items-center justify-between"><h2 id="audience-title" className="section-title">Your customer base, filtered.</h2><Users className="size-5 text-muted-foreground" aria-hidden /></div>
+          <div className="mt-5 flex items-baseline gap-2"><span className="num font-heading text-3xl font-semibold">{total}</span><span className="text-sm text-muted-foreground">demo customers</span></div>
+          <div className="mt-4 flex h-3 gap-1 overflow-hidden rounded-full" role="img" aria-label={groups.map((g) => g.label + ": " + g.count).join(", ")}>{groups.filter((g) => g.count > 0).map((g) => <div key={g.label} className={g.color} style={{ width: g.count / Math.max(1, total) * 100 + "%" }} />)}</div>
+          <div className="mt-5 grid grid-cols-3 gap-3">{groups.map((g) => <div key={g.label}><div className={"num text-2xl font-semibold " + g.text}>{g.count}</div><div className="mt-1 text-xs text-muted-foreground">{g.label}</div></div>)}</div>
+          <p className="mt-5 border-t pt-3 text-xs text-muted-foreground">{p.holdout.length} holdout ({p.holdoutPct.toFixed(1)}% of eligible) · {r.noOutreach.length} recommended no-outreach decisions</p>
+          <details className="evidence-disclosure mt-3">
+            <summary className="flex cursor-pointer items-center justify-between text-xs font-medium">Explore exclusion signals <ChevronDown className="size-4" aria-hidden /></summary>
+            <ul className="mt-3 space-y-2 text-xs text-muted-foreground">{([["No consent / opt-out", "no_consent"], ["Refund unresolved", "refund_pending"], ["Product out of stock", "out_of_stock"], ["Contacted too recently", "frequency"], ["Outside reorder window", "outside_window"] ] as const).map(([label, code]) => <li key={code} className="flex justify-between"><span>{label}</span><span className="num font-medium text-foreground">{reasonCount(code)}</span></li>)}</ul>
+            <p className="mt-3 text-xs text-muted-foreground">Reasons overlap; do not sum these counts. Reorder-window tolerance: ±{state.config.tolerancePct}%.</p>
+          </details>
         </section>
-        <section className="space-y-3" aria-label="Preview playbooks">
-          {[{ icon: ShoppingBag, t: "Cross-sell complementary products", b: "e.g. filters for coffee-bean buyers." }, { icon: Undo2, t: "Win-back lapsed customers", b: "Customers past their reorder window." }].map((c) => (
-            <div key={c.t} className="panel p-4 opacity-80">
-              <div className="flex items-center justify-between"><div className="flex items-center gap-2 font-medium"><c.icon className="size-4 text-muted-foreground" aria-hidden />{c.t}</div><Pill>Preview · not implemented</Pill></div>
-              <p className="mt-1 text-xs text-muted-foreground">{c.b} Shown for direction only; no recommendations are generated.</p>
-            </div>
-          ))}
-          <div className="panel p-4 text-xs text-muted-foreground"><div className="flex items-center gap-2 font-medium text-foreground"><Repeat className="size-4" aria-hidden />Campaign status</div><p className="mt-1 capitalize">{state.campaign.status}{state.campaign.queue ? ` · ${Object.keys(state.campaign.sent).length}/${state.campaign.queue.length} sent` : ""}</p></div>
+        <section className="panel p-5 sm:p-6" aria-labelledby="decision-title">
+          <RecLabel>Three decisions. One controlled campaign.</RecLabel>
+          <h2 id="decision-title" className="section-title mt-3">From insight to action.</h2>
+          <div className="mt-5 space-y-4">{[
+            { n: "01", title: "Who is ready?", description: "Purchase rhythm, consent and eligibility." },
+            { n: "02", title: "What should they buy?", description: "The relevant product, in stock, at the right time." },
+            { n: "03", title: "Which offer makes sense?", description: "Compare incentives against contribution and budget." },
+          ].map((x) => <div key={x.n} className="flex items-start gap-3"><span className="num flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-xs font-semibold text-primary">{x.n}</span><div><h3 className="text-sm font-semibold">{x.title}</h3><p className="mt-0.5 text-xs text-muted-foreground">{x.description}</p></div></div>)}</div>
+          <Link to="/workbench" className="mt-5 flex items-center gap-1.5 text-sm font-medium text-primary">Open decision workbench <ArrowRight className="size-4" aria-hidden /></Link>
         </section>
       </div>
+      <section aria-label="Playbooks"><div className="mb-3 flex items-center justify-between"><h2 className="section-title">Built for repeat growth.</h2><Pill>Campaign: {state.campaign.status}</Pill></div><div className="grid gap-4 sm:grid-cols-3">{[
+        { icon: Repeat2, title: "Replenishment", description: "Bring back repeat-product buyers.", active: true },
+        { icon: ShoppingBag, title: "Cross-sell", description: "Recommend the next complementary product.", active: false },
+        { icon: Undo2, title: "Win-back", description: "Re-engage customers past their reorder window.", active: false },
+      ].map((x) => <div key={x.title} className={"panel p-4 " + (x.active ? "border-primary/30" : "")}><div className="flex items-center justify-between"><x.icon className={"size-5 " + (x.active ? "text-primary" : "text-muted-foreground")} aria-hidden /><Pill t={x.active ? "success" : "neutral"}>{x.active ? "Working demo" : "Concept only"}</Pill></div><h3 className="mt-3 font-semibold">{x.title}</h3><p className="mt-1 text-xs text-muted-foreground">{x.description}</p></div>)}</div></section>
+      <p className="text-xs text-muted-foreground">Illustrative forecasts, not measured uplift. Recommendations and execution are simulated; no real messages or payments.</p>
     </div>
   );
 }

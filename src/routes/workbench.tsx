@@ -56,13 +56,13 @@ function Workbench() {
 
   return (
     <div className="space-y-4 animate-enter">
-      <PageHeader title="Campaign decision workbench" subtitle={<>Replenishment playbook <Pill t="success" className="ml-1">First implemented playbook</Pill></>}
+      <PageHeader title="Build a contribution-first campaign." subtitle={<>Decision workbench · Replenishment <Pill t="success" className="ml-1">Working demo</Pill></>}
         actions={<Button asChild><Link to="/review">Review & approve <ArrowRight className="size-4" aria-hidden /></Link></Button>} />
       {launched && <Note t="warning"><Lock className="mr-1 inline size-3" aria-hidden />Campaign launched — audience, offers and policy settings are locked. Reset the demo to edit.</Note>}
       {state.campaign.invalidatedNotice && <Note t="warning">Approval was invalidated by your last change. Review and approve again before launch.</Note>}
 
       <PlanSummary />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div data-tour="decisions" className="grid gap-4 lg:grid-cols-3">
         <section className="panel p-4" aria-labelledby="who">
           <div className="label-text">1 · WHO</div>
           <h2 id="who" className="section-title">Selected cohort</h2>
@@ -117,8 +117,8 @@ function Workbench() {
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <section className="panel p-4">
           <div className="flex items-center justify-between"><h2 className="section-title">Compare offer strategies</h2><KindTag kind="forecast" /></div>
-          <p className="mt-2 text-xs text-muted-foreground">Same decision audience: {p.comparisonAudienceIds.length} eligible non-holdout customers, after merchant exclusions and review resolution. Every strategy evaluates these exact IDs. No outreach contributes zero forecast, exposure and cost. Baselines ignore offer overrides; your selected plan retains them.</p>
-          <details className="mt-2 text-xs"><summary className="cursor-pointer font-medium">Inspect comparison audience IDs</summary><p className="mt-2 break-words">{p.comparisonAudienceIds.join(", ") || "Empty audience"}</p></details>
+          <p className="mt-2 text-xs text-muted-foreground">Same {p.comparisonAudienceIds.length} eligible customers · Same assumptions · Approval required</p>
+          <details className="mt-2 text-xs"><summary className="cursor-pointer font-medium">Comparison methodology & audience</summary><p className="mt-2 leading-relaxed text-muted-foreground">Every strategy evaluates the same eligible non-holdout IDs after exclusions and review resolution. No outreach has zero forecast contribution, exposure and cost. Baselines ignore offer overrides; your selected plan retains them. Invalid strategies are counterfactuals, not executable alternatives.</p><p className="mt-2 break-words">{p.comparisonAudienceIds.join(", ") || "Empty audience"}</p></details>
           {[true, false].map((valid) => (
             <div key={String(valid)} className="mt-3">
               <h3 className="text-sm font-semibold">{valid ? "Executable strategies · approval required" : "Invalid counterfactuals · cannot launch"}</h3>
@@ -143,7 +143,7 @@ function Workbench() {
           </div>
         </section>
 
-        <details className="panel p-4">
+        <details data-tour="economics" className="panel p-4">
           <summary className="section-title cursor-pointer">Calculation & assumptions</summary>
           <p className="mt-2 rounded bg-muted px-2 py-1.5 font-mono text-xs">E = P(purchase) × (contribution before incentive − discount) − messaging cost (Rs {MESSAGE_COST})</p>
           {[heroF, secondF].filter((f) => f !== undefined).map((f, i) => {

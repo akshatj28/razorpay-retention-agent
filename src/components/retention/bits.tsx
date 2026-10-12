@@ -45,7 +45,7 @@ export function Stat({ label, value, hint, kind }: { label: string; value: React
   return (
     <div className="min-w-0">
       <div className="label-text flex items-center gap-1.5">{label}{kind && <KindTag kind={kind} />}</div>
-      <div className="num mt-0.5 text-xl font-semibold">{value}</div>
+      <div className="num mt-1.5 font-heading text-2xl font-semibold tracking-tight">{value}</div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
