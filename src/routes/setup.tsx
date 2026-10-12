@@ -7,9 +7,11 @@ import {
   CircleCheck,
   Code2,
   Database,
+  Image as ImageIcon,
   Link2,
   Lock,
   MessageCircle,
+  Mic,
   Plug,
   ShieldCheck,
   ShoppingBag,
@@ -28,7 +30,7 @@ import {
 import { Note, PageHeader, Pill } from "@/components/retention/bits";
 import { baseDataset, MIN_COMPLETED_FOR_INTERVAL } from "@/retention/data";
 import { useDemo } from "@/retention/store";
-import { SETUP_KEY } from "@/retention/onboarding";
+import { SETUP_EVENT, SETUP_KEY } from "@/retention/onboarding";
 
 export const Route = createFileRoute("/setup")({
   head: () => ({
@@ -64,7 +66,7 @@ interface Stats {
 const START: SetupState = {
   step: "store",
   domain: "nira-botanics.myshopify.com",
-  channel: "agent-studio",
+  channel: "whatsapp-voice",
 };
 
 const STEPS: { id: StepId; title: string; hint: string }[] = [
@@ -86,6 +88,29 @@ const SHOPIFY_SCOPES = [
     icon: Store,
     label: "Read products and inventory",
     detail: "So the agent never promotes out-of-stock items",
+  },
+];
+const CHANNELS = [
+  {
+    icon: MessageCircle,
+    title: "WhatsApp messages",
+    detail:
+      "Sent from your WhatsApp Business number. Each customer gets their own text, product, price and discount code.",
+    live: true,
+  },
+  {
+    icon: ImageIcon,
+    title: "Personalised images",
+    detail:
+      "An image for each customer with their product and price in your brand style. Prices come from your catalogue, never from the AI.",
+    live: true,
+  },
+  {
+    icon: Mic,
+    title: "AI voice follow-ups",
+    detail:
+      "Hindi or English calls with natural voices powered by ElevenLabs. The assistant follows your script and can't offer more than the approved discount.",
+    live: false,
   },
 ];
 const NOT_REQUESTED = [
@@ -113,6 +138,7 @@ function Setup() {
     } catch {
       /* storage unavailable */
     }
+    window.dispatchEvent(new Event(SETUP_EVENT));
   };
   const go = (step: SetupState["step"]) => save({ ...s, step });
 
@@ -304,8 +330,8 @@ function Setup() {
           {s.step === "razorpay" && (
             <StepPanel
               n={2}
-              title="Link your Razorpay data"
-              subtitle="Your store knows what was ordered. Razorpay knows what was actually paid, refunded or never collected."
+              title="Link your payment data"
+              subtitle="Your store knows what was ordered. Your payment provider knows what was actually paid, refunded or never collected."
             >
               <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-surface p-4">
                 <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -342,6 +368,33 @@ function Setup() {
                   store's customer data.
                 </Note>
               </div>
+              <div className="mt-4 rounded-xl border p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-semibold">Not on Razorpay checkout?</div>
+                  <Pill>Supported by API</Pill>
+                </div>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {[
+                    [
+                      "Another payment gateway",
+                      "Send payments, refunds and failures through our Payments API or webhooks.",
+                    ],
+                    [
+                      "Your courier or shipping partner",
+                      "Send COD collection and RTO status by API, so returns don't count as wins.",
+                    ],
+                    [
+                      "What changes",
+                      "No Razorpay RTO score. The agent uses your store and courier history instead, so it can't ask risky COD buyers to pay online as precisely.",
+                    ],
+                  ].map(([t, x]) => (
+                    <li key={t}>
+                      <span className="font-medium">{t}.</span>{" "}
+                      <span className="text-muted-foreground">{x}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <StepNav
                 onBack={() => go("store")}
                 onNext={() => go("import")}
@@ -358,26 +411,40 @@ function Setup() {
             <StepPanel
               n={4}
               title="How should the agent reach customers?"
-              subtitle="The agent decides who to contact and what to offer. A messaging channel delivers it, and only after you approve the campaign."
+              subtitle="Retention Agent sends messages and makes calls itself, and only after you approve a campaign. Every message is built for one customer from their orders and payment history."
             >
+              <div className="mb-5 grid gap-3 md:grid-cols-3">
+                {CHANNELS.map((x) => (
+                  <div key={x.title} className="rounded-xl border p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <x.icon className="size-5 text-primary" aria-hidden />
+                      <Pill t={x.live ? "success" : "neutral"}>
+                        {x.live ? "Included" : "Not live in this demo"}
+                      </Pill>
+                    </div>
+                    <div className="mt-3 font-semibold">{x.title}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{x.detail}</p>
+                  </div>
+                ))}
+              </div>
               <RadioGroup
-                label="Messaging channel"
+                label="Send campaigns by"
                 name="channel"
                 value={s.channel}
                 onChange={({ value }) => setS({ ...s, channel: value })}
               >
-                <Radio value="agent-studio" helpText="Uses your existing WhatsApp Business number">
-                  WhatsApp via Razorpay Agent Studio
-                </Radio>
                 <Radio
-                  value="bitespeed"
-                  helpText="Keep your current retention tool; the agent sends it the audience and offers"
+                  value="whatsapp-voice"
+                  helpText="WhatsApp first; a voice call only for customers who don't reply and agreed to calls"
                 >
-                  WhatsApp via BiteSpeed (Razorpay partner)
+                  WhatsApp + AI voice follow-ups
+                </Radio>
+                <Radio value="whatsapp" helpText="Uses your WhatsApp Business number">
+                  WhatsApp only
                 </Radio>
                 <Radio
                   value="export"
-                  helpText="Download the approved audience and send it yourself"
+                  helpText="Download the approved customers and offers and send them yourself"
                 >
                   CSV export only
                 </Radio>
@@ -389,6 +456,7 @@ function Setup() {
                     `Only customers who opted in to marketing in Shopify (${stats.consented} of ${stats.customers})`,
                   ],
                   [ShieldCheck, "Every campaign waits for your approval before anything is sent"],
+                  [Mic, "Calls only to customers who agreed to be called"],
                   [Link2, "Reorder links open a pre-filled Razorpay checkout"],
                 ].map(([Icon, t]) => {
                   const I = Icon as typeof MessageCircle;

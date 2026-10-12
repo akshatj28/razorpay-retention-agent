@@ -10,7 +10,7 @@ The app, CSV and SQLite use one deterministic history generator. Generated histo
 
 Shopify supplies merchant purchase history. Proposed Razorpay enrichment supplies permitted derived payment/delivery-risk context where access is available. Vulcan is a structured-payments foundation model, not an LLM or an exportable database of raw cross-merchant customer history.
 
-Network risk informs payment treatment and expected delivery economics. It does not imply sensitivity to a particular discount. Offer responsiveness, product relevance and timing belong to the retention layer and need task-specific validation. Missing/unmatched/stale signals fall back to merchant history. Every demo signal is explicitly simulated.
+Network risk informs payment treatment and expected delivery economics. It does not imply sensitivity to a particular discount. Offer responsiveness, product relevance and timing belong to the retention layer and need task-specific validation. Missing/unmatched/stale signals fall back to merchant history. Stores not on Razorpay checkout can send payments, refunds and COD/RTO outcomes through a Payments API, webhooks or courier APIs; they lose only the Razorpay RTO score. Every demo signal is explicitly simulated.
 
 Language-model interfaces propose messages and conversation flows; the offline adapters are deterministic simulations. One campaign background was generated using built-in ImageGen, then saved locally. Product/price personalization is deterministic, with no fabricated prices, product claims or per-recipient image-generation requests.
 
@@ -20,7 +20,7 @@ Home offers review of prepared recommendations or custom creation. Both paths us
 
 Initial working goals: replenishment, second purchase and win-back. Familiar audience templates include repeat buyers, previously discounted purchases and COD-preferring customers with fresh low-risk simulated signals.
 
-WhatsApp is the primary channel. Optional voice follow-ups require separate voice permission and operator economics. Message text, creative direction/headline and opening/interested/objection/decline branches are editable. Email appears as coming soon and cannot be selected for delivery.
+Messaging and calls are first-party: WhatsApp Business messages, a personalised image per customer, and AI voice follow-ups (ElevenLabs voices, planned and not live in the demo). No third-party retention tool is required. WhatsApp is the primary channel. Optional voice follow-ups require separate voice permission and operator economics. Message text, creative direction/headline and opening/interested/objection/decline branches are editable. Email appears as coming soon and cannot be selected for delivery.
 
 ## State and refresh
 
@@ -61,6 +61,5 @@ Shopify OAuth, approved older-order access, bulk backfill and idempotent event i
 - https://shopify.dev/docs/api/admin-graphql/latest/objects/Order — order/customer/line-item structure and default 60-day access.
 - https://razorpay.com/blog/vulcan-how-razorpay-built-a-foundation-model-for-payment-decisions/ — payment representations and task-specific decision layers.
 - https://github.com/razorpay/markdown-docs/blob/master/payments/magic-checkout/rto-intelligence.md — documented order risk tiers/reasons; not proof of arbitrary campaign-time feature access.
-- https://www.bitespeed.co/ — familiar segmentation, journey and campaign-agent patterns.
 - https://help.klaviyo.com/hc/en-us/articles/115005054847 — audience/content/review/schedule workflow.
 - https://help.klaviyo.com/hc/en-us/articles/115005248128 — message attribution semantics.

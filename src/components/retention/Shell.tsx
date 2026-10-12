@@ -10,25 +10,25 @@ import {
   RotateCcw,
   Store,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button, RefreshIcon } from "@razorpay/blade/components";
 import { useDemo } from "@/retention/store";
-import { Pill } from "./bits";
+import { isStoreConnected, SETUP_EVENT } from "@/retention/onboarding";
 import { EvaluatorTour } from "./EvaluatorTour";
 
+// Ordered by how often a merchant uses them; connections are set once and live at the bottom.
 const NAV = [
-  { to: "/setup", label: "Connect store", icon: Plug },
   { to: "/", label: "Today", icon: LayoutGrid },
   { to: "/campaigns", label: "Campaigns", icon: ClipboardCheck },
-  { to: "/database", label: "Order data", icon: Store },
   { to: "/insights", label: "Compare strategies", icon: FlaskConical },
+  { to: "/database", label: "Order data", icon: Store },
 ] as const;
 
 const CRUMB: Record<string, string> = {
   "/campaigns": "Campaigns",
   "/database": "Order data",
   "/insights": "Compare strategies",
-  "/setup": "Connect store",
+  "/setup": "Connections",
   "/": "Today",
   "/cohort": "Cohort intelligence",
   "/workbench": "Decision workbench",
@@ -41,6 +41,13 @@ export function Shell({ children }: { children: ReactNode }) {
   const [done, setDone] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    const check = () => setConnected(isStoreConnected());
+    check();
+    window.addEventListener(SETUP_EVENT, check);
+    return () => window.removeEventListener(SETUP_EVENT, check);
+  }, [path]);
   return (
     <div className="app-shell flex min-h-screen flex-col lg:flex-row">
       <aside className="app-sidebar flex w-full shrink-0 flex-col border-b bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:border-r">
@@ -62,6 +69,16 @@ export function Shell({ children }: { children: ReactNode }) {
             <span className="flex-1 truncate">Nira Botanics</span>
             <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
           </button>
+          <Link
+            to="/setup"
+            className="mt-2 flex items-center gap-2 px-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <span
+              className={`size-2 shrink-0 rounded-full ${connected ? "bg-success" : "bg-warning"}`}
+              aria-hidden
+            />
+            {connected ? "Shopify + Razorpay connected" : "Store not connected yet"}
+          </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-3" aria-label="Primary">
           <div className="label-text mb-1 flex items-center gap-1.5 px-1">
@@ -86,20 +103,16 @@ export function Shell({ children }: { children: ReactNode }) {
               );
             })}
           </ul>
-          <div className="label-text mt-5 mb-1 flex items-center gap-1.5 px-1">
-            <FlaskConical className="size-3.5" aria-hidden />
-            Channels
-          </div>
-          <ul className="ml-3 space-y-0.5 border-l pl-2 text-sm text-muted-foreground">
-            <li className="flex items-center justify-between px-2 py-1.5">
-              WhatsApp <Pill>Demo</Pill>
-            </li>
-            <li className="flex items-center justify-between px-2 py-1.5">
-              Voice <Pill>Demo</Pill>
-            </li>
-          </ul>
         </nav>
-        <div className="border-t p-3 text-xs text-muted-foreground">
+        <div className="space-y-1 border-t p-3 text-xs text-muted-foreground">
+          <Link
+            to="/setup"
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${path === "/setup" ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground" : "text-foreground hover:bg-muted"}`}
+            aria-current={path === "/setup" ? "page" : undefined}
+          >
+            <Plug className="size-4 shrink-0" aria-hidden />
+            Connections
+          </Link>
           <Button variant="tertiary" size="small" onClick={() => setAboutOpen(true)}>
             About this prototype
           </Button>

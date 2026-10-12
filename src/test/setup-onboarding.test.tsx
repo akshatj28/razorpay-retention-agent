@@ -30,7 +30,7 @@ describe("Store setup onboarding", () => {
     expect(await screen.findByText("Read orders and line items")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Install app" }));
 
-    expect(await screen.findByText("Link your Razorpay data")).toBeInTheDocument();
+    expect(await screen.findByText("Link your payment data")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Link and continue" }));
 
     expect(await screen.findByText("Importing your order history")).toBeInTheDocument();

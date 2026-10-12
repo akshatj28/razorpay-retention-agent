@@ -1,5 +1,13 @@
 # AI build log (factual)
 
+## 12 October 2026 — sidebar, first-party channels, non-Razorpay data
+
+- Sidebar ordered by use: Today, Campaigns, Compare strategies, Order data. Store setup moved to Connections at the bottom, with a connection status line under the store name. The Channels section with "Demo" tags is removed.
+- BiteSpeed removed from the product and docs. Setup step 4 shows first-party channels: WhatsApp messages and personalised images (included) and AI voice follow-ups with ElevenLabs voices (shown, not live in this demo). Options: WhatsApp + AI voice, WhatsApp only, CSV export.
+- Campaign Message tab explains how each channel is personalised per customer.
+- Setup step 2 is now "Link your payment data" and shows how stores not on Razorpay checkout connect payments and COD/RTO outcomes by API, webhooks or courier APIs, and what they lose (the Razorpay RTO score).
+- Verification: TypeScript, 25 tests across seven files passed; sidebar status, setup steps and channels checked in the browser.
+
 ## 12 October 2026 — reviewer gap fixes
 
 - Tour replay: at "One decision per customer" the tour closes any open campaign so the suggested campaigns reappear; saved drafts, completed campaigns and templates are untouched. Following the step opens a fresh editable draft.
@@ -11,7 +19,7 @@
 
 - First visit opens on Connect store with an intro pop-up: the four-step flow (Connect, Review, Approve, Measure) and a guided-tour invitation for whoever is reviewing the build. One-click "Connect demo store" and "Skip to today's campaigns".
 - Guided tour gains a setup stop (seven stops) and uses merchant vocabulary.
-- Screens rewritten in the words merchants already use in Shopify, the Razorpay dashboard and BiteSpeed/Klaviyo: extra profit, control group, sales credited to messages, delivered and paid, discount code, segment, RTO risk. Sidebar: Connect store, Today, Campaigns, Order data, Compare strategies.
+- Screens rewritten in the words merchants already use in Shopify, the Razorpay dashboard and WhatsApp marketing tools: extra profit, control group, sales credited to messages, delivered and paid, discount code, segment, RTO risk. Sidebar: Connect store, Today, Campaigns, Order data, Compare strategies.
 - Home hero now leads with today's decisions and expected extra profit; the 25% fee moved to Budget & approval.
 - Repeated per-card "simulated" labels replaced by one "Demo store · sample data" badge plus the intro and About text.
 - Fixed shopper WhatsApp text: {{payment}} previously inserted the internal label ("Prepaid nudge; COD rechecked at checkout"); shoppers now see plain sentences.

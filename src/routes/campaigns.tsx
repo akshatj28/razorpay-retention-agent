@@ -530,6 +530,27 @@ function Campaigns() {
               )}
               {step === "Message" && (
                 <div className="space-y-5">
+                  <div className="grid gap-3 rounded-xl bg-surface p-4 sm:grid-cols-3">
+                    {[
+                      [
+                        "WhatsApp message",
+                        "Each customer's own product, discount code and payment line, from their orders.",
+                      ],
+                      [
+                        "Personalised image",
+                        "Their product and price in your brand style. Prices come from your catalogue.",
+                      ],
+                      [
+                        "AI voice follow-up",
+                        "Hindi or English, powered by ElevenLabs, only for customers who agreed to calls.",
+                      ],
+                    ].map(([t, x]) => (
+                      <div key={t}>
+                        <div className="text-sm font-semibold">{t}</div>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{x}</p>
+                      </div>
+                    ))}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {["WhatsApp", "Call flow", "Email"].map((x) => (
                       <button
@@ -694,7 +715,8 @@ function Campaigns() {
                       <Note>
                         Only customers who agreed to calls, and only when the expected profit covers
                         the call. {view.actions.filter((x) => x.callEligible).length} qualify. We
-                        pay for calls.
+                        pay for calls. Voices are powered by ElevenLabs; calls are not live in this
+                        demo.
                       </Note>
                       {(
                         [
