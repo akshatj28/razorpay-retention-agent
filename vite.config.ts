@@ -13,10 +13,25 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // Blade's published barrel contains extensionless Day.js plugin imports.
+    // Let Vite resolve them during SSR instead of handing the barrel to Node ESM.
+    ssr: {
+      noExternal: ["@razorpay/blade", "styled-components"],
+      // Normalize styled-components v5's CommonJS dependencies in the dev SSR runner.
+      optimizeDeps: {
+        include: ["@razorpay/blade/components", "@razorpay/blade/tokens", "styled-components"],
+        // React must stay shared with the external server renderer, not bundled a second time.
+        exclude: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+      },
+    },
     // Pre-bundle UI deps up front so late discovery doesn't re-optimize mid-session
     // (which left mixed React copies and crashed dialogs with "reading 'useRef'").
     optimizeDeps: {
       include: [
+        "@razorpay/blade/components",
+        "@razorpay/blade/tokens",
+        "styled-components",
+        "framer-motion",
         "@radix-ui/react-alert-dialog",
         "@radix-ui/react-dialog",
         "@radix-ui/react-slot",

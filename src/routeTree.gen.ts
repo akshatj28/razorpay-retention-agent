@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CohortRouteImport } from './routes/cohort'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as WorkbenchRouteImport } from './routes/workbench'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkbenchRoute = WorkbenchRouteImport.update({
   id: '/workbench',
   path: '/workbench',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cohort': typeof CohortRoute
   '/review': typeof ReviewRoute
+  '/setup': typeof SetupRoute
   '/workbench': typeof WorkbenchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cohort': typeof CohortRoute
   '/review': typeof ReviewRoute
+  '/setup': typeof SetupRoute
   '/workbench': typeof WorkbenchRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cohort': typeof CohortRoute
   '/review': typeof ReviewRoute
+  '/setup': typeof SetupRoute
   '/workbench': typeof WorkbenchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cohort' | '/review' | '/workbench'
+  fullPaths: '/' | '/cohort' | '/review' | '/setup' | '/workbench'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cohort' | '/review' | '/workbench'
-  id: '__root__' | '/' | '/cohort' | '/review' | '/workbench'
+  to: '/' | '/cohort' | '/review' | '/setup' | '/workbench'
+  id: '__root__' | '/' | '/cohort' | '/review' | '/setup' | '/workbench'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CohortRoute: typeof CohortRoute
   ReviewRoute: typeof ReviewRoute
+  SetupRoute: typeof SetupRoute
   WorkbenchRoute: typeof WorkbenchRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workbench': {
       id: '/workbench'
       path: '/workbench'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CohortRoute: CohortRoute,
   ReviewRoute: ReviewRoute,
+  SetupRoute: SetupRoute,
   WorkbenchRoute: WorkbenchRoute,
 }
 export const routeTree = rootRouteImport

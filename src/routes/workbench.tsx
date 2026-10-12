@@ -1,9 +1,11 @@
+import { CellTable } from "@/components/retention/DataTable";
+import { SelectField } from "@/components/retention/SelectField";
+import { LinkButton } from "@/components/retention/LinkButton";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Lock, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@razorpay/blade/components";
+import { TextInput } from "@razorpay/blade/components";
 import { PlanSummary } from "@/components/retention/PlanSummary";
 import { CustomerDrawer } from "@/components/retention/CustomerDrawer";
 import { CheckPill, KindTag, Note, PageHeader, Pill, RecLabel } from "@/components/retention/bits";
@@ -30,16 +32,8 @@ export const Route = createFileRoute("/workbench")({
 const modeLabel = (m: OfferMode) => (m === "recommended" ? "Recommended mix" : m === 0 ? "Uniform: no discount" : `Uniform: ${m}%`);
 
 function NumField({ id, label, value, onChange, suffix, disabled, min = 0, max }: { id: string; label: string; value: number; onChange: (n: number) => void; suffix?: string; disabled?: boolean; min?: number; max?: number }) {
-  return (
-    <div>
-      <label htmlFor={id} className="label-text">{label}</label>
-      <div className="mt-1 flex items-center gap-1.5">
-        <Input id={id} type="number" className="num h-8 w-24" value={value} min={min} max={max} disabled={disabled}
-          onChange={(e) => { const n = Number(e.target.value); if (Number.isFinite(n) && n >= min && (max == null || n <= max)) onChange(n); }} />
-        {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
-      </div>
-    </div>
-  );
+  return <TextInput label={label} name={id} type="number" value={String(value)} {...(suffix ? { suffix } : {})} isDisabled={disabled ?? false}
+    onChange={({ value: raw }) => { const n = Number(raw); if (raw?.trim() && Number.isFinite(n) && n >= min && (max == null || n <= max)) onChange(n); }} />;
 }
 
 function Workbench() {
@@ -57,7 +51,7 @@ function Workbench() {
   return (
     <div className="space-y-4 animate-enter">
       <PageHeader title="Build a contribution-first campaign." subtitle={<>Decision workbench · Replenishment <Pill t="success" className="ml-1">Working demo</Pill></>}
-        actions={<Button asChild><Link to="/review">Review & approve <ArrowRight className="size-4" aria-hidden /></Link></Button>} />
+        actions={<LinkButton to="/review">Review & approve</LinkButton>} />
       {launched && <Note t="warning"><Lock className="mr-1 inline size-3" aria-hidden />Campaign launched — audience, offers and policy settings are locked. Reset the demo to edit.</Note>}
       {state.campaign.invalidatedNotice && <Note t="warning">Approval was invalidated by your last change. Review and approve again before launch.</Note>}
 
@@ -81,11 +75,8 @@ function Workbench() {
           <h2 id="what" className="section-title">Product, timing & message</h2>
           <p className="mt-2 text-sm">Each customer’s previously purchased, in-stock relevant product.</p>
           <div className="mt-3">
-            <label className="label-text" htmlFor="timing">Send timing</label>
-            <Select value={cfg.timing} disabled={launched} onValueChange={(v) => set({ timing: v })}>
-              <SelectTrigger id="timing" className="mt-1 h-8 w-full"><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="10:00 IST">Today, 10:00 IST</SelectItem><SelectItem value="18:30 IST">Today, 18:30 IST</SelectItem><SelectItem value="Tomorrow 10:00 IST">Tomorrow, 10:00 IST</SelectItem></SelectContent>
-            </Select>
+            <SelectField label="Send timing" value={cfg.timing} isDisabled={launched} onChange={(value) => set({ timing: value })}
+              options={[{ value: "10:00 IST", label: "Today, 10:00 IST" }, { value: "18:30 IST", label: "Today, 18:30 IST" }, { value: "Tomorrow 10:00 IST", label: "Tomorrow, 10:00 IST" }]} />
           </div>
           {hero && (
             <div className="mt-3 rounded-md border bg-surface p-2.5 text-xs">
@@ -99,13 +90,11 @@ function Workbench() {
           <div className="label-text">3 · INCENTIVE</div>
           <h2 id="inc" className="section-title">Offer & constraints</h2>
           <div className="mt-2">
-            <label className="label-text" htmlFor="mode">Offer selection</label>
-            <Select value={String(cfg.offerMode)} disabled={launched} onValueChange={(v) => set({ offerMode: v === "recommended" ? "recommended" : (Number(v) as OfferPct) })}>
-              <SelectTrigger id="mode" className="mt-1 h-8 w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>{(["recommended", 0, 10, 20] as OfferMode[]).map((m) => <SelectItem key={String(m)} value={String(m)}>{modeLabel(m)}</SelectItem>)}</SelectContent>
-            </Select>
+            <SelectField label="Offer selection" value={String(cfg.offerMode)} isDisabled={launched}
+              onChange={(value) => set({ offerMode: value === "recommended" ? "recommended" : Number(value) as OfferPct })}
+              options={(["recommended", 0, 10, 20] as OfferMode[]).map((mode) => ({ value: String(mode), label: modeLabel(mode) }))} />
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <NumField id="budget" label="Campaign budget (Rs)" value={cfg.budget} disabled={launched} onChange={(n) => set({ budget: n })} />
             <NumField id="maxd" label="Max discount" suffix="%" value={cfg.maxDiscount} max={50} disabled={launched} onChange={(n) => set({ maxDiscount: n })} />
             <NumField id="floor" label="Min contribution / order" suffix="Rs" value={cfg.minContribution} disabled={launched} onChange={(n) => set({ minContribution: n })} />
@@ -123,15 +112,9 @@ function Workbench() {
             <div key={String(valid)} className="mt-3">
               <h3 className="text-sm font-semibold">{valid ? "Executable strategies · approval required" : "Invalid counterfactuals · cannot launch"}</h3>
               <div className="overflow-x-auto">
-                <table className="num mt-2 w-full min-w-[640px] text-xs">
-                  <thead className="text-muted-foreground"><tr className="border-b"><th className="py-2 text-left">Strategy</th><th>Audience</th><th>Contact / no outreach</th><th>{valid ? "Forecast contribution" : "Counterfactual contribution"}</th><th>Exposure</th><th>Launchability</th></tr></thead>
-                  <tbody>{p.comparison.filter((c) => c.launchable === valid).map((c) => (
-                    <tr key={String(c.mode)} className="border-b">
-                      <td className="py-2">{modeLabel(c.mode)}</td><td className="text-center">{p.comparisonAudienceIds.length}</td><td className="text-center">{c.rows.length} / {c.noOutreach.length}</td>
-                      <td className="text-right">{inr(c.totals.expected)}</td><td className="px-2 text-right">{inr(c.totals.exposure)}</td><td>{valid ? "Yes, after approval" : <span className="text-destructive">No · {c.blockers.join("; ")}</span>}</td>
-                    </tr>
-                  ))}</tbody>
-                </table>
+                <CellTable label={valid ? "Executable offer strategies" : "Invalid offer counterfactuals"} minWidth={820}
+                  headings={[{ label: "Strategy", width: "minmax(160px, 1.2fr)" }, { label: "Audience", align: "center" }, { label: "Contact / no outreach", align: "center" }, { label: valid ? "Forecast contribution" : "Counterfactual contribution", align: "right" }, { label: "Exposure", align: "right" }, { label: "Launchability", width: "minmax(190px, 1.5fr)" }]}
+                  rows={p.comparison.filter((c) => c.launchable === valid).map((c) => ({ id: String(c.mode), cells: [modeLabel(c.mode), p.comparisonAudienceIds.length, `${c.rows.length} / ${c.noOutreach.length}`, inr(c.totals.expected), inr(c.totals.exposure), valid ? "Yes, after approval" : <span className="text-destructive">No · {c.blockers.join("; ")}</span>] }))} />
               </div>
               {!p.comparison.some((c) => c.launchable === valid) && <p className="mt-1 text-xs text-muted-foreground">None under the current constraints.</p>}
             </div>
@@ -156,12 +139,9 @@ function Workbench() {
               <div key={f.customer.id} className="mt-3">
                 <div className="text-xs font-medium">{i === 0 ? "Hero fixture" : "Second fixture"}: {f.customer.name} — {f.relevantProduct.name}</div>
                 <div className="text-xs text-muted-foreground">Basket {inr(f.relevantProduct.price)} · contribution before incentive {inr(f.relevantProduct.price - f.relevantProduct.variableCost)} (after assumed variable order costs)</div>
-                <div className="overflow-x-auto"><table className="num mt-1 w-full min-w-[360px] text-xs">
-                  <thead className="text-muted-foreground"><tr><th className="text-left font-medium">Offer</th><th className="text-right font-medium">P</th><th className="text-right font-medium">Discount</th><th className="text-right font-medium">E / contact</th><th className="text-right font-medium" /></tr></thead>
-                  <tbody>{evals.map((e) => (
-                    <tr key={e.x} className={best?.x === e.x ? "font-semibold" : ""}><td>{e.x === 0 ? "No discount" : `${e.x}%`}</td><td className="text-right">{pct(e.pp)}</td><td className="text-right">{inr(e.disc)}</td><td className="text-right">{inr(e.e)}</td><td className="text-right">{!e.ok ? <Pill t="danger">Blocked</Pill> : best?.x === e.x ? <RecLabel>Best</RecLabel> : null}</td></tr>
-                  ))}</tbody>
-                </table></div>
+                <div className="overflow-x-auto"><CellTable label={`Offer calculations for ${f.customer.name}`} minWidth={450}
+                  headings={[{ label: "Offer" }, { label: "P", align: "right" }, { label: "Discount", align: "right" }, { label: "E / contact", align: "right" }, { label: "Status", align: "right" }]}
+                  rows={evals.map((e) => ({ id: String(e.x), cells: [e.x === 0 ? "No discount" : `${e.x}%`, pct(e.pp), inr(e.disc), <span className={best?.x === e.x ? "font-semibold" : ""}>{inr(e.e)}</span>, !e.ok ? <Pill t="danger">Blocked</Pill> : best?.x === e.x ? <RecLabel>Best</RecLabel> : "Permitted"] }))} /></div>
               </div>
             );
           })}
@@ -172,34 +152,22 @@ function Workbench() {
       <details className="panel overflow-hidden">
         <summary className="cursor-pointer p-4"><span className="section-title">Customer-level actions</span><span className="ml-2 text-xs text-muted-foreground">{p.contacted.length} proposed contacts · {p.noOutreach.length} no outreach</span></summary>
         <div className="max-h-80 overflow-auto">
-          <table className="num w-full min-w-[850px] text-sm">
-            <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground"><tr className="border-b"><th className="px-4 py-2 font-medium">Customer</th><th className="px-2 font-medium">Product</th><th className="px-2 text-right font-medium">Recommended</th><th className="px-2 font-medium">Applied offer</th><th className="px-2 text-right font-medium">E / contact</th><th className="px-2 text-right font-medium">Exposure</th><th className="px-4 font-medium">Status</th></tr></thead>
-            <tbody>
-              {p.contacted.map((r) => (
-                <tr key={r.feature.customer.id} className="border-b last:border-0">
-                  <td className="px-4 py-1.5"><button type="button" className="text-primary hover:underline" onClick={() => setOpen(r.feature.customer.id)}>{r.feature.customer.name}</button></td>
-                  <td className="px-2 text-xs">{r.product.name}</td>
-                  <td className="px-2 text-right">{r.rec.offerPct === null ? "No outreach" : r.rec.offerPct === 0 ? "No discount" : `${r.rec.offerPct}%`}</td>
-                  <td className="px-2">
-                    <Select value={String(r.offerPct)} disabled={launched} onValueChange={(v) => update((s) => setOverride(s, r.feature.customer.id, Number(v) as OfferPct))}>
-                      <SelectTrigger className="h-7 w-32 text-xs" aria-label={`Offer for ${r.feature.customer.name}`}><SelectValue /></SelectTrigger>
-                      <SelectContent>{[0, 10, 20].map((x) => <SelectItem key={x} value={String(x)}>{x === 0 ? "No discount" : `${x}%`}</SelectItem>)}</SelectContent>
-                    </Select>
-                    {r.source === "override" && <button type="button" disabled={launched} className="ml-1 text-xs text-primary hover:underline" onClick={() => update((s) => setOverride(s, r.feature.customer.id, null))}>Clear override</button>}
-                  </td>
-                  <td className="px-2 text-right">{inr(r.evaluation.expectedContribution, true)}</td>
-                  <td className="px-2 text-right">{inr(r.exposure)}</td>
-                  <td className="px-4 text-xs">{r.valid ? <CheckPill s="passed" /> : <span className="flex items-center gap-1"><CheckPill s="blocked" />{r.blockReason}</span>}</td>
-                </tr>
-              ))}
-              {p.noOutreach.map((n) => (
-                <tr key={n.feature.customer.id} className="border-b bg-surface text-muted-foreground last:border-0">
-                  <td className="px-4 py-1.5"><button type="button" className="hover:underline" onClick={() => setOpen(n.feature.customer.id)}>{n.feature.customer.name}</button></td>
-                  <td className="px-2 text-xs">{n.feature.relevantProduct.name}</td><td className="px-2 text-right">No outreach</td><td className="px-2 text-xs" colSpan={4}>{n.rec.explanation}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <CellTable label="Customer-level campaign actions" minWidth={1050}
+            headings={[{ label: "Customer", width: "minmax(170px, 1fr)" }, { label: "Product", width: "minmax(160px, 1fr)" }, { label: "Recommended", align: "right" }, { label: "Applied offer", width: "minmax(190px, 1.2fr)" }, { label: "E / contact", align: "right" }, { label: "Exposure", align: "right" }, { label: "Status", width: "minmax(170px, 1fr)" }]}
+            rows={[
+              ...p.contacted.map((r) => ({ id: r.feature.customer.id, cells: [
+                <Button variant="tertiary" size="small" onClick={() => setOpen(r.feature.customer.id)}>{r.feature.customer.name}</Button>,
+                r.product.name,
+                r.rec.offerPct === null ? "No outreach" : r.rec.offerPct === 0 ? "No discount" : `${r.rec.offerPct}%`,
+                <div><SelectField value={String(r.offerPct)} isDisabled={launched} accessibilityLabel={`Offer for ${r.feature.customer.name}`}
+                  onChange={(value) => update((s) => setOverride(s, r.feature.customer.id, Number(value) as OfferPct))}
+                  options={[0, 10, 20].map((x) => ({ value: String(x), label: x === 0 ? "No discount" : `${x}%` }))} />
+                  {r.source === "override" && <Button size="small" variant="tertiary" isDisabled={launched} onClick={() => update((s) => setOverride(s, r.feature.customer.id, null))}>Clear override</Button>}</div>,
+                inr(r.evaluation.expectedContribution, true), inr(r.exposure),
+                r.valid ? <CheckPill s="passed" /> : <span><CheckPill s="blocked" /> {r.blockReason}</span>,
+              ] })),
+              ...p.noOutreach.map((n) => ({ id: n.feature.customer.id, cells: [<Button variant="tertiary" size="small" onClick={() => setOpen(n.feature.customer.id)}>{n.feature.customer.name}</Button>, n.feature.relevantProduct.name, "No outreach", "—", "—", "—", n.rec.explanation] })),
+            ]} />
         </div>
       </details>
       <CustomerDrawer id={open} onClose={() => setOpen(null)} />

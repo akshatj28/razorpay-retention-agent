@@ -12,9 +12,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BladeTheme } from "@/components/retention/BladeTheme";
 import { DemoStoreProvider } from "@/retention/store";
 import { Shell } from "@/components/retention/Shell";
-import { Toaster } from "@/components/ui/sonner";
+import { ToastContainer } from "@razorpay/blade/components";
 
 function NotFoundComponent() {
   return (
@@ -93,12 +94,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <DemoStoreProvider>
+      <BladeTheme><DemoStoreProvider>
         <Shell>
           <Outlet />
         </Shell>
-        <Toaster position="bottom-right" />
-      </DemoStoreProvider>
+        <ToastContainer />
+      </DemoStoreProvider></BladeTheme>
     </QueryClientProvider>
   );
 }

@@ -44,7 +44,10 @@ Recommendations (deterministic adapter `deterministic-simulated-v1`), WhatsApp m
 - Settings are locked after launch (reset to edit).
 
 ## Design and fonts
-- Blade-inspired styling: Razorpay Blade components are **not** used (Blade depends on styled-components and its own provider; we kept the existing Radix/shadcn primitives restyled with semantic tokens). Colour values are approximations, not official Blade tokens.
+- Uses the actual open-source `@razorpay/blade` components (12.129.0): buttons, inputs, dropdowns, slider, tabs, badges, alerts, headings, modals, customer drawer, tables and toast notifications. Custom application layouts remain in HTML/Tailwind.
+- `BladeTheme` configures Blade's light theme and exposes its resolved colours and border radius to the custom layout utilities. Fonts remain self-hosted; there are no CDN calls.
+- Vite pre-bundles Blade and its styling dependencies for client and development SSR. Server React stays excluded from that bundle so it shares the renderer's instance. This handles Blade's extensionless dependency imports and CommonJS interop without modifying the package.
+- Server-rendered Blade styles are collected per request and hoisted into the document head. Desktop dialogs use Modal; mobile dialogs use BottomSheet.
 - Fonts: TASA Orbiter (headings) and Inter (body) are self-hosted copies of the files in `razorpay/blade/packages/blade/fonts` (SIL Open Font License 1.1), with Blade's fallback order (→ Arial/sans-serif). See `public/fonts/NOTICE.md`.
 
 ## Future grounded AI adapter

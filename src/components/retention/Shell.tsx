@@ -1,26 +1,28 @@
+import { AppModal } from "./AppModal";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bot, ChevronDown, ClipboardCheck, FlaskConical, LayoutGrid, RotateCcw, SlidersHorizontal, Store, Users } from "lucide-react";
+import { Bot, ChevronDown, ClipboardCheck, FlaskConical, LayoutGrid, Plug, RotateCcw, SlidersHorizontal, Store, Users } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button, RefreshIcon } from "@razorpay/blade/components";
 import { useDemo } from "@/retention/store";
 import { Pill } from "./bits";
 import { EvaluatorTour } from "./EvaluatorTour";
 
 const NAV = [
+  { to: "/setup", label: "Store setup", icon: Plug },
   { to: "/", label: "Opportunities", icon: LayoutGrid },
   { to: "/cohort", label: "Cohort intelligence", icon: Users },
   { to: "/workbench", label: "Decision workbench", icon: SlidersHorizontal },
   { to: "/review", label: "Review & execution", icon: ClipboardCheck },
 ] as const;
 
-const CRUMB: Record<string, string> = { "/": "Opportunities", "/cohort": "Cohort intelligence", "/workbench": "Decision workbench", "/review": "Review & execution" };
+const CRUMB: Record<string, string> = { "/setup": "Store setup", "/": "Opportunities", "/cohort": "Cohort intelligence", "/workbench": "Decision workbench", "/review": "Review & execution" };
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { reset, state } = useDemo();
   const [done, setDone] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   return (
     <div className="app-shell flex min-h-screen flex-col lg:flex-row">
       <aside className="app-sidebar flex w-full shrink-0 flex-col border-b bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:border-r">
@@ -55,20 +57,14 @@ export function Shell({ children }: { children: ReactNode }) {
           </ul>
         </nav>
         <div className="border-t p-3 text-xs text-muted-foreground">
-          <Dialog>
-            <DialogTrigger className="underline-offset-2 hover:underline">About · Independent buildathon concept</DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>About this prototype</DialogTitle>
-                <DialogDescription>Independent buildathon concept for the Razorpay AI PM Build Challenge (Track 2: Recover and Grow with AI).</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-2 text-sm">
+          <Button variant="tertiary" size="small" onClick={() => setAboutOpen(true)}>About this prototype</Button>
+          <AppModal isOpen={aboutOpen} onDismiss={() => setAboutOpen(false)} title="About this prototype" subtitle="Independent buildathon concept for the Razorpay AI PM Build Challenge (Track 2: Recover and Grow with AI)." size="medium">
+              <div className="space-y-3 text-sm leading-relaxed">
                 <p>Retention Agent is a proposed extension for Razorpay Agent Studio. It is not an official Razorpay product, is not endorsed by Razorpay, and has no live integration.</p>
                 <p>All merchants, customers and orders are synthetic. Recommendations come from a deterministic simulated adapter; messages, deliveries and purchases are simulated. No external services are contacted.</p>
-                <p>Styling is Blade-inspired (Razorpay's public design system); Blade components are not used. Fonts are self-hosted copies of Blade's TASA Orbiter and Inter files (SIL OFL 1.1).</p>
+                <p>Built using Razorpay's open-source Blade components and theme tokens, with custom application layouts. Fonts are self-hosted copies of Blade's TASA Orbiter and Inter files (SIL OFL 1.1).</p>
               </div>
-            </DialogContent>
-          </Dialog>
+          </AppModal>
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -83,21 +79,13 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="header-controls flex min-w-0 flex-wrap items-center gap-2 xl:ml-auto">
             <EvaluatorTour />
             <span role="status" title="All customers and orders are synthetic. Recommendations, messages and outcomes are simulated." className="flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-xs text-muted-foreground"><FlaskConical className="size-3.5 shrink-0" aria-hidden />Demo data · No live customer data</span>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm"><RotateCcw className="size-3.5" aria-hidden />Reset demo</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Reset the demo?</AlertDialogTitle>
-                  <AlertDialogDescription>Restores the identical seeded dataset and a fresh draft campaign. All exclusions, approvals, sends and simulated outcomes ({state.campaign.events.length} events) are cleared.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => { reset(); setDone(true); setTimeout(() => setDone(false), 2500); }}>Reset demo</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button variant="secondary" size="small" icon={RefreshIcon} onClick={() => setResetOpen(true)}>Reset demo</Button>
+            <AppModal isOpen={resetOpen} onDismiss={() => setResetOpen(false)} title="Reset the demo?" footer={<>
+                <Button variant="secondary" onClick={() => setResetOpen(false)}>Cancel</Button>
+                <Button onClick={() => { reset(); setResetOpen(false); setDone(true); setTimeout(() => setDone(false), 2500); }}>Reset demo</Button>
+              </>}>
+              <p className="text-sm leading-relaxed">Restores the identical seeded dataset and a fresh draft campaign. All exclusions, approvals, sends and simulated outcomes ({state.campaign.events.length} events) are cleared.</p>
+            </AppModal>
             {done && <span role="status" className="text-xs text-success">Demo reset</span>}
           </div>
         </header>

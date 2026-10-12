@@ -1,5 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { CellTable } from "./DataTable";
+import { Drawer, DrawerHeader, Badge, DrawerBody } from "@razorpay/blade/components";
+import { Button } from "@razorpay/blade/components";
 import { orderContribution, orderValue, productById } from "@/retention/data";
 import { resolveReview, toggleExclude } from "@/retention/campaign";
 import { deterministicAdapter } from "@/retention/recommend";
@@ -15,16 +16,13 @@ export function CustomerDrawer({ id, onClose }: { id: string | null; onClose: ()
   const holdout = f && d.plan.holdout.some((h) => h.customer.id === f.customer.id);
   const merchantExcluded = f && state.excluded.includes(f.customer.id);
   const hardBlocked = f?.reasons.some((r) => r.hard);
+  if (!f || !rec) return null;
 
   return (
-    <Sheet open={!!f} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full max-w-[520px] overflow-y-auto sm:max-w-[520px]">
-        {f && rec && (
-          <>
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-2 font-heading">{f.customer.name} <EligibilityPill s={f.status} /></SheetTitle>
-              <SheetDescription>{f.customer.id} · {f.customer.city} · synthetic customer{f.customer.scenario && <> · Scenario {f.customer.scenario}</>}</SheetDescription>
-            </SheetHeader>
+    <Drawer isOpen={!!f} onDismiss={onClose} accessibilityLabel={f ? `Customer details: ${f.customer.name}` : "Customer details"}>
+
+            <DrawerHeader title={f.customer.name} titleSuffix={<Badge color={f.status === "eligible" ? "positive" : f.status === "review" ? "notice" : "neutral"}>{f.status === "review" ? "Needs review" : f.status === "eligible" ? "Eligible" : "Excluded"}</Badge>} subtitle={`${f.customer.id} · ${f.customer.city} · synthetic customer${f.customer.scenario ? ` · Scenario ${f.customer.scenario}` : ""}`} />
+            <DrawerBody>
             <div className="space-y-5 px-4 pb-6 text-sm">
               {f.reasons.length > 0 && (
                 <section>
@@ -64,41 +62,30 @@ export function CustomerDrawer({ id, onClose }: { id: string | null; onClose: ()
                 {holdout ? <p className="mt-2">In the no-contact holdout (stable hash of customer and campaign ID). Will not be messaged.</p>
                   : f.status !== "eligible" ? <p className="mt-2 text-muted-foreground">No action — customer is not eligible.</p>
                   : <p className="mt-2">{rec.explanation}</p>}
-                <p className="mt-2 text-xs text-muted-foreground">P(purchase) is a per-product fixture assumption, identical for all customers buying this product—not learned from customer history.</p><div className="overflow-x-auto"><table className="num mt-3 w-full min-w-[440px] text-xs">
-                  <thead className="text-muted-foreground"><tr><th className="text-left font-medium">Offer</th><th className="text-right font-medium">P(purchase)</th><th className="text-right font-medium">Order contrib.</th><th className="text-right font-medium">Expected / contact</th><th className="text-right font-medium">Status</th></tr></thead>
-                  <tbody>{rec.evaluations.map((e) => (
-                    <tr key={e.pct} className={e.pct === rec.offerPct ? "font-semibold" : ""}>
-                      <td>{e.pct === 0 ? "No discount" : `${e.pct}%`}</td><td className="text-right">{pct(e.probability)}</td><td className="text-right">{inr(e.contributionAfterDiscount)}</td><td className="text-right">{inr(e.expectedContribution, true)}</td><td className="text-right">{e.permitted ? "Permitted" : "Blocked"}</td>
-                    </tr>))}</tbody>
-                </table></div>
+                <p className="mt-2 text-xs text-muted-foreground">P(purchase) is a per-product fixture assumption, identical for all customers buying this product—not learned from customer history.</p><div className="overflow-x-auto"><CellTable label="Customer offer evaluations" minWidth={520}
+                  headings={[{ label: "Offer" }, { label: "P(purchase)", align: "right" }, { label: "Order contrib.", align: "right" }, { label: "Expected / contact", align: "right" }, { label: "Status", align: "right" }]}
+                  rows={rec.evaluations.map((e) => ({ id: String(e.pct), cells: [e.pct === 0 ? "No discount" : `${e.pct}%`, pct(e.probability), inr(e.contributionAfterDiscount), inr(e.expectedContribution, true), e.permitted ? "Permitted" : "Blocked"] }))} /></div>
                 <div className="mt-2"><KindTag kind="forecast" /></div>
               </section>
               <section>
                 <h3 className="section-title text-base">Order history</h3>
-                <div className="overflow-x-auto"><table className="num mt-2 w-full min-w-[440px] text-xs">
-                  <thead className="text-muted-foreground"><tr><th className="text-left font-medium">Date</th><th className="text-left font-medium">Items</th><th className="text-right font-medium">Value</th><th className="text-right font-medium">Discount</th><th className="text-right font-medium">Contrib.</th><th className="text-right font-medium">Status</th></tr></thead>
-                  <tbody>{f.orders.map((o) => (
-                    <tr key={o.id} className="border-t">
-                      <td className="py-1">{dayToDate(o.day)}</td><td className="max-w-40 truncate">{o.items.map((i) => productById(i.productId).name).join(", ")}</td>
-                      <td className="text-right">{inr(orderValue(o))}</td><td className="text-right">{o.discount ? inr(o.discount) : "—"}</td><td className="text-right">{inr(orderContribution(o))}</td>
-                      <td className="text-right">{o.status.replace("_", " ")}{o.source === "simulated" ? " (sim)" : ""}</td>
-                    </tr>))}</tbody>
-                </table></div>
+                <div className="overflow-x-auto"><CellTable label="Customer order history" minWidth={650}
+                  headings={[{ label: "Date" }, { label: "Items", width: "minmax(160px, 1.4fr)" }, { label: "Value", align: "right" }, { label: "Discount", align: "right" }, { label: "Contrib.", align: "right" }, { label: "Status", align: "right" }]}
+                  rows={f.orders.map((o) => ({ id: o.id, cells: [dayToDate(o.day), o.items.map((i) => productById(i.productId).name).join(", "), inr(orderValue(o)), o.discount ? inr(o.discount) : "—", inr(orderContribution(o)), o.status.replace("_", " ") + (o.source === "simulated" ? " (sim)" : "")] }))} /></div>
               </section>
               <div className="flex flex-wrap gap-2 border-t pt-4">
                 {!hardBlocked && (
-                  <Button variant="outline" size="sm" onClick={() => update((s) => toggleExclude(s, f.customer.id))}>{merchantExcluded ? "Include again" : "Exclude customer"}</Button>
+                  <Button variant="secondary" size="small" isDisabled={launched} onClick={() => update((s) => toggleExclude(s, f.customer.id))}>{merchantExcluded ? "Include again" : "Exclude customer"}</Button>
                 )}
                 {f.status === "review" && (
-                  <Button size="sm" disabled={!f.reviewResolvable || launched} onClick={() => update((s) => resolveReview(s, f.customer.id))}>Resolve: include with product default interval</Button>
+                  <Button size="small" isDisabled={!f.reviewResolvable || launched} onClick={() => update((s) => resolveReview(s, f.customer.id))}>Resolve: include with product default interval</Button>
                 )}
                 {hardBlocked && <Note>Hard policy blocks cannot be overridden by the merchant.</Note>}
                 {f.status === "review" && f.reviewResolveBlocker && <Note t="warning">{f.reviewResolveBlocker}</Note>}
               </div>
             </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+            </DrawerBody>
+
+    </Drawer>
   );
 }

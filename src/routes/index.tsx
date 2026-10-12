@@ -1,6 +1,7 @@
+import { LinkButton } from "@/components/retention/LinkButton";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Clock3, Repeat2, ShieldCheck, ShoppingBag, Undo2, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@razorpay/blade/components";
 import { PageHeader, Pill, RecLabel } from "@/components/retention/bits";
 import { inr } from "@/retention/format";
 import { useDemo } from "@/retention/store";
@@ -35,7 +36,7 @@ function Opportunities() {
             <div className="flex flex-wrap items-center gap-2"><span className="flex size-9 items-center justify-center rounded-xl bg-white/10"><Repeat2 className="size-5" aria-hidden /></span><span className="text-xs font-medium tracking-widest text-blue-200 uppercase">Replenishment opportunity</span><span className="rounded-full bg-white/10 px-2 py-1 text-[11px]">Demo recommendation</span></div>
             <h2 id="opp-title" className="mt-5 max-w-lg font-heading text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Right customer.<br />Right moment. Right offer.</h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100">{p.eligible.length} customers are in their reorder window. Review who to contact and protect contribution—not just conversions.</p>
-            <div className="mt-6 flex flex-wrap items-center gap-3"><Button asChild size="lg" className="bg-white text-[#102b62] hover:bg-blue-50"><Link to="/cohort">Explore the cohort <ArrowRight className="size-4" aria-hidden /></Link></Button><span className="flex items-center gap-1.5 text-xs text-blue-100"><ShieldCheck className="size-4" aria-hidden />You approve before sending</span></div>
+            <div className="mt-6 flex flex-wrap items-center gap-3"><LinkButton to="/cohort" size="large" color="white">Explore the cohort</LinkButton><span className="flex items-center gap-1.5 text-xs text-blue-100"><ShieldCheck className="size-4" aria-hidden />You approve before sending</span></div>
           </div>
           <div className="rounded-xl border border-white/15 bg-white/10 p-5">
             <div className="text-xs text-blue-100">Agent's recommended plan · simulated</div>

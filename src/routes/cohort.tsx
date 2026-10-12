@@ -1,10 +1,10 @@
+import { CellTable } from "@/components/retention/DataTable";
+import { LinkButton } from "@/components/retention/LinkButton";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@razorpay/blade/components";
+import { TextInput, SearchIcon, SliderInput, Tabs, TabList, TabItem, TabPanel } from "@razorpay/blade/components";
 import { CustomerDrawer } from "@/components/retention/CustomerDrawer";
 import { EligibilityPill, Note, PageHeader, Pill } from "@/components/retention/bits";
 import { editConfig, toggleExclude } from "@/retention/campaign";
@@ -41,67 +41,48 @@ function Cohort() {
   return (
     <div className="space-y-4 animate-enter">
       <PageHeader title="Find customers ready to return." subtitle="Cohort intelligence · Purchase rhythm meets policy checks."
-        actions={<Button asChild><Link to="/workbench">Continue to decision <ArrowRight className="size-4" aria-hidden /></Link></Button>} />
+        actions={<LinkButton to="/workbench">Continue to decision</LinkButton>} />
 
       <div className="panel grid gap-4 p-4 lg:grid-cols-3">
         <div className="w-full min-w-0 max-w-72">
-          <label htmlFor="tol" className="label-text">Reorder-window tolerance: <span className="num font-semibold text-foreground">±{state.config.tolerancePct}%</span></label>
-          <Slider id="tol" className="mt-2" min={5} max={50} step={5} value={[state.config.tolerancePct]} disabled={launched} onValueChange={([v]) => v != null && update((s) => editConfig(s, { tolerancePct: v }))} aria-label="Reorder-window tolerance percent" />
+          <SliderInput label={`Reorder-window tolerance: ±${state.config.tolerancePct}%`} min={5} max={50} step={5}
+            value={state.config.tolerancePct} isDisabled={launched} formatValue={(value) => `±${value}%`}
+            onChange={({ value }) => update((s) => editConfig(s, { tolerancePct: value }))} />
         </div>
         <details className="self-center text-xs text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">How is the reorder window calculated?</summary><p className="mt-2 leading-relaxed">Days since last relevant purchase must fall within typical interval × (1 ± tolerance). Typical interval is the median gap between completed purchases (at least 3 required).</p></details>
         <div className="relative min-w-0">
-          <Search className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search customer or product" className="w-full pl-8" aria-label="Search customers" />
+          <TextInput value={q} onChange={({ value }) => setQ(value ?? "")} placeholder="Search customer or product" accessibilityLabel="Search customers" leading={SearchIcon} />
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as Eligibility)}>
-        <TabsList className="h-auto w-full flex-wrap justify-start sm:w-auto">
-          <TabsTrigger value="eligible">Eligible <span className="num ml-1.5 text-muted-foreground">{d.plan.eligible.length}</span></TabsTrigger>
-          <TabsTrigger value="excluded">Excluded <span className="num ml-1.5 text-muted-foreground">{d.plan.excluded.length}</span></TabsTrigger>
-          <TabsTrigger value="review">Needs review <span className="num ml-1.5 text-muted-foreground">{d.plan.review.length}</span></TabsTrigger>
-        </TabsList>
-      </Tabs>
-
+      <Tabs value={tab} onChange={(v) => setTab(v as Eligibility)} variant="bordered" size="small">
+        <TabList>
+          <TabItem value="eligible">Eligible <span className="num ml-1.5 text-muted-foreground">{d.plan.eligible.length}</span></TabItem>
+          <TabItem value="excluded">Excluded <span className="num ml-1.5 text-muted-foreground">{d.plan.excluded.length}</span></TabItem>
+          <TabItem value="review">Needs review <span className="num ml-1.5 text-muted-foreground">{d.plan.review.length}</span></TabItem>
+        </TabList>
+      <TabPanel value={tab}>
       <div data-tour="cohort" className="panel overflow-hidden">
         <div className="max-h-[520px] overflow-auto">
-          <table className="w-full min-w-[950px] text-sm">
-            <thead className="sticky top-0 bg-surface text-left text-xs text-muted-foreground">
-              <tr className="border-b">
-                <th className="px-3 py-2 font-medium">Customer</th><th className="px-3 py-2 font-medium">Last purchase</th><th className="px-3 py-2 font-medium">Relevant product</th>
-                <th className="px-3 py-2 text-right font-medium">Typical interval</th><th className="px-3 py-2 text-right font-medium">Observed offer usage</th><th className="px-3 py-2 font-medium">Eligibility</th><th className="px-3 py-2 font-medium">Reason</th><th className="px-3 py-2"><span className="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && <tr><td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">No customers in this view.</td></tr>}
-              {rows.map((f) => {
-                const hard = f.reasons.some((r) => r.hard);
-                const merchant = state.excluded.includes(f.customer.id);
-                return (
-                  <tr key={f.customer.id} className="border-b last:border-0 hover:bg-surface">
-                    <td className="px-3 py-2">
-                      <button type="button" className="text-left font-medium text-primary hover:underline" onClick={() => setOpen(f.customer.id)}>{f.customer.name}</button>
-                      <div className="text-xs text-muted-foreground">{f.customer.id}{f.customer.scenario && <> · <span className="text-foreground">Scenario {f.customer.scenario.split(" · ")[0]}</span></>}</div>
-                    </td>
-                    <td className="num px-3 py-2">{dayToDate(f.lastRelevantDay)}<div className="text-xs text-muted-foreground">{f.daysSince}d ago</div></td>
-                    <td className="px-3 py-2">{f.relevantProduct.name}</td>
-                    <td className="num px-3 py-2 text-right">{f.typicalInterval ? `${f.typicalInterval}d` : "—"}{f.windowLow != null && <div className="text-xs text-muted-foreground">window {Math.round(f.windowLow)}–{Math.round(f.windowHigh ?? 0)}d</div>}</td>
-                    <td className="num px-3 py-2 text-right">{f.offerUsage.discounted}/{f.offerUsage.completed} orders</td>
-                    <td className="px-3 py-2"><EligibilityPill s={f.status} />{holdoutIds.has(f.customer.id) && <Pill className="ml-1">Holdout</Pill>}</td>
-                    <td className="px-3 py-2 text-xs">{f.reasons.length ? f.reasons.map((r) => r.label).join("; ") : (f.intervalSource === "merchant_default" ? "Resolved by merchant" : "In reorder window")}</td>
-                    <td className="px-3 py-2 text-right">
-                      {!hard && (tab !== "review") && (tab === "eligible" || merchant) && (
-                        <Button size="sm" variant="ghost" onClick={() => update((s) => toggleExclude(s, f.customer.id))}>{merchant ? "Include" : "Exclude"}</Button>
-                      )}
-                      {tab === "review" && <Button size="sm" variant="outline" onClick={() => setOpen(f.customer.id)}>Inspect</Button>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <CellTable label="Customer cohort" minWidth={1100} empty="No customers in this view."
+            headings={[{ label: "Customer", width: "minmax(170px, 1.2fr)" }, { label: "Last purchase" }, { label: "Relevant product", width: "minmax(160px, 1fr)" }, { label: "Typical interval", align: "right" }, { label: "Observed offer usage", align: "right" }, { label: "Eligibility", width: "minmax(160px, 1fr)" }, { label: "Reason", width: "minmax(180px, 1.4fr)" }, { label: "Actions" }]}
+            rows={rows.map((f) => {
+              const hard = f.reasons.some((r) => r.hard);
+              const merchant = state.excluded.includes(f.customer.id);
+              return { id: f.customer.id, cells: [
+                <div><Button variant="tertiary" size="small" onClick={() => setOpen(f.customer.id)}>{f.customer.name}</Button><div className="text-xs text-muted-foreground">{f.customer.id}{f.customer.scenario && ` · Scenario ${f.customer.scenario.split(" · ")[0]}`}</div></div>,
+                <div className="num">{dayToDate(f.lastRelevantDay)}<div className="text-xs text-muted-foreground">{f.daysSince}d ago</div></div>,
+                f.relevantProduct.name,
+                <div className="num">{f.typicalInterval ? `${f.typicalInterval}d` : "—"}{f.windowLow != null && <div className="text-xs text-muted-foreground">window {Math.round(f.windowLow)}–{Math.round(f.windowHigh ?? 0)}d</div>}</div>,
+                `${f.offerUsage.discounted}/${f.offerUsage.completed} orders`,
+                <div className="flex flex-wrap gap-1"><EligibilityPill s={f.status} />{holdoutIds.has(f.customer.id) && <Pill>Holdout</Pill>}</div>,
+                f.reasons.length ? f.reasons.map((r) => r.label).join("; ") : f.intervalSource === "merchant_default" ? "Resolved by merchant" : "In reorder window",
+                <>{!hard && tab !== "review" && (tab === "eligible" || merchant) && <Button size="small" variant="tertiary" isDisabled={launched} onClick={() => update((s) => toggleExclude(s, f.customer.id))}>{merchant ? "Include" : "Exclude"}</Button>}{tab === "review" && <Button size="small" variant="secondary" onClick={() => setOpen(f.customer.id)}>Inspect</Button>}</>,
+              ] };
+            })} />
         </div>
       </div>
+      </TabPanel></Tabs>
       <p className="text-xs text-muted-foreground">Reasons may overlap; each customer appears once in a status tab. Holdout: {d.plan.holdout.length} of {d.plan.eligible.length} eligible ({d.plan.holdoutPct.toFixed(1)}%).</p>
       <Note>Merchant overrides cannot bypass consent, refund, recent-purchase, stock or frequency blocks. Holdout is assigned by a stable hash of customer and campaign ID only (hash threshold &lt;10%, not exactly 10% of the audience). Observed offer usage is not evidence that discounts caused purchases.</Note>
       <CustomerDrawer id={open} onClose={() => setOpen(null)} />

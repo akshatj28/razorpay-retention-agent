@@ -1,8 +1,9 @@
+import { CheckIcon } from "@razorpay/blade/components";
+import { AppModal } from "./AppModal";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, Compass, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button, ArrowRightIcon, ArrowLeftIcon, CompassIcon, CloseIcon } from "@razorpay/blade/components";
 
 const WELCOME_KEY = "retention-evaluator-welcome-v1";
 export const TOUR_STOPS = [
@@ -72,27 +73,24 @@ export function EvaluatorTour() {
   }, [step]);
 
   return <>
-    <Button ref={restart} variant="outline" size="sm" onClick={start}><Compass className="size-4" aria-hidden /><span>Evaluator walkthrough</span></Button>
-    <Dialog open={welcome} onOpenChange={(open) => { if (!open) dismissWelcome(); }}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl bg-card sm:max-w-lg">
+    <Button ref={restart} variant="secondary" size="small" onClick={start} icon={CompassIcon}>Evaluator walkthrough</Button>
+    <AppModal isOpen={welcome} onDismiss={dismissWelcome} title="See the product. Understand the decisions." subtitle="A six-stop walkthrough for the PM evaluating this build: why I chose the workflow, where the merchant stays in control, and what this demo actually proves.">
         <div className="flex size-12 items-center justify-center rounded-xl bg-primary-subtle text-primary"><Compass className="size-6" aria-hidden /></div>
-        <DialogHeader><DialogTitle className="font-heading text-2xl leading-tight">See the product.<br />Understand the decisions.</DialogTitle><DialogDescription className="pt-2 leading-relaxed">A six-stop walkthrough for the PM evaluating this build: why I chose the workflow, where the merchant stays in control, and what this demo actually proves.</DialogDescription></DialogHeader>
         <p className="rounded-lg bg-surface p-3 text-xs leading-relaxed text-muted-foreground">These are merchant-facing screens. Shoppers receive the message and purchase experience. All data, recommendations and execution are simulated.</p>
-        <div className="flex flex-wrap gap-2"><Button onClick={start}>Start guided demo <ArrowRight className="size-4" aria-hidden /></Button><Button variant="ghost" onClick={dismissWelcome}>Explore independently</Button></div>
+        <div className="flex flex-wrap gap-2"><Button onClick={start} icon={ArrowRightIcon} iconPosition="right">Start guided demo </Button><Button variant="tertiary" onClick={dismissWelcome}>Explore independently</Button></div>
         <p className="text-xs text-muted-foreground">Optional · Restart anytime from the header · Never auto-approves or sends</p>
-      </DialogContent>
-    </Dialog>
+    </AppModal>
     {stop && step !== null && <>
       {rect && <div aria-hidden className="tour-spotlight pointer-events-none fixed z-20 rounded-xl border-2 border-primary" style={rect} />}
       <section ref={card} tabIndex={-1} role="region" aria-label="Evaluator walkthrough" aria-live="polite" className="tour-card fixed right-4 bottom-4 z-40 w-[390px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border bg-card p-5 shadow-2xl">
-        <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-semibold text-primary"><Compass className="size-4" aria-hidden />PM lens · {step + 1} / {TOUR_STOPS.length}</span><Button variant="ghost" size="icon" className="size-7" aria-label="Exit evaluator walkthrough" onClick={exit}><X className="size-4" aria-hidden /></Button></div>
+        <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-xs font-semibold text-primary"><Compass className="size-4" aria-hidden />PM lens · {step + 1} / {TOUR_STOPS.length}</span><Button variant="tertiary" size="small" accessibilityLabel="Exit evaluator walkthrough" onClick={exit} icon={CloseIcon}></Button></div>
         <div className="mt-2 flex gap-1" aria-hidden>{TOUR_STOPS.map((_, i) => <span key={i} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-muted"}`} />)}</div>
         <h2 className="mt-4 font-heading text-xl leading-tight font-semibold">{stop.title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{stop.rationale}</p>
         <div className="mt-3 rounded-xl bg-primary-subtle p-3 text-xs leading-relaxed"><b className="text-primary">Try it yourself</b><p className="mt-1">{stop.try}</p></div>
-        {path !== stop.route && <Button variant="outline" size="sm" className="mt-3" onClick={() => void navigate({ to: stop.route })}>Return to this stop</Button>}
+        {path !== stop.route && <Button variant="secondary" size="small" onClick={() => void navigate({ to: stop.route })}>Return to this stop</Button>}
         {step === TOUR_STOPS.length - 1 && <details className="mt-3 text-xs text-muted-foreground"><summary className="cursor-pointer font-medium text-foreground">How this demo works</summary><p className="mt-2 leading-relaxed">Seeded fictional orders → derived customer features → deterministic recommendation adapter → policy gates → merchant approval → simulated outcomes. A future AI adapter would replace recommendations, not the hard controls. One playbook works end-to-end; cross-sell and win-back are concept previews. No live Razorpay, Vulcan, messaging or payment integration.</p></details>}
-        <div className="mt-4 flex items-center justify-between gap-2 border-t pt-3"><Button variant="ghost" size="sm" disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft className="size-4" aria-hidden />Back</Button><Button size="sm" onClick={() => step === TOUR_STOPS.length - 1 ? exit() : setStep(step + 1)}>{step === TOUR_STOPS.length - 1 ? <>Finish <Check className="size-4" aria-hidden /></> : <>Next <ArrowRight className="size-4" aria-hidden /></>}</Button></div>
+        <div className="mt-4 flex items-center justify-between gap-2 border-t pt-3"><Button variant="tertiary" size="small" isDisabled={step === 0} onClick={() => setStep(step - 1)} icon={ArrowLeftIcon}>Back</Button><Button size="small" icon={step === TOUR_STOPS.length - 1 ? CheckIcon : ArrowRightIcon} iconPosition="right" onClick={() => step === TOUR_STOPS.length - 1 ? exit() : setStep(step + 1)}>{step === TOUR_STOPS.length - 1 ? "Finish" : "Next"}</Button></div>
         <p className="mt-2 text-[11px] text-muted-foreground">Interact with the product behind this card · Esc to exit</p>
       </section>
     </>}

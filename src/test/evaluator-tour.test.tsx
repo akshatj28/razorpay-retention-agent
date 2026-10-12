@@ -1,4 +1,5 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { BladeTheme } from "@/components/retention/BladeTheme";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EvaluatorTour, TOUR_STOPS } from "@/components/retention/EvaluatorTour";
 
@@ -12,21 +13,22 @@ beforeEach(() => { localStorage.clear(); navigate.mockClear(); });
 afterEach(cleanup);
 
 describe("Evaluator walkthrough", () => {
-  it("offers a first-visit welcome that can be skipped and remembered", () => {
-    const view = render(<EvaluatorTour />);
+  it("offers a first-visit welcome that can be skipped and remembered", async () => {
+    const view = render(<BladeTheme><EvaluatorTour /></BladeTheme>);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Explore independently" }));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), { timeout: 5000 });
     expect(screen.queryByRole("region", { name: "Evaluator walkthrough" })).not.toBeInTheDocument();
     expect(navigate).not.toHaveBeenCalled();
     view.unmount();
-    render(<EvaluatorTour />);
+    render(<BladeTheme><EvaluatorTour /></BladeTheme>);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("navigates all six stops, supports Back, and finishes without campaign actions", () => {
-    render(<EvaluatorTour />);
+  it("navigates all six stops, supports Back, and finishes without campaign actions", async () => {
+    render(<BladeTheme><EvaluatorTour /></BladeTheme>);
     fireEvent.click(screen.getByRole("button", { name: "Start guided demo" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), { timeout: 5000 });
     expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
     for (let index = 0; index < TOUR_STOPS.length; index++) {
       expect(screen.getByRole("heading", { name: TOUR_STOPS[index]!.title })).toBeInTheDocument();
@@ -43,7 +45,7 @@ describe("Evaluator walkthrough", () => {
 
   it("can restart and exit with Escape or the exit button", () => {
     localStorage.setItem("retention-evaluator-welcome-v1", "seen");
-    render(<EvaluatorTour />);
+    render(<BladeTheme><EvaluatorTour /></BladeTheme>);
     const restart = screen.getByRole("button", { name: "Evaluator walkthrough" });
     fireEvent.click(restart);
     fireEvent.keyDown(window, { key: "Escape" });
