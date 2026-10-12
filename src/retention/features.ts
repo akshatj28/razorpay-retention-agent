@@ -15,6 +15,7 @@ export type Eligibility = "eligible" | "excluded" | "review";
 export type ReasonCode =
   | "no_consent"
   | "refund_pending"
+  | "pending_order"
   | "recent_purchase"
   | "out_of_stock"
   | "frequency"
@@ -31,6 +32,7 @@ export interface Reason {
 export interface FeatureConfig {
   tolerancePct: number;
   freqDays: number;
+  asOfDay?: number;
 }
 
 export interface FeatureOverrides {
@@ -68,7 +70,14 @@ const median = (xs: number[]) => {
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 };
 
-export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOverrides): CustomerFeature[] {
+export function deriveFeatures(
+  data: Dataset,
+  cfg: FeatureConfig,
+  ov: FeatureOverrides,
+): CustomerFeature[] {
+  const cacheKey = JSON.stringify([cfg, [...ov.excluded], [...ov.resolved], [...ov.optOuts]]);
+  const stored = featureCache.get(data)?.get(cacheKey);
+  if (stored) return stored;
   const byCustomer = new Map<string, Order[]>();
   for (const o of data.orders) {
     const arr = byCustomer.get(o.customerId) ?? [];
@@ -83,25 +92,41 @@ export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOve
   }
   const tol = cfg.tolerancePct / 100;
 
-  return data.customers.map((customer) => {
+  const result = data.customers.map((customer) => {
     const orders = (byCustomer.get(customer.id) ?? []).slice().sort((a, b) => b.day - a.day);
     const completed = orders.filter((o) => o.status === "completed");
     const counts = new Map<string, number>();
-    for (const o of completed) for (const it of o.items) counts.set(it.productId, (counts.get(it.productId) ?? 0) + 1);
+    const contains = (o: Order, id: string) =>
+      o.items.some(
+        (it) => it.productId === id || productById(it.productId).components?.includes(id),
+      );
+    for (const o of completed)
+      for (const it of o.items)
+        for (const id of [it.productId, ...(productById(it.productId).components ?? [])])
+          counts.set(id, (counts.get(id) ?? 0) + 1);
     // relevant product = most frequently completed purchase (ties: most recent)
     let relevantId = orders[0]?.items[0]?.productId ?? "P01";
     let best = -1;
-    for (const o of completed) for (const it of o.items) {
-      const c = counts.get(it.productId)!;
-      if (c > best) { best = c; relevantId = it.productId; }
-    }
-    const relevantProduct = productById(relevantId);
-    const relevantCompletedDays = completed.filter((o) => o.items.some((i) => i.productId === relevantId)).map((o) => o.day).sort((a, b) => b - a);
+    for (const o of completed)
+      for (const it of o.items) {
+        const c = counts.get(it.productId)!;
+        if (c > best) {
+          best = c;
+          relevantId = it.productId;
+        }
+      }
+    const relevantProduct =
+      data.products.find((p) => p.id === relevantId) ?? productById(relevantId);
+    const relevantCompletedDays = [
+      ...new Set(completed.filter((o) => contains(o, relevantId)).map((o) => o.day)),
+    ].sort((a, b) => b - a);
     const intervals: number[] = [];
-    for (let i = 0; i < relevantCompletedDays.length - 1; i++) intervals.push(relevantCompletedDays[i]! - relevantCompletedDays[i + 1]!);
+    for (let i = 0; i < relevantCompletedDays.length - 1; i++)
+      intervals.push(relevantCompletedDays[i]! - relevantCompletedDays[i + 1]!);
     const lastRelevantDay = relevantCompletedDays[0] ?? orders[0]?.day ?? -999;
     const lastAnyOrderDay = orders.filter((o) => o.status !== "cancelled")[0]?.day ?? -999;
-    const daysSince = -lastRelevantDay;
+    const now = cfg.asOfDay ?? 0;
+    const daysSince = now - lastRelevantDay;
     const contacts = contactsBy.get(customer.id) ?? [];
     const lastPromoContactDay = contacts.length ? Math.max(...contacts.map((c) => c.day)) : null;
     const consent = customer.consent && !ov.optOuts.has(customer.id);
@@ -110,25 +135,81 @@ export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOve
     const resolved = ov.resolved.has(customer.id);
     let typicalInterval: number | null = null;
     let intervalSource: CustomerFeature["intervalSource"] = null;
-    if (hasHistory) { typicalInterval = Math.round(median(intervals)); intervalSource = "history"; }
-    else if (resolved) { typicalInterval = relevantProduct.defaultIntervalDays; intervalSource = "merchant_default"; }
-    const windowFor = (t: number) => [Math.round(t * (1 - tol) * 10) / 10, Math.round(t * (1 + tol) * 10) / 10] as const;
-    const [windowLow, windowHigh] = typicalInterval != null ? windowFor(typicalInterval) : [null, null];
-    const inWindow = windowLow != null && windowHigh != null && daysSince >= windowLow && daysSince <= windowHigh;
+    if (hasHistory) {
+      typicalInterval = Math.round(median(intervals));
+      intervalSource = "history";
+    } else if (resolved) {
+      typicalInterval = relevantProduct.defaultIntervalDays;
+      intervalSource = "merchant_default";
+    }
+    const windowFor = (t: number) =>
+      [Math.round(t * (1 - tol) * 10) / 10, Math.round(t * (1 + tol) * 10) / 10] as const;
+    const [windowLow, windowHigh] =
+      typicalInterval != null ? windowFor(typicalInterval) : [null, null];
+    const inWindow =
+      windowLow != null && windowHigh != null && daysSince >= windowLow && daysSince <= windowHigh;
 
     const reasons: Reason[] = [];
-    if (!consent) reasons.push({ code: "no_consent", label: ov.optOuts.has(customer.id) ? "Opted out of promotional messages" : "No marketing consent", hard: true });
-    if (orders.some((o) => o.status === "refund_pending")) reasons.push({ code: "refund_pending", label: "Unresolved refund — promotion suppressed", hard: true });
-    if (-lastAnyOrderDay <= RECENT_PURCHASE_DAYS) reasons.push({ code: "recent_purchase", label: `Purchased ${-lastAnyOrderDay === 0 ? "today" : -lastAnyOrderDay === 1 ? "yesterday" : `${-lastAnyOrderDay} days ago`}`, hard: true });
-    if (relevantProduct.stock <= 0) reasons.push({ code: "out_of_stock", label: `${relevantProduct.name} out of stock`, hard: true });
-    if (lastPromoContactDay != null && -lastPromoContactDay < cfg.freqDays) reasons.push({ code: "frequency", label: `Contacted ${-lastPromoContactDay === 0 ? "today" : `${-lastPromoContactDay}d ago`} (limit 1 per ${cfg.freqDays}d)`, hard: true });
-    if (ov.excluded.has(customer.id)) reasons.push({ code: "merchant_excluded", label: "Excluded by merchant", hard: false });
-    if (!hasHistory && !resolved) reasons.push({ code: "insufficient_history", label: `Only ${relevantCompletedDays.length} completed purchase${relevantCompletedDays.length === 1 ? "" : "s"} of relevant product`, hard: false });
-    if (typicalInterval != null && !inWindow) reasons.push({ code: "outside_window", label: daysSince < windowLow! ? "Not yet in reorder window" : "Past reorder window (win-back candidate)", hard: false });
+    if (!consent)
+      reasons.push({
+        code: "no_consent",
+        label: ov.optOuts.has(customer.id)
+          ? "Opted out of promotional messages"
+          : "No marketing consent",
+        hard: true,
+      });
+    if (orders.some((o) => o.status === "refund_pending"))
+      reasons.push({
+        code: "refund_pending",
+        label: "Unresolved refund — promotion suppressed",
+        hard: true,
+      });
+    if (orders.some((o) => o.status === "pending_delivery"))
+      reasons.push({
+        code: "pending_order",
+        label: "Order awaiting delivery/collection — follow-ups suppressed",
+        hard: true,
+      });
+    if (now - lastAnyOrderDay <= RECENT_PURCHASE_DAYS)
+      reasons.push({
+        code: "recent_purchase",
+        label: `Purchased ${now - lastAnyOrderDay === 0 ? "today" : now - lastAnyOrderDay === 1 ? "yesterday" : `${now - lastAnyOrderDay} days ago`}`,
+        hard: true,
+      });
+    if (relevantProduct.stock <= 0)
+      reasons.push({
+        code: "out_of_stock",
+        label: `${relevantProduct.name} out of stock`,
+        hard: true,
+      });
+    if (lastPromoContactDay != null && now - lastPromoContactDay < cfg.freqDays)
+      reasons.push({
+        code: "frequency",
+        label: `Contacted ${now - lastPromoContactDay === 0 ? "today" : `${now - lastPromoContactDay}d ago`} (limit 1 per ${cfg.freqDays}d)`,
+        hard: true,
+      });
+    if (ov.excluded.has(customer.id))
+      reasons.push({ code: "merchant_excluded", label: "Excluded by merchant", hard: false });
+    if (!hasHistory && !resolved)
+      reasons.push({
+        code: "insufficient_history",
+        label: `Only ${relevantCompletedDays.length} completed purchase${relevantCompletedDays.length === 1 ? "" : "s"} of relevant product`,
+        hard: false,
+      });
+    if (typicalInterval != null && !inWindow)
+      reasons.push({
+        code: "outside_window",
+        label:
+          daysSince < windowLow!
+            ? "Not yet in reorder window"
+            : "Past reorder window (win-back candidate)",
+        hard: false,
+      });
 
     const hard = reasons.some((r) => r.hard);
     let status: Eligibility;
-    if (hard || reasons.some((r) => r.code === "merchant_excluded" || r.code === "outside_window")) status = "excluded";
+    if (hard || reasons.some((r) => r.code === "merchant_excluded" || r.code === "outside_window"))
+      status = "excluded";
     else if (reasons.some((r) => r.code === "insufficient_history")) status = "review";
     else status = "eligible";
 
@@ -137,19 +218,54 @@ export function deriveFeatures(data: Dataset, cfg: FeatureConfig, ov: FeatureOve
     if (!hasHistory) {
       const [lo, hi] = windowFor(relevantProduct.defaultIntervalDays);
       if (hard) reviewResolveBlocker = "A hard policy block applies; review cannot override it.";
-      else if (relevantCompletedDays.length === 0) reviewResolveBlocker = "No completed purchase of the relevant product.";
-      else if (daysSince < lo || daysSince > hi) reviewResolveBlocker = `Not within the product default window (${lo}–${hi} days).`;
+      else if (relevantCompletedDays.length === 0)
+        reviewResolveBlocker = "No completed purchase of the relevant product.";
+      else if (daysSince < lo || daysSince > hi)
+        reviewResolveBlocker = `Not within the product default window (${lo}–${hi} days).`;
       else reviewResolvable = true;
     }
 
     return {
-      customer, orders, relevantProduct, relevantCompletedDays, lastRelevantDay, lastAnyOrderDay, daysSince,
-      intervals, typicalInterval, intervalSource, windowLow, windowHigh, inWindow,
-      offerUsage: { discounted: completed.filter((o) => o.discount > 0).length, completed: completed.length },
-      lastPromoContactDay, consent, status, reasons, reviewResolvable, reviewResolveBlocker,
+      customer,
+      orders,
+      relevantProduct,
+      relevantCompletedDays,
+      lastRelevantDay,
+      lastAnyOrderDay,
+      daysSince,
+      intervals,
+      typicalInterval,
+      intervalSource,
+      windowLow,
+      windowHigh,
+      inWindow,
+      offerUsage: {
+        discounted: completed.filter((o) => o.discount > 0).length,
+        completed: completed.length,
+      },
+      lastPromoContactDay,
+      consent,
+      status,
+      reasons,
+      reviewResolvable,
+      reviewResolveBlocker,
     };
   });
+  const cache = featureCache.get(data) ?? new Map();
+  if (cache.size > 30) cache.clear();
+  cache.set(cacheKey, result);
+  featureCache.set(data, cache);
+  return result;
 }
 
+const featureCache = new WeakMap<Dataset, Map<string, CustomerFeature[]>>();
 /** Reasons that must block an individual send at pre-send recheck. */
-export const SEND_BLOCKING: ReasonCode[] = ["no_consent", "refund_pending", "recent_purchase", "out_of_stock", "frequency", "merchant_excluded"];
+export const SEND_BLOCKING: ReasonCode[] = [
+  "no_consent",
+  "refund_pending",
+  "pending_order",
+  "recent_purchase",
+  "out_of_stock",
+  "frequency",
+  "merchant_excluded",
+];

@@ -1,61 +1,80 @@
-# Retention Agent — Proposed extension for Razorpay Agent Studio
+# Retention Studio — Razorpay Agent Studio concept
 
-Independent buildathon concept for the Razorpay AI PM Build Challenge, Track 2 (Recover and Grow with AI).
-**Not an official Razorpay product**, not endorsed by Razorpay, no live integration.
+Independent buildathon prototype for Track 2: Recover and Grow with AI. Not an official Razorpay product or endorsement.
 
-Demo mode · Synthetic data · Simulated recommendations and messaging.
+An offline merchant experience for fictional **Nira Botanics**, a curated skincare and haircare D2C brand. Shopify-shaped history plus **simulated** Razorpay/Vulcan signals produces reviewable campaign proposals. Merchants can build their own, save drafts and templates, edit WhatsApp and voice assets, approve, schedule and simulate execution.
 
-## Run and reset
-- `bun install && bun run dev`, open the app. Desktop-first (designed at 1440×900).
-- State persists in `localStorage` (`retention-agent-demo-v1`). **Reset demo** (header) clears it and restores the identical seeded dataset and a fresh draft campaign.
-- `bunx vitest run src/test/retention-acceptance.test.ts` runs the executable acceptance checks.
+## Start
 
-## What actually works
-- Seeded dataset (seed `20261010`): 300 fictional customers, 15 products (coffee, personal care, household), ~6 months of orders with quantities, prices, discounts, statuses (completed / cancelled / returned / refund pending), marketing consent, contact history, stock and variable costs.
-- Feature derivation per customer: relevant product, completed-purchase intervals, median typical interval, configurable reorder-window tolerance, observed offer usage.
-- Eligibility with enforced hard blocks (no consent/opt-out, unresolved refund, purchased within 2 days, out of stock, contact-frequency limit) plus merchant exclusion, needs-review (insufficient history) and review resolution where permitted.
-- Customer-level offer recommendation, uniform-offer comparison, per-customer overrides, budget/discount-cap/contribution-floor policy checks, no-outreach decisions.
-- Stable ≈10% holdout (FNV hash of campaign ID + customer ID only).
-- Campaign states Draft → Approved → Running ⇄ Paused → Completed; approval bound to a plan hash and invalidated by any change.
-- Controlled “Send next demo batch” with pre-send recheck of consent, recent purchase, refund, stock, frequency, merchant exclusion and budget; duplicate-send prevention.
-- Simulated outcomes (delivery, failure, purchase, opt-out, organic purchase), idempotent event application with replay, chronological event log, forecast-vs-observed.
+- Install project dependencies, then run npm run dev.
+- npm run build builds the production app.
+- npm run typecheck checks TypeScript.
+- npm test runs workflow, data, routing, persistence and policy tests.
+- npm run data:export regenerates CSV and SQLite (Node 24+ and Python 3; optional NIRA_PYTHON executable override).
+- Reset demo clears local merchant edits/events/templates and recreates the same history. Browser state key: retention-agent-demo-v2. Older v1 demo work remains in its old key and is not imported into the different merchant.
 
-## What is simulated
-Recommendations (deterministic adapter `deterministic-simulated-v1`), WhatsApp messages, deliveries, purchases and opt-outs. No external AI, messaging, payment, database or auth services are used or contacted.
+## What changed
 
-## Data and forecast assumptions
-- Each product has explicit fixture purchase probabilities for 0% / 10% / 20% offers (`src/retention/data.ts`). They are illustrative assumptions, not measurements or learned customer-level predictions. Customer history controls relevance and eligibility, not purchase probabilities.
-- Contribution before incentive = price − assumed variable order costs. Messaging cost Rs 1 per contacted customer.
-- Hero fixture (CUS-0001, coffee beans): basket Rs 1000, contribution Rs 400, P = 0.10 / 0.15 / 0.18 → Rs 39 / 44 / 35 → 10% recommended.
-- Second fixture (CUS-0002, laundry liquid): basket Rs 500, contribution Rs 200, P = 0.20 / 0.21 / 0.22 → Rs 39 / 30.5 / 21 → no discount recommended.
+- One coherent personal-care brand: 18 variants, larger packs, curated kits and bundle components.
+- Exactly 30,000 historical orders, 12,000 customers and 41,095 line items across 12 April–11 October 2026. Rolling monthly totals: 4,600 / 4,900 / 4,750 / 5,200 / 4,950 / 5,600.
+- Order-level customer IDs, product mix, quantities, discount totals, payment/fulfilment states, collection, refunds and COD RTO. Fake contact addresses cannot reach real people.
+- Searchable paginated merchant tables and CSV download; full CSV/SQLite/schema/manifest in data/nira.
+- Home with prepared replenishment, second-purchase and win-back proposals, plus custom campaign creation.
+- Automatically saved drafts; reusable templates; daily simulated refresh that preserves merchant edits.
+- Revision-bound approval snapshots, scheduling, pausing, pre-send checks, duplicate prevention and cross-campaign experiment reservations.
+- Editable WhatsApp copy, personalized visual preview, actual AI-generated background asset, and opening/interested/objection/decline call branches. Optional voice follow-ups require permission and positive operator economics. Email is coming soon.
+- Collection/return reconciliation and idempotent late refunds; pending purchases enter the history and suppress follow-ups.
+- Illustrative outcome pricing, with operator-funded execution, aggregate loss offsets and readiness gates.
+- Independent synthetic comparison across organic, conventional, merchant-only and network-enriched strategies, including zero-effect sensitivity.
 
-## Calculation definitions
-- Expected contribution per contacted customer = P × (contribution before incentive − discount) − messaging cost.
-- Offer permitted iff discount ≤ max discount and post-discount contribution (before messaging) ≥ minimum contribution per order.
-- Budget exposure = Σ maximum discount liability + Σ messaging cost across contacted (non-holdout) customers. Launch is blocked if exposure > budget; no partial sends.
-- Aggregates are sums of customer-level calculations.
-- Due window: days since last relevant purchase ∈ typical interval × (1 ± tolerance). Typical interval requires ≥3 completed purchases.
+## Screens
 
-## Known limitations
-- Forecast superiority is not evidence of causal uplift; sample sizes are too small to estimate uplift (the UI says so).
-- Holdout is hash-based, so its size is approximately, not exactly, 10%.
-- Single merchant, single implemented playbook; cross-sell and win-back are labelled previews only.
-- Simulated clock; all events occur on 10 Oct 2026.
-- Settings are locked after launch (reset to edit).
+- / — daily opportunities, saved work and outcome proposition.
+- /campaigns — campaigns/templates, editor, approval, execution and reconciliation.
+- /database — raw tabular history, joins and simulated signal provenance.
+- /insights — same-population counterfactual benchmark.
+- /setup — simulated Shopify/Razorpay/channel onboarding; six-month backfill requires older-order access in a real connector.
+- /cohort, /workbench, /review — existing detailed customer, offer-mathematics and execution labs, retained for evaluator evidence. These use explicit product fixture probabilities and a separate legacy experiment; their forecasts are not the campaign-studio pricing model.
 
-## Design and fonts
-- Uses the actual open-source `@razorpay/blade` components (12.129.0): buttons, inputs, dropdowns, slider, tabs, badges, alerts, headings, modals, customer drawer, tables and toast notifications. Custom application layouts remain in HTML/Tailwind.
-- `BladeTheme` configures Blade's light theme and exposes its resolved colours and border radius to the custom layout utilities. Fonts remain self-hosted; there are no CDN calls.
-- Vite pre-bundles Blade and its styling dependencies for client and development SSR. Server React stays excluded from that bundle so it shares the renderer's instance. This handles Blade's extensionless dependency imports and CommonJS interop without modifying the package.
-- Server-rendered Blade styles are collected per request and hoisted into the document head. Desktop dialogs use Modal; mobile dialogs use BottomSheet.
-- Fonts: TASA Orbiter (headings) and Inter (body) are self-hosted copies of the files in `razorpay/blade/packages/blade/fonts` (SIL Open Font License 1.1), with Blade's fallback order (→ Arial/sans-serif). See `public/fonts/NOTICE.md`.
+## Intelligence and honest boundaries
 
-## Future grounded AI adapter
-Implement `RecommendationAdapter` (`src/retention/recommend.ts`) with a service that receives derived features (never holdout assignment) and returns action, offer and explanation. Policy checks, budget and pre-send rechecks stay deterministic and run after the adapter, so the AI cannot bypass them.
+Vulcan is a payments foundation model, not a text LLM. Permitted derived signals could enrich payment/delivery risk, while store history drives replenishment and product affinity. Discount response remains a separate retention estimate. Missing, unmatched or stale network signals use merchant-only fallback.
 
-## Module layout
-`src/retention/`: `data.ts` (seeded fixtures) · `features.ts` (feature derivation) · `forecast.ts` (calculations) · `policy.ts` (plan + checks) · `recommend.ts` (mock adapter) · `campaign.ts` (state transitions) · `store.tsx` (persistence). UI in `src/routes/` and `src/components/retention/`.
+All network signals, text/call drafting, messaging, voice, orders generated during execution, collection and fee outputs are **simulated**. No live Shopify OAuth, Vulcan endpoint, external LLM, messaging provider, voice provider or invoice is contacted.
 
-## Strategy comparison semantics
-All baselines evaluate the same explicitly listed eligible non-holdout IDs after exclusions and review resolution. Offer overrides are ignored by baselines and retained by the selected plan. No outreach has zero forecast contribution, exposure and messaging cost; contact counts can therefore differ without changing the decision audience. A strategy with any invalid offer, excessive budget exposure, or no contacts is not executable: its full totals are labelled counterfactual, never a partial executable forecast. Assumptions are unchanged across strategies. The recommended mix maximises positive permitted expected contribution per customer but does not solve budget allocation.
-Holdout membership remains the existing stable campaign/customer FNV threshold <0.1; actual count and percentage of currently eligible customers are displayed, not an exact 10% claim.
+The photographic creative base was generated during implementation with built-in ImageGen and saved under public/creatives. The offline app reuses it and inserts verified product/price details. Live per-customer generative images are not connected. See docs/CREATIVE_ASSETS.md for the prompt and provenance.
+
+## Outcome economics
+
+Illustrative success share: 25% of positive **aggregate incremental contribution**, after campaign losses offset wins. Merchant product costs, discounts, fulfilment, payment costs, RTO and refunds are included before the share. AI, creatives, WhatsApp and calls are our operating costs; they are not separate merchant usage charges.
+
+Forecast: intervention conversion × delivery probability × discounted contribution, minus natural conversion × undiscounted contribution. Operator selection additionally considers its expected share minus delivery costs. A no-discount reminder or no outreach can win.
+
+Actual demo accounting separates attributed orders, placed orders, collected orders and the estimated treatment-minus-normalized-control contribution. Treatment denominators retain skipped and no-outreach assignments. Readiness requires simulated reconciliation and demo minimum group sizes; these are not proof of statistical significance or authority to invoice.
+
+The synthetic benchmark compares against an explicit conventional policy. In-app campaign controls receive no additional outreach. Real outcome billing needs an agreed business-as-usual experiment, uncertainty assessment, attribution rules and settlement window.
+
+## Architecture and persistence
+
+Pure logic in src/retention: data, features, forecast, policy, recommend, campaign, studio, tables and benchmark. UI reads derive(state), not independently invented headline counts. Shared history, signal lookups and customer features are cached for responsive editing.
+
+History is regenerated from a fixed seed and never stored in localStorage. Only merchant configuration, drafts, templates, approved snapshots and simulated events persist. Hydration prevents the server's initial state from overwriting saved work during StrictMode effect replay.
+
+Daily refresh updates opportunity evidence, while approvals freeze recipients, assets and offers. Pre-send checks can remove newly ineligible recipients but cannot silently add a new audience. Approved experiments reserve their full assignments, including holdouts.
+
+Razorpay Blade components/tokens and self-hosted TASA Orbiter/Inter fonts remain in use. No CDN or external runtime service is required.
+
+## Documentation
+
+- docs/IMPLEMENTATION_PLAN.md — execution plan.
+- docs/PRODUCT_DECISIONS.md — all agreed product/data/pricing/state decisions and live integration boundaries.
+- data/nira/README.md — data dictionary, assumptions, SQL examples and regeneration.
+- docs/CREATIVE_ASSETS.md — generated visual provenance.
+- BUILD_LOG.md — factual implementation/verification history.
+- roadmap.md — current and future scope.
+
+Known limits: one merchant; local-browser workflow persistence; static synthetic stock/network inputs with freshness checks; no external execution; assumed response economics; one-opportunity-per-customer benchmark interpreted over 90 days rather than a full future-order time-series model.
+
+## GitHub / Lovable
+
+This repository is connected to Lovable. Additive commits to the connected main branch sync into its editor. Do not force-push or rewrite published history.

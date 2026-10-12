@@ -30,3 +30,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Reproducible data-export and visual QA intermediates
+tmp/

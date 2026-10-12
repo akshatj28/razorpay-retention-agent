@@ -17,7 +17,13 @@ afterEach(cleanup);
 
 describe("Store setup onboarding", () => {
   it("walks a merchant from Shopify install to a ready agent without touching campaign state", async () => {
-    render(<BladeTheme><DemoStoreProvider><Setup /></DemoStoreProvider></BladeTheme>);
+    render(
+      <BladeTheme>
+        <DemoStoreProvider>
+          <Setup />
+        </DemoStoreProvider>
+      </BladeTheme>,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Install on Shopify" }));
     expect(await screen.findByText("Read orders and line items")).toBeInTheDocument();
@@ -35,12 +41,22 @@ describe("Store setup onboarding", () => {
 
     expect(await screen.findByText("Retention Agent is ready.")).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem("retention-agent-setup-v1")!).step).toBe("done");
-    expect(JSON.parse(localStorage.getItem("retention-agent-demo-v1")!).campaign.status).toBe("draft");
+    expect(JSON.parse(localStorage.getItem("retention-agent-demo-v2")!).campaign.status).toBe(
+      "draft",
+    );
   });
 
   it("blocks install until the address is a myshopify.com store", () => {
-    render(<BladeTheme><DemoStoreProvider><Setup /></DemoStoreProvider></BladeTheme>);
-    fireEvent.change(screen.getByLabelText("Shopify store address"), { target: { value: "everyday-essentials.com" } });
+    render(
+      <BladeTheme>
+        <DemoStoreProvider>
+          <Setup />
+        </DemoStoreProvider>
+      </BladeTheme>,
+    );
+    fireEvent.change(screen.getByLabelText("Shopify store address"), {
+      target: { value: "everyday-essentials.com" },
+    });
     expect(screen.getByRole("button", { name: "Install on Shopify" })).toBeDisabled();
   });
 });

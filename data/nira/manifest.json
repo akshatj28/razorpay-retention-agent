@@ -1,0 +1,60 @@
+{
+  "synthetic": true,
+  "merchant": "Nira Botanics",
+  "as_of": "2026-10-12",
+  "history_start": "2026-04-12",
+  "history_end": "2026-10-11",
+  "currency": "INR",
+  "catalog_prices": "tax-exclusive synthetic assumptions",
+  "seed": 20261012,
+  "monthly_targets": [
+    4600,
+    4900,
+    4750,
+    5200,
+    4950,
+    5600
+  ],
+  "tables": {
+    "monthly_summary": {
+      "rows": 6,
+      "sha256": "06afb1b13993038a4bdaa5c294b998eb4c2f7ff7f22fc3b024375a229d6c66a0"
+    },
+    "products": {
+      "rows": 18,
+      "sha256": "b5954d088d223ff7f04b13670020d939e5c46b4e21dde0701732f4e46ed48d52"
+    },
+    "customers": {
+      "rows": 12000,
+      "sha256": "c7c5c78f6268eb967493971df1b1eb156a1962c6df125088e080ef2508407a5c"
+    },
+    "orders": {
+      "rows": 30000,
+      "sha256": "d0f3ab57bd1ffa26e49a05927eac06b0255aa0574b8f2dbf96a5e5becfcdd35c"
+    },
+    "order_items": {
+      "rows": 41095,
+      "sha256": "f838fbd64f775e6cb1616f6b4e42c2d933326c4e6809351e5a227babcd5aa621"
+    },
+    "bundle_components": {
+      "rows": 9,
+      "sha256": "4c290dfe44f141ec42d972f90d82e492ab73e3a97733558296ae9d832bd800cc"
+    },
+    "razorpay_signals": {
+      "rows": 12000,
+      "sha256": "e57da96bd8ae19d40df541e290bba679a2c697de03a88afc25f76818f44e1671"
+    },
+    "contacts": {
+      "rows": 18814,
+      "sha256": "abd91b2ccb105cdd409342e109a1a5717c98922c291e475a0951b90db08ce836"
+    },
+    "refunds": {
+      "rows": 1615,
+      "sha256": "f23305ab69446f8821176e68fbfd15434f090ebb08066a7d5e7b64a5b57875bc"
+    },
+    "benchmark_results": {
+      "rows": 16,
+      "sha256": "6eb1e7ca1464fef353ff4f9ba45a99e1489760e06e273a856e9c09e39a763f91"
+    }
+  }
+}
