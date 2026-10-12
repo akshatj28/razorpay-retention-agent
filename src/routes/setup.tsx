@@ -1,6 +1,6 @@
 import { LinkButton } from "@/components/retention/LinkButton";
 import { AppModal } from "@/components/retention/AppModal";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Ban,
   Check,
@@ -28,11 +28,12 @@ import {
 import { Note, PageHeader, Pill } from "@/components/retention/bits";
 import { baseDataset, MIN_COMPLETED_FOR_INTERVAL } from "@/retention/data";
 import { useDemo } from "@/retention/store";
+import { SETUP_KEY } from "@/retention/onboarding";
 
 export const Route = createFileRoute("/setup")({
   head: () => ({
     meta: [
-      { title: "Store setup — Retention Agent" },
+      { title: "Connect store — Retention Agent" },
       {
         name: "description",
         content:
@@ -43,8 +44,6 @@ export const Route = createFileRoute("/setup")({
   component: Setup,
 });
 
-// Onboarding progress is a per-browser convenience, kept apart from the campaign state so "Reset demo" stays exact.
-const SETUP_KEY = "retention-agent-setup-v1";
 type StepId = "store" | "razorpay" | "import" | "channel";
 interface SetupState {
   step: StepId | "done";
@@ -69,10 +68,10 @@ const START: SetupState = {
 };
 
 const STEPS: { id: StepId; title: string; hint: string }[] = [
-  { id: "store", title: "Connect your store", hint: "Orders, items, customers" },
-  { id: "razorpay", title: "Link Razorpay data", hint: "Settled cash, refunds, payments" },
-  { id: "import", title: "Import and check history", hint: "Backfill + data health" },
-  { id: "channel", title: "Messaging and consent", hint: "Where offers are sent" },
+  { id: "store", title: "Connect your store", hint: "Orders, products, customers" },
+  { id: "razorpay", title: "Link Razorpay", hint: "Settlements, refunds, RTO" },
+  { id: "import", title: "Import order history", hint: "Last six months + data check" },
+  { id: "channel", title: "Choose WhatsApp sender", hint: "Where messages go out from" },
 ];
 
 const SHOPIFY_SCOPES = [
@@ -146,11 +145,28 @@ function Setup() {
     <div className="space-y-6 animate-enter">
       <PageHeader
         title="Connect your store to get started."
-        subtitle="Store setup · About 5 minutes · You can disconnect at any time"
-        actions={<Pill t="info">Simulated connection · no live store</Pill>}
+        subtitle="About 5 minutes · Read-only access · Disconnect any time"
       />
 
-      <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+      {s.step !== "done" && (
+        <section className="panel flex flex-wrap items-center gap-4 p-4">
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold">Use the Nira Botanics demo store</div>
+            <p className="text-sm text-muted-foreground">
+              Connect its Shopify store and Razorpay account in one click, or go through each screen
+              below.
+            </p>
+          </div>
+          <Button onClick={() => save({ ...s, domain: s.domain.trim(), step: "done" })}>
+            Connect demo store
+          </Button>
+          <Link to="/" className="text-sm font-semibold text-primary">
+            Skip to today's campaigns
+          </Link>
+        </section>
+      )}
+
+      <div data-tour="setup" className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
         <ol className="panel h-fit space-y-1 p-3" aria-label="Setup steps">
           {STEPS.map((x, i) => {
             const state = i < idx ? "done" : i === idx ? "current" : "next";
@@ -321,9 +337,9 @@ function Setup() {
               </div>
               <div className="mt-4">
                 <Note>
-                  Order IDs reconcile payments. Logistics records confirm COD collection. Proposed
-                  network enrichment uses permitted derived signals rather than raw histories from
-                  other stores; all connections here are simulated.
+                  Payments are matched to Shopify orders by order ID, and courier updates confirm
+                  when COD cash is collected. Razorpay shares an RTO risk score only, never another
+                  store's customer data.
                 </Note>
               </div>
               <StepNav
@@ -399,9 +415,9 @@ function Setup() {
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">
                 {s.domain} and your Razorpay account are linked. The agent found{" "}
                 <span className="font-semibold text-foreground">
-                  {d.plan.eligible.length} customers
+                  {d.studio.opportunities.reduce((n, o) => n + o.actions.length, 0)} customers
                 </span>{" "}
-                in their reorder window today. Nothing is sent until you approve a campaign.
+                worth messaging today across three campaigns. Nothing is sent until you approve.
               </p>
               <div className="mt-5 grid max-w-xl gap-3 sm:grid-cols-3">
                 <MiniStat label="Orders imported" value={stats.orders} />
@@ -410,7 +426,7 @@ function Setup() {
               </div>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <LinkButton to="/" size="large">
-                  See today's opportunities
+                  See today's campaigns
                 </LinkButton>
                 <Button variant="tertiary" icon={RefreshIcon} onClick={() => save(START)}>
                   Run setup again
@@ -420,10 +436,6 @@ function Setup() {
           )}
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Demo onboarding. No Shopify app is installed and no Razorpay account is read. Counts come
-        from the same synthetic dataset as the rest of the demo.
-      </p>
     </div>
   );
 }
@@ -513,7 +525,7 @@ function ImportStep({
       </div>
       {done && (
         <div className="mt-6 animate-enter">
-          <h3 className="section-title">Data health</h3>
+          <h3 className="section-title">Data check</h3>
           <ul className="mt-3 divide-y rounded-xl border">
             {checks.map((c) => (
               <li key={c.title} className="flex items-start gap-3 p-3">

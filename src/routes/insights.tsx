@@ -7,7 +7,7 @@ import { runBenchmark } from "@/retention/benchmark";
 import { inr } from "@/retention/format";
 export const Route = createFileRoute("/insights")({
   component: Insights,
-  head: () => ({ meta: [{ title: "Outcome benchmark — Retention Agent" }] }),
+  head: () => ({ meta: [{ title: "Compare strategies — Retention Agent" }] }),
 });
 function Insights() {
   const { d } = useDemo();
@@ -19,20 +19,21 @@ function Insights() {
   return (
     <div className="space-y-5 animate-enter">
       <PageHeader
-        title="What additional value could we create?"
-        subtitle="Independent synthetic counterfactual benchmark · 90-day outcome interpretation"
-        actions={<Pill t="warning">Simulation, not measured uplift</Pill>}
+        title="How does this compare with a flat sale?"
+        subtitle="The same 2,500 customers, four ways to run a campaign · simulated over 90 days"
+        actions={<Pill t="warning">Simulated results</Pill>}
       />
       <Note>
-        The same {rows[0]?.audience.toLocaleString()} eligible customers face every strategy. Hidden
-        demand and response assumptions are isolated from recommendation scores. Organic purchases,
-        delivery failure, product returns and discounts are included. The agent is allowed to lose.
+        Each row runs the same {rows[0]?.audience.toLocaleString("en-IN")} customers through a
+        different approach. How customers actually behave is simulated separately from what the
+        agent predicts, so the agent can lose. Orders customers would have placed anyway, RTO,
+        returns and discounts are all counted.
       </Note>
       <section className="panel p-5">
         <label className="block text-sm font-semibold">
-          Assumed intervention effectiveness: {response.toFixed(2)}×
+          How much messages influence buying: {response.toFixed(2)}×
           <input
-            aria-label="Intervention effectiveness"
+            aria-label="How much messages influence buying"
             type="range"
             min="0"
             max="2"
@@ -43,63 +44,63 @@ function Insights() {
           />
         </label>
         <p className="mt-2 text-xs text-muted-foreground">
-          At 0×, outreach has no causal purchase benefit. Network delivery-risk treatment remains a
-          separate assumed effect.
+          At 0×, messages don't change whether anyone buys. Asking COD customers to pay online still
+          cuts RTO.
         </p>
       </section>
       <section data-tour="benchmark" className="panel p-4">
         <DataTable
           rows={rows}
           rowId={(r) => r.strategy}
-          label="Synthetic strategy economics"
+          label="Results by approach"
           minWidth={1400}
           columns={[
             {
               key: "strategy",
-              label: "Strategy",
+              label: "Approach",
               width: "minmax(240px, 2fr)",
               render: (r) => r.strategy,
             },
-            { key: "contacts", label: "Contacts", render: (r) => r.contacts },
+            { key: "contacts", label: "Messaged", render: (r) => r.contacts },
             {
               key: "orders",
-              label: "Expected collected orders",
+              label: "Delivered and paid orders",
               render: (r) => Math.round(r.collectedOrders),
             },
-            { key: "sales", label: "Net sales", render: (r) => inr(r.netSales) },
+            { key: "sales", label: "Sales", render: (r) => inr(r.netSales) },
             {
               key: "margin",
-              label: "Merchant contribution",
+              label: "Profit",
               render: (r) => inr(r.merchantContribution),
             },
-            { key: "uplift", label: "Vs conventional", render: (r) => inr(r.incremental) },
+            { key: "uplift", label: "Extra profit vs flat 20%", render: (r) => inr(r.incremental) },
             {
               key: "fee",
-              label: "Illustrative 25% share",
-              render: (r) => (r.strategy.includes("intelligence") ? inr(r.successFee) : "—"),
+              label: "Fee (25%)",
+              render: (r) => (r.strategy.startsWith("Agent") ? inr(r.successFee) : "—"),
             },
             {
               key: "keeps",
-              label: "Merchant retains uplift",
+              label: "You keep",
               render: (r) => inr(r.merchantRetains),
             },
-            { key: "cost", label: "Operator cost", render: (r) => inr(r.operatorCost) },
+            { key: "cost", label: "Messaging cost (we pay)", render: (r) => inr(r.operatorCost) },
           ]}
         />
       </section>
       <div className="grid gap-4 md:grid-cols-3">
         {[
           [
-            "What is attributed?",
-            "Orders linked to messages or campaigns. This alone does not show purchases caused by them.",
+            "Sales credited to a message",
+            "Any order placed after a message. It doesn't show whether the message caused it.",
           ],
           [
-            "What is incremental?",
-            "The contribution difference under paired synthetic worlds, or a properly randomized real business-as-usual experiment.",
+            "Extra profit",
+            "The difference against customers who got no message: the control group.",
           ],
           [
-            "When is a fee ready?",
-            "After collection and return-window reconciliation, sufficient measurement and an agreed baseline. Real invoicing is not implemented.",
+            "When the fee is charged",
+            "Only after deliveries, COD collection and the return window close, measured against the control group.",
           ],
         ].map(([title, text]) => (
           <section key={title} className="panel p-5">
@@ -109,15 +110,14 @@ function Insights() {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Both intelligence rows use the same decision logic as Campaign Studio. Merchant-only sees
-        store history; network-enriched also sees the simulated Razorpay RTO signal and nudges
-        medium- or high-risk COD buyers to prepaid (assumed: half of them switch). Only about 8% of
-        this merchant's customers carry that risk, so the network adds a small amount here.
+        Both agent rows use the same logic as Campaigns. "Store data only" uses your Shopify
+        history. "+ Razorpay RTO score" also asks medium- or high-risk COD customers to pay online
+        (we assume half of them do). Only about 8% of this store's customers carry that risk, so the
+        difference is small here.
       </p>
       <p className="text-xs text-muted-foreground">
-        The conventional baseline is a chosen day-30 / 20% demo policy, not a claim about all
-        merchants. Results are an illustrative one-opportunity-per-customer 90-day simulator, not a
-        trained model or real test.
+        The flat 20% sale stands in for a typical campaign; it is not a claim about every store.
+        Each customer gets one campaign, and results cover 90 days.
       </p>
     </div>
   );

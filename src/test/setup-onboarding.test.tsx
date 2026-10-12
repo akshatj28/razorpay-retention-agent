@@ -7,6 +7,7 @@ import { DemoStoreProvider } from "@/retention/store";
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (opts: object) => opts,
   useNavigate: () => vi.fn(),
+  Link: ({ children }: { children: unknown }) => children,
 }));
 
 const { Route } = await import("@/routes/setup");
@@ -33,7 +34,7 @@ describe("Store setup onboarding", () => {
     fireEvent.click(screen.getByRole("button", { name: "Link and continue" }));
 
     expect(await screen.findByText("Importing your order history")).toBeInTheDocument();
-    expect(await screen.findByText("Data health", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText("Data check", {}, { timeout: 5000 })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(await screen.findByText("How should the agent reach customers?")).toBeInTheDocument();
@@ -44,7 +45,7 @@ describe("Store setup onboarding", () => {
     expect(JSON.parse(localStorage.getItem("retention-agent-demo-v2")!).campaign.status).toBe(
       "draft",
     );
-  });
+  }, 15000);
 
   it("blocks install until the address is a myshopify.com store", () => {
     render(

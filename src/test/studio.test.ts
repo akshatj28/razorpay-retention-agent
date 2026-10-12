@@ -220,13 +220,13 @@ test("audience is ranked by expected value before the cap, with customer-specifi
   const plain = view.actions.find((a) => a.offer === 0)!;
   const f = deriveStudio(data, initialStudio()).byId.get(plain.customerId)!;
   expect(plain.reason).toContain(`last bought ${f.daysSince} days ago`);
-  expect(plain.reason).toContain("reminder without discount");
+  expect(plain.reason).toContain("reminder without a discount");
   expect(new Set(view.actions.map((a) => a.reason)).size).toBeGreaterThan(20);
 });
 test("benchmark intelligence rows use the studio decision logic", () => {
   const rows = runBenchmark(data, deriveStudio(data, initialStudio()).features);
-  const merchant = rows.find((r) => r.strategy === "Merchant intelligence")!;
-  const network = rows.find((r) => r.strategy === "Merchant + network intelligence")!;
+  const merchant = rows.find((r) => r.strategy === "Agent, store data only")!;
+  const network = rows.find((r) => r.strategy === "Agent + Razorpay RTO score")!;
   expect(network.merchantContribution).toBeGreaterThanOrEqual(merchant.merchantContribution);
   expect(merchant.contacts).toBeGreaterThan(0);
 });

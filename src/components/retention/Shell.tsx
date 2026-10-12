@@ -17,19 +17,19 @@ import { Pill } from "./bits";
 import { EvaluatorTour } from "./EvaluatorTour";
 
 const NAV = [
-  { to: "/setup", label: "Store setup", icon: Plug },
-  { to: "/", label: "Opportunities", icon: LayoutGrid },
-  { to: "/campaigns", label: "Campaign Studio", icon: ClipboardCheck },
-  { to: "/database", label: "Merchant database", icon: Store },
-  { to: "/insights", label: "Outcome benchmark", icon: FlaskConical },
+  { to: "/setup", label: "Connect store", icon: Plug },
+  { to: "/", label: "Today", icon: LayoutGrid },
+  { to: "/campaigns", label: "Campaigns", icon: ClipboardCheck },
+  { to: "/database", label: "Order data", icon: Store },
+  { to: "/insights", label: "Compare strategies", icon: FlaskConical },
 ] as const;
 
 const CRUMB: Record<string, string> = {
-  "/campaigns": "Campaign Studio",
-  "/database": "Merchant database",
-  "/insights": "Outcome benchmark",
-  "/setup": "Store setup",
-  "/": "Opportunities",
+  "/campaigns": "Campaigns",
+  "/database": "Order data",
+  "/insights": "Compare strategies",
+  "/setup": "Connect store",
+  "/": "Today",
   "/cohort": "Cohort intelligence",
   "/workbench": "Decision workbench",
   "/review": "Review & execution",
@@ -116,9 +116,9 @@ export function Shell({ children }: { children: ReactNode }) {
                 official Razorpay product, is not endorsed by Razorpay, and has no live integration.
               </p>
               <p>
-                All merchants, customers and orders are synthetic. Recommendations come from a
-                deterministic simulated adapter; messages, deliveries and purchases are simulated.
-                No external services are contacted.
+                All merchants, customers and orders are generated. Recommendations come from a
+                rule-based model standing in for the AI; messages, deliveries and payments are
+                simulated. No external services are contacted.
               </p>
               <p>
                 Built using Razorpay's open-source Blade components and theme tokens, with custom
@@ -150,11 +150,11 @@ export function Shell({ children }: { children: ReactNode }) {
             <EvaluatorTour />
             <span
               role="status"
-              title="All customers and orders are synthetic. Recommendations, messages and outcomes are simulated."
+              title="Nira Botanics is a sample store. Orders, customers and Razorpay scores are generated, and no real customer is messaged or charged."
               className="flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-xs text-muted-foreground"
             >
               <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-              Demo data · No live customer data
+              Demo store · sample data
             </span>
             <Button
               variant="secondary"

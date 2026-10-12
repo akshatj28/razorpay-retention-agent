@@ -1,7 +1,7 @@
 // Independent counterfactual simulator. Synthetic sensitivity study, not evidence of commercial uplift.
 import type { Dataset } from "./data";
 import type { CustomerFeature } from "./features";
-import { DEFAULT_SETTINGS, estimateAction } from "./studio";
+import { DEFAULT_SETTINGS, estimateAction, isPrepaidNudge } from "./studio";
 export interface BenchmarkRow {
   strategy: string;
   audience: number;
@@ -31,10 +31,10 @@ export function runBenchmark(
     .filter((f) => f.offerUsage.completed > 0 && !f.reasons.some((r) => r.hard))
     .slice(0, 2500);
   const strategies = [
-    "No additional outreach",
-    "Conventional: day 30 + 20%",
-    "Merchant intelligence",
-    "Merchant + network intelligence",
+    "Do nothing",
+    "Flat 20% off at day 30",
+    "Agent, store data only",
+    "Agent + Razorpay RTO score",
   ];
   const rows = strategies.map((strategy, index): BenchmarkRow => {
     let contacts = 0,
@@ -62,7 +62,7 @@ export function runBenchmark(
       const sig = signals.get(f.customer.id);
       const preferCod =
         f.orders.filter((o) => o.paymentMethod === "cod").length > f.orders.length / 2;
-      const prepaidNudge = !!action?.paymentTreatment.startsWith("Prepaid nudge");
+      const prepaidNudge = !!action && isPrepaidNudge(action);
       // Latent natural demand and offer sensitivity are independent of the recommendation model.
       const natural =
         0.05 +
@@ -109,7 +109,7 @@ export function runBenchmark(
   const baseline = rows[1]!.merchantContribution;
   for (const r of rows) {
     r.incremental = r.merchantContribution - baseline;
-    r.successFee = r.strategy.includes("intelligence") ? Math.max(0, r.incremental) * 0.25 : 0;
+    r.successFee = r.strategy.startsWith("Agent") ? Math.max(0, r.incremental) * 0.25 : 0;
     r.merchantRetains = r.incremental - r.successFee;
     r.operatorContribution = r.successFee - r.operatorCost;
   }

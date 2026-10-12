@@ -1,5 +1,15 @@
 # AI build log (factual)
 
+## 12 October 2026 — merchant-language pass
+
+- First visit opens on Connect store with an intro pop-up: the four-step flow (Connect, Review, Approve, Measure) and a guided-tour invitation for whoever is reviewing the build. One-click "Connect demo store" and "Skip to today's campaigns".
+- Guided tour gains a setup stop (seven stops) and uses merchant vocabulary.
+- Screens rewritten in the words merchants already use in Shopify, the Razorpay dashboard and BiteSpeed/Klaviyo: extra profit, control group, sales credited to messages, delivered and paid, discount code, segment, RTO risk. Sidebar: Connect store, Today, Campaigns, Order data, Compare strategies.
+- Home hero now leads with today's decisions and expected extra profit; the 25% fee moved to Budget & approval.
+- Repeated per-card "simulated" labels replaced by one "Demo store · sample data" badge plus the intro and About text.
+- Fixed shopper WhatsApp text: {{payment}} previously inserted the internal label ("Prepaid nudge; COD rechecked at checkout"); shoppers now see plain sentences.
+- Verification: TypeScript, 23 tests across seven files and the production build passed.
+
 ## 12 October 2026 — review fixes
 
 - Campaign audiences are scored first and capped by expected additional contribution, not by customer ID; controls are hashed from the same ranked audience.

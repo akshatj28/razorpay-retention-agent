@@ -108,10 +108,19 @@ export interface StudioState {
   optOutIds: string[];
 }
 export const GOALS: Record<Goal, string> = {
-  replenishment: "Replenishment",
-  second_purchase: "Second purchase",
+  replenishment: "Reorder reminder",
+  second_purchase: "Second order",
   winback: "Win-back",
 };
+// Merchant-facing payment labels; shoppers see the sentences in renderAsset instead.
+export const PAYMENT = {
+  nudge: "Ask to pay online (RTO risk)",
+  cod: "COD allowed",
+  prepaid: "Usually pays online",
+} as const;
+// Also accepts the label used by campaigns approved before the rename.
+export const isPrepaidNudge = (a: Pick<ActionRow, "paymentTreatment">) =>
+  a.paymentTreatment === PAYMENT.nudge || a.paymentTreatment.startsWith("Prepaid nudge");
 export const DEFAULT_SETTINGS: CampaignSettings = {
   goal: "replenishment",
   rule: "goal",
@@ -287,9 +296,9 @@ export function estimateAction(
       callEligible,
       paymentTreatment: prefersCod
         ? risk === "high" || risk === "medium"
-          ? "Prepaid nudge; COD rechecked at checkout"
-          : "COD available subject to checkout checks"
-        : "Preferred prepaid checkout",
+          ? PAYMENT.nudge
+          : PAYMENT.cod
+        : PAYMENT.prepaid,
       reason: "",
     };
   }
@@ -322,16 +331,16 @@ function explainAction(
   const gain = plainValue === null ? 0 : a.expectedIncremental - plainValue;
   const offer =
     cfg.offer !== "recommended"
-      ? `the merchant fixed the offer at ${a.offer ? a.offer + "%" : "no discount"}`
+      ? `you set the discount to ${a.offer ? a.offer + "%" : "none"}`
       : a.offer === 0
-        ? "a reminder without discount is worth more than any permitted offer"
+        ? "a reminder without a discount earns more than any discount"
         : plainValue === null
-          ? `${a.offer}% is the best permitted option`
-          : `${a.offer}% adds about ₹${gain < 1 ? gain.toFixed(1) : Math.round(gain)} over a plain reminder`;
+          ? `a ${a.offer}% code is the best allowed option`
+          : `a ${a.offer}% code earns about ₹${gain < 1 ? gain.toFixed(1) : Math.round(gain)} more than a plain reminder`;
   const payment = risk
-    ? `Razorpay signal (simulated): ${risk} RTO risk` +
-      (a.paymentTreatment.startsWith("Prepaid nudge") ? " on COD, so prepaid nudge" : "")
-    : "No fresh Razorpay signal; store history only";
+    ? `Razorpay RTO risk: ${risk}` +
+      (isPrepaidNudge(a) ? " on COD, so we ask them to pay online" : "")
+    : "No recent Razorpay RTO score, so we use your store history";
   return `${timing}. ${history}, so ${offer}. ${payment}.`;
 }
 export interface CampaignView {
@@ -414,17 +423,18 @@ export function deriveCampaign(
     c.settings.maxAudience > 1000 ||
     !Number.isInteger(c.settings.maxAudience)
   )
-    blockers.push("Choose a whole-number audience between 10 and 1,000.");
-  if (!activeActions.length) blockers.push("No profitable, eligible actions in this audience.");
-  if (operatorCost > c.settings.operatorCap) blockers.push("Operator spending limit exceeded.");
+    blockers.push("Choose a whole number of customers between 10 and 1,000.");
+  if (!activeActions.length) blockers.push("No customer here is worth messaging at these limits.");
+  if (operatorCost > c.settings.operatorCap)
+    blockers.push("Messaging cost is above the spend limit.");
   if (incentiveExposure > c.settings.incentiveCap)
-    blockers.push("Merchant incentive liability exceeds the approved cap.");
+    blockers.push("Total discount value is above your discount budget.");
   if (c.settings.scheduleDay < s.day && c.status === "draft")
     blockers.push("Choose today or a future send date.");
   if (!c.assets.whatsapp.trim() || !c.assets.whatsapp.toUpperCase().includes("STOP"))
-    blockers.push("WhatsApp copy needs content and a STOP opt-out instruction.");
+    blockers.push("The WhatsApp message needs text and a 'Reply STOP to opt out' line.");
   if (c.settings.callsEnabled && (!c.assets.callOpening.trim() || !c.assets.callDecline.trim()))
-    blockers.push("Voice flow requires an opening and decline response.");
+    blockers.push("The call script needs an opening line and a goodbye line.");
   return {
     campaign: c,
     candidates,
@@ -489,7 +499,7 @@ function makeDraft(
     sentIds: [],
     sentDays: {},
     outcomes: [],
-    log: [{ day, text: "Draft created. Recommendations and delivery are simulated." }],
+    log: [{ day, text: "Draft created." }],
     lastAudience: 0,
     settlementDay: null,
   };
@@ -506,7 +516,7 @@ export function createDraft(
     id,
     template
       ? template.name + " · new campaign"
-      : GOALS[goal] + " · " + (origin === "custom" ? "my campaign" : "agent proposal"),
+      : GOALS[goal] + " · " + (origin === "custom" ? "my campaign" : "suggested by agent"),
     origin,
     s.day,
     {
@@ -702,7 +712,11 @@ export function renderAsset(text: string, customerName: string, a: ActionRow) {
     offer: a.offer
       ? "Use REFILL" + a.offer + " for " + a.offer + "% off."
       : "Reorder when you are ready.",
-    payment: a.paymentTreatment + ".",
+    payment: isPrepaidNudge(a)
+      ? "Pay online with UPI for faster delivery."
+      : a.paymentTreatment === PAYMENT.cod
+        ? "Cash on delivery is available."
+        : "Pay in one tap with UPI.",
     link: "https://nira.example.invalid/reorder/" + p.id,
   };
   return text.replace(/\{\{(\w+)\}\}/g, (match, field: string) => fields[field] ?? match);
@@ -734,7 +748,7 @@ function syntheticOutcome(
   const purchased = draw < chance + calls * 0.03;
   const cod =
     f.orders.filter((o) => o.paymentMethod === "cod").length > f.orders.length / 2 &&
-    !a?.paymentTreatment.startsWith("Prepaid");
+    !(a && isPrepaidNudge(a));
   return {
     customerId,
     group,
@@ -964,9 +978,9 @@ export function portfolioSettlement(s: StudioState) {
     merchantKeeps: fee === null ? null : incremental - fee,
     operatorContribution: fee === null ? null : fee - operatorCost,
     reason: !cohorts.length
-      ? "No campaign outcomes yet."
+      ? "No campaign results yet."
       : !ready
-        ? "Reconciliation and at least 20 control / 100 treatment assignments required per campaign. These are demo thresholds, not statistical significance."
-        : "Synthetic reconciled estimate, not proven uplift or an invoice. Losses offset wins before the 25% share.",
+        ? "Results appear once deliveries and COD payments are settled and each campaign has at least 20 customers in the control group and 100 messaged."
+        : "Extra profit compared with the control group, after returns and refunds. Losses on one campaign offset gains on another before the 25% fee.",
   };
 }

@@ -7,7 +7,7 @@ import { databaseTables, csvFor, type TableRow } from "@/retention/tables";
 import { useDemo } from "@/retention/store";
 export const Route = createFileRoute("/database")({
   component: Database,
-  head: () => ({ meta: [{ title: "Merchant database — Nira Botanics" }] }),
+  head: () => ({ meta: [{ title: "Order data — Nira Botanics" }] }),
 });
 function Database() {
   const { d, state } = useDemo();
@@ -48,8 +48,8 @@ function Database() {
   return (
     <div className="space-y-5 animate-enter">
       <PageHeader
-        title="Merchant database"
-        subtitle="Shopify-shaped synthetic history · 12 Apr–11 Oct 2026 · all money in INR"
+        title="Order data"
+        subtitle="Your Shopify orders and Razorpay payments · 12 Apr–11 Oct 2026 · amounts in ₹"
         actions={
           <Button variant="secondary" onClick={download}>
             Download selected table CSV
@@ -58,7 +58,7 @@ function Database() {
       />
       <div data-tour="database" className="panel grid gap-5 p-5 sm:grid-cols-4">
         <Stat
-          label="Historical orders"
+          label="Orders, last six months"
           value={d.data.orders.filter((o) => o.source === "seed").length.toLocaleString("en-IN")}
         />
         <Stat label="Customers" value={d.data.customers.length.toLocaleString("en-IN")} />
@@ -66,9 +66,8 @@ function Database() {
         <Stat label="Average orders / month" value="5,000" />
       </div>
       <Note>
-        Identifiers, contacts and transactions are fictional. Razorpay/Vulcan enrichment is
-        simulated and does not expose real cross-merchant history. Search a customer ID to trace
-        orders and line items.
+        Search a customer ID to see every order, item, refund and Razorpay RTO score the agent used
+        for them. Razorpay shares a risk score only, never another store's customer data.
       </Note>
       <section className="panel p-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -132,7 +131,7 @@ function Database() {
             .slice(safePage * 40, safePage * 40 + 40)
             .map((r, i) => ({ id: String(safePage * 40 + i), r }))}
           rowId={(x) => x.id}
-          label="Synthetic merchant records"
+          label="Store records"
           minWidth={Math.max(700, columns.length * 160)}
           columns={columns.map((key) => ({
             key,

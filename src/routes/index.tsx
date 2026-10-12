@@ -4,7 +4,7 @@ export const Route = createFileRoute("/")({
   component: StudioHome,
   head: () => ({
     meta: [
-      { title: "Retention opportunities — Nira Botanics" },
+      { title: "Today — Nira Botanics" },
       {
         name: "description",
         content:
