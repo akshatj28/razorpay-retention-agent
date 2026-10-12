@@ -211,3 +211,22 @@ test("benchmark uses identical customers and permits zero intervention benefit",
   expect(base[0]!.contacts).toBe(0);
   expect(base[0]!.successFee).toBe(0);
 });
+test("audience is ranked by expected value before the cap, with customer-specific evidence", () => {
+  const view = deriveStudio(data, initialStudio()).opportunities[0]!;
+  const values = view.actions.map((a) => a.expectedIncremental);
+  expect(values).toEqual([...values].sort((a, b) => b - a));
+  expect(view.actions.some((a) => a.offer === 0)).toBe(true);
+  expect(view.actions.some((a) => a.offer > 0)).toBe(true);
+  const plain = view.actions.find((a) => a.offer === 0)!;
+  const f = deriveStudio(data, initialStudio()).byId.get(plain.customerId)!;
+  expect(plain.reason).toContain(`last bought ${f.daysSince} days ago`);
+  expect(plain.reason).toContain("reminder without discount");
+  expect(new Set(view.actions.map((a) => a.reason)).size).toBeGreaterThan(20);
+});
+test("benchmark intelligence rows use the studio decision logic", () => {
+  const rows = runBenchmark(data, deriveStudio(data, initialStudio()).features);
+  const merchant = rows.find((r) => r.strategy === "Merchant intelligence")!;
+  const network = rows.find((r) => r.strategy === "Merchant + network intelligence")!;
+  expect(network.merchantContribution).toBeGreaterThanOrEqual(merchant.merchantContribution);
+  expect(merchant.contacts).toBeGreaterThan(0);
+});

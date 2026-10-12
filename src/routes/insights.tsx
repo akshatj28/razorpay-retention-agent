@@ -47,7 +47,7 @@ function Insights() {
           separate assumed effect.
         </p>
       </section>
-      <section className="panel p-4">
+      <section data-tour="benchmark" className="panel p-4">
         <DataTable
           rows={rows}
           rowId={(r) => r.strategy}
@@ -61,7 +61,11 @@ function Insights() {
               render: (r) => r.strategy,
             },
             { key: "contacts", label: "Contacts", render: (r) => r.contacts },
-            { key: "orders", label: "Collected orders", render: (r) => r.collectedOrders },
+            {
+              key: "orders",
+              label: "Expected collected orders",
+              render: (r) => Math.round(r.collectedOrders),
+            },
             { key: "sales", label: "Net sales", render: (r) => inr(r.netSales) },
             {
               key: "margin",
@@ -104,6 +108,12 @@ function Insights() {
           </section>
         ))}
       </div>
+      <p className="text-xs text-muted-foreground">
+        Both intelligence rows use the same decision logic as Campaign Studio. Merchant-only sees
+        store history; network-enriched also sees the simulated Razorpay RTO signal and nudges
+        medium- or high-risk COD buyers to prepaid (assumed: half of them switch). Only about 8% of
+        this merchant's customers carry that risk, so the network adds a small amount here.
+      </p>
       <p className="text-xs text-muted-foreground">
         The conventional baseline is a chosen day-30 / 20% demo policy, not a claim about all
         merchants. Results are an illustrative one-opportunity-per-customer 90-day simulator, not a

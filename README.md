@@ -34,7 +34,7 @@ An offline merchant experience for fictional **Nira Botanics**, a curated skinca
 - /database — raw tabular history, joins and simulated signal provenance.
 - /insights — same-population counterfactual benchmark.
 - /setup — simulated Shopify/Razorpay/channel onboarding; six-month backfill requires older-order access in a real connector.
-- /cohort, /workbench, /review — existing detailed customer, offer-mathematics and execution labs, retained for evaluator evidence. These use explicit product fixture probabilities and a separate legacy experiment; their forecasts are not the campaign-studio pricing model.
+- /cohort, /workbench, /review — earlier offer-mathematics labs, kept as an appendix and removed from the sidebar and guided tour. These use explicit product fixture probabilities and a separate legacy experiment; their forecasts are not the campaign-studio pricing model.
 
 ## Intelligence and honest boundaries
 

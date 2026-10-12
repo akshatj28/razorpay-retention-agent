@@ -56,7 +56,7 @@ function Database() {
           </Button>
         }
       />
-      <div className="panel grid gap-5 p-5 sm:grid-cols-4">
+      <div data-tour="database" className="panel grid gap-5 p-5 sm:grid-cols-4">
         <Stat
           label="Historical orders"
           value={d.data.orders.filter((o) => o.source === "seed").length.toLocaleString("en-IN")}

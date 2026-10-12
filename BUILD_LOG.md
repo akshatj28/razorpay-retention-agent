@@ -1,5 +1,14 @@
 # AI build log (factual)
 
+## 12 October 2026 — review fixes
+
+- Campaign audiences are scored first and capped by expected additional contribution, not by customer ID; controls are hashed from the same ranked audience.
+- Each action's evidence now states the customer's own rhythm, discount history, why the offer (or no offer) was chosen, and the Razorpay signal used.
+- Discount history is shrunk toward a 25% prior worth three orders; offer response is 0.15 + 0.6 × history (was 0.3 + 0.45 × history). Replenishment requires at least two orders. Prepaid nudge covers medium- and high-risk COD buyers. These are illustrative assumptions.
+- Benchmark intelligence rows call the Campaign Studio decision function (with and without network signals) and use expected delivery/return outcomes instead of one random draw per customer.
+- Guided tour now covers Opportunities, Campaign Studio, the benchmark and the database; legacy labs removed from the sidebar. Products & offers adds reminder/offer/prepaid-nudge filters.
+- Verification: TypeScript, 23 tests across seven files and the production build passed.
+
 ## 12 October 2026 — Nira Botanics campaign studio
 
 - Implemented the agreed merchant, intelligence, campaign, state and outcome-pricing decisions; see docs/IMPLEMENTATION_PLAN.md and docs/PRODUCT_DECISIONS.md.

@@ -18,48 +18,48 @@ export const TOUR_STOPS = [
     target: "opportunity",
     title: "Start with a decision, not a dashboard.",
     rationale:
-      "I chose replenishment as one complete retention journey. The agent proposes an audience and offer mix; the merchant gets an action to review, not just a report.",
-    try: "Inspect the proposed contacts and offer mix. These are demo recommendations, not learned predictions.",
+      "Each day the agent turns six months of orders into three campaigns to review: replenishment, second purchase and win-back. The merchant gets a plan to approve, not a report to interpret.",
+    try: "Compare the three proposals: contacts, controls, and how many customers get a reminder without any discount.",
   },
   {
-    route: "/cohort",
-    target: "cohort",
-    title: "Choosing whom not to contact matters.",
+    route: "/campaigns",
+    target: "studio",
+    title: "One decision per customer.",
     rationale:
-      "Purchase history suggests who is due. Consent, refunds, stock and contact frequency constrain the audience. Missing history goes to merchant review rather than invented certainty.",
-    try: "Switch to Excluded or Needs review. Open a customer to inspect the evidence.",
+      "For every customer the agent picks the product, whether a discount is worth it, and how they should pay. Full-price buyers get a plain reminder; coupon users get an offer only if it adds contribution; medium- or high-risk COD buyers get a prepaid nudge. Customers are ranked by expected extra contribution before the audience cap.",
+    try: "Click Review proposal on Replenishment and open Products & offers. Switch between Reminder, no discount and With an offer, and read the Evidence column.",
   },
   {
-    route: "/workbench",
-    target: "decisions",
-    title: "Three merchant decisions, one workspace.",
+    route: "/campaigns",
+    target: "studio",
+    title: "The merchant stays in control.",
     rationale:
-      "I structured the campaign around who, what and incentive. Recommendations are a starting point: the merchant can change timing, offers and economic constraints before approving.",
-    try: "Try a 5% discount cap, then restore 20%. Notice how the recommendation changes.",
+      "Discount cap, contribution floor, liability cap and spend limit are rules, not model output. Approval freezes the exact audience, offers and messages; any edit invalidates it, and eligibility is rechecked before every send.",
+    try: "Set Maximum discount to 0% on Products & offers, then open Economics & approval and watch the plan change.",
   },
   {
-    route: "/workbench",
-    target: "economics",
-    title: "Protect contribution, not just conversion.",
+    route: "/insights",
+    target: "benchmark",
+    title: "The agent is allowed to lose.",
     rationale:
-      "A larger discount need not be the best action. Offer comparisons expose the economics and policy limits. Here, purchase probabilities are explicit per-product assumptions—not customer-level intelligence or causal evidence.",
-    try: "Open Calculation & assumptions. Compare the Glow Routine Kit fixture at 0%, 10% and 20%.",
+      "The same 2,500 customers face four strategies in a simulated world whose hidden demand is separate from the agent's estimates. Both intelligence rows run Campaign Studio's own decision logic, with and without the Razorpay risk signal.",
+    try: "Drag intervention effectiveness to 0×. Outreach stops causing purchases, and the agent falls below doing nothing.",
   },
   {
-    route: "/review",
-    target: "approval",
-    title: "The merchant owns the launch.",
+    route: "/database",
+    target: "database",
+    title: "Trace every decision to its inputs.",
     rationale:
-      "Approval is tied to the exact plan. Edits invalidate it, hard blocks cannot be overridden, and eligibility is checked again before sending. The agent cannot silently bypass these controls.",
-    try: "Review the policy checks. You can approve, launch and send a demo batch; nothing is sent to real shoppers.",
+      "30,000 orders, refunds and simulated Razorpay signals sit behind every recommendation, with source and freshness. Missing or stale signals fall back to store history instead of guessing.",
+    try: "Switch the table to razorpay_signals and search a customer ID from the campaign.",
   },
   {
-    route: "/review",
-    target: "outcomes",
+    route: "/campaigns",
+    target: "studio",
     title: "Close the loop without overclaiming.",
     rationale:
-      "Outcome tracking connects actions to purchases and opt-outs. A holdout supports future evaluation, but attributed orders are not proof of incremental growth. This small simulated demo does not estimate uplift or retrain a model.",
-    try: "After launch, send a batch and record a purchase. Try Pause or replay an outcome to inspect control and duplicate protection.",
+      "Controls get no message. Results count collected orders after RTO and refunds, compare treatment with control, and the success share waits for reconciliation. Attributed orders are never presented as proof of uplift.",
+    try: "Approve and start the campaign, send batches until it completes, then reconcile on the Outcomes tab.",
   },
 ] as const;
 
@@ -254,11 +254,10 @@ export function EvaluatorTour() {
                   How this demo works
                 </summary>
                 <p className="mt-2 leading-relaxed">
-                  Seeded fictional orders → derived customer features → deterministic recommendation
-                  adapter → policy gates → merchant approval → simulated outcomes. A future AI
-                  adapter would replace recommendations, not the hard controls. Campaign Studio
-                  implements replenishment, second-purchase and win-back proposals, saved drafts,
-                  template reuse and simulated channel execution. No live Razorpay, Vulcan,
+                  Seeded fictional orders → derived customer features → deterministic decision model
+                  → policy gates → merchant approval → simulated outcomes. A future AI model would
+                  replace the estimates, not the hard controls. The earlier offer-maths labs remain
+                  at /cohort, /workbench and /review as an appendix. No live Razorpay, Vulcan,
                   messaging or payment integration.
                 </p>
               </details>

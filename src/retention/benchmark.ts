@@ -1,6 +1,7 @@
 // Independent counterfactual simulator. Synthetic sensitivity study, not evidence of commercial uplift.
 import type { Dataset } from "./data";
 import type { CustomerFeature } from "./features";
+import { DEFAULT_SETTINGS, estimateAction } from "./studio";
 export interface BenchmarkRow {
   strategy: string;
   audience: number;
@@ -52,58 +53,43 @@ export function runBenchmark(
           : index === 1
             ? f.daysSince >= 25 && f.daysSince <= 35
             : f.daysSince >= cycle * 0.8 && f.daysSince <= cycle * 1.3;
-      const observedDiscount = f.offerUsage.discounted / Math.max(1, f.offerUsage.completed);
-      const offer = !contact
-        ? 0
-        : index === 1
-          ? 20
-          : observedDiscount > 0.45 && p.price - p.variableCost - p.price * 0.1 >= 80
-            ? 10
-            : 0;
+      // Intelligence strategies use the same decision function as Campaign Studio: merchant-only
+      // ignores Razorpay signals, network-enriched uses fresh simulated signals.
+      const action =
+        contact && index >= 2 ? estimateAction(f, data, DEFAULT_SETTINGS, 0, index === 3) : null;
+      const contacted = index === 1 ? contact : !!action;
+      const offer = !contacted ? 0 : index === 1 ? 20 : action!.offer;
       const sig = signals.get(f.customer.id);
-      const fresh = sig?.matched && -sig.asOfDay <= 7;
       const preferCod =
         f.orders.filter((o) => o.paymentMethod === "cod").length > f.orders.length / 2;
-      const prepaidNudge = contact && index === 3 && fresh && sig.riskTier === "high" && preferCod;
+      const prepaidNudge = !!action?.paymentTreatment.startsWith("Prepaid nudge");
       // Latent natural demand and offer sensitivity are independent of the recommendation model.
       const natural =
         0.05 +
         Math.min(0.14, f.offerUsage.completed * 0.015) +
         unit("latent-demand:" + f.customer.id) * 0.03;
       const fit = Math.exp(-Math.abs(f.daysSince - cycle) / Math.max(12, cycle));
-      const lift = contact
+      const lift = contacted
         ? responseScale *
           (0.055 * fit + ((unit("latent-sensitivity:" + f.customer.id) * offer) / 100) * 0.32)
         : 0;
       const buys = unit("purchase:" + f.customer.id) < Math.min(0.7, natural + lift);
-      if (contact) {
+      if (contacted) {
         contacts++;
         operatorCost += 1.2;
       }
       if (!buys) continue;
       purchases++;
-      const risk =
-        preferCod && !prepaidNudge
-          ? sig?.riskTier === "high"
-            ? 0.3
-            : sig?.riskTier === "medium"
-              ? 0.14
-              : 0.045
-          : 0.015;
-      const failed = unit("delivery:" + f.customer.id) < risk;
-      const returned = !failed && unit("return:" + f.customer.id) < 0.04;
-      if (failed) {
-        merchantContribution -= 170;
-        continue;
-      }
-      if (returned) {
-        merchantContribution -= 85;
-        continue;
-      }
-      collectedOrders++;
+      const codRisk = sig?.riskTier === "high" ? 0.3 : sig?.riskTier === "medium" ? 0.14 : 0.045;
+      // Assumption: a prepaid nudge moves half of those COD buyers to prepaid.
+      const risk = preferCod ? (prepaidNudge ? (codRisk + 0.015) / 2 : codRisk) : 0.015;
+      // Delivery and return outcomes use expected values, so small risk changes are not lost
+      // to a single random draw per customer.
+      const kept = (1 - risk) * 0.96;
       const sales = p.price - Math.round((p.price * offer) / 100);
-      netSales += sales;
-      merchantContribution += sales - p.variableCost;
+      collectedOrders += kept;
+      netSales += kept * sales;
+      merchantContribution += kept * (sales - p.variableCost) - risk * 170 - (1 - risk) * 0.04 * 85;
     }
     return {
       strategy,

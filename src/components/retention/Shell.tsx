@@ -8,9 +8,7 @@ import {
   LayoutGrid,
   Plug,
   RotateCcw,
-  SlidersHorizontal,
   Store,
-  Users,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button, RefreshIcon } from "@razorpay/blade/components";
@@ -24,9 +22,6 @@ const NAV = [
   { to: "/campaigns", label: "Campaign Studio", icon: ClipboardCheck },
   { to: "/database", label: "Merchant database", icon: Store },
   { to: "/insights", label: "Outcome benchmark", icon: FlaskConical },
-  { to: "/cohort", label: "Cohort intelligence", icon: Users },
-  { to: "/workbench", label: "Offer mathematics", icon: SlidersHorizontal },
-  { to: "/review", label: "Execution lab", icon: ClipboardCheck },
 ] as const;
 
 const CRUMB: Record<string, string> = {

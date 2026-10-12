@@ -200,7 +200,8 @@ function matchesGoal(f: CustomerFeature, cfg: CampaignSettings) {
   if (cfg.goal === "second_purchase")
     return f.offerUsage.completed === 1 && f.daysSince >= 14 && f.daysSince <= 75;
   if (cfg.goal === "winback") return f.daysSince > cycle * 1.25 && f.daysSince <= 180;
-  return f.daysSince >= cycle * 0.75 && f.daysSince <= cycle * 1.25;
+  // Replenishment needs a repeat rhythm; one-order customers belong to second purchase.
+  return f.offerUsage.completed >= 2 && f.daysSince >= cycle * 0.75 && f.daysSince <= cycle * 1.25;
 }
 function recommendedProduct(f: CustomerFeature, goal: Goal): Product {
   if (goal !== "second_purchase") return f.relevantProduct;
@@ -245,10 +246,12 @@ export function estimateAction(
     : 0.99;
   const organic = Math.min(0.24, 0.035 + Math.min(6, f.offerUsage.completed) * 0.015);
   const affinity = cfg.goal === "replenishment" ? 0.065 : cfg.goal === "winback" ? 0.025 : 0.04;
-  const discountHistory = f.offerUsage.discounted / Math.max(1, f.offerUsage.completed);
+  // Shrink toward a 25% prior worth three orders: one discounted order is weak evidence.
+  const discountHistory = (f.offerUsage.discounted + 0.75) / (f.offerUsage.completed + 3);
   const options = cfg.offer === "recommended" ? OFFER_OPTIONS : [cfg.offer];
   let best: ActionRow | null = null;
   let score = 0;
+  let plainValue: number | null = null;
   for (const offer of options) {
     const discount = Math.round((p.price * offer) / 100);
     const margin = p.price - p.variableCost - discount;
@@ -260,10 +263,11 @@ export function estimateAction(
       continue;
     const conversion = Math.min(
       0.65,
-      organic + affinity + (offer / 100) * (0.3 + discountHistory * 0.45),
+      organic + affinity + (offer / 100) * (0.15 + discountHistory * 0.6),
     );
     const expectedIncremental =
       conversion * delivery * margin - organic * delivery * (p.price - p.variableCost);
+    if (offer === 0) plainValue = expectedIncremental;
     const callEligible =
       cfg.callsEnabled && f.customer.callConsent && expectedIncremental * 0.25 > 4.2;
     const operatorCost = 1.2 + (callEligible ? 3 * 0.35 : 0);
@@ -282,20 +286,53 @@ export function estimateAction(
       operatorCost,
       callEligible,
       paymentTreatment: prefersCod
-        ? risk === "high"
+        ? risk === "high" || risk === "medium"
           ? "Prepaid nudge; COD rechecked at checkout"
           : "COD available subject to checkout checks"
         : "Preferred prepaid checkout",
-      reason:
-        (f.typicalInterval ? "Observed purchase rhythm" : "Product default; limited history") +
-        "; " +
-        (fresh
-          ? "simulated Razorpay " + risk + " RTO risk"
-          : "merchant-only fallback; no fresh network signal") +
-        "; discount response is a separate illustrative retention estimate.",
+      reason: "",
     };
   }
+  if (best) best.reason = explainAction(f, p, cfg, best, plainValue, fresh ? risk : null);
   return best;
+}
+// Plain-language evidence for one decision, built only from this customer's own inputs.
+function explainAction(
+  f: CustomerFeature,
+  p: Product,
+  cfg: CampaignSettings,
+  a: ActionRow,
+  plainValue: number | null,
+  risk: string | null,
+) {
+  const n = f.offerUsage.completed;
+  const used = f.offerUsage.discounted;
+  const timing =
+    cfg.goal === "second_purchase"
+      ? p.id === f.relevantProduct.id
+        ? `First order ${f.daysSince} days ago`
+        : `First order ${f.daysSince} days ago; ${p.name} is the next routine step`
+      : f.typicalInterval
+        ? `Reorders about every ${Math.round(f.typicalInterval)} days; last bought ${f.daysSince} days ago`
+        : `Last bought ${f.daysSince} days ago; ${p.defaultIntervalDays}-day product cycle`;
+  const history =
+    used === 0
+      ? `Paid full price on ${n === 1 ? "their only order" : n === 2 ? "both orders" : `all ${n} orders`}`
+      : `Used a discount on ${used} of ${n} orders`;
+  const gain = plainValue === null ? 0 : a.expectedIncremental - plainValue;
+  const offer =
+    cfg.offer !== "recommended"
+      ? `the merchant fixed the offer at ${a.offer ? a.offer + "%" : "no discount"}`
+      : a.offer === 0
+        ? "a reminder without discount is worth more than any permitted offer"
+        : plainValue === null
+          ? `${a.offer}% is the best permitted option`
+          : `${a.offer}% adds about ₹${gain < 1 ? gain.toFixed(1) : Math.round(gain)} over a plain reminder`;
+  const payment = risk
+    ? `Razorpay signal (simulated): ${risk} RTO risk` +
+      (a.paymentTreatment.startsWith("Prepaid nudge") ? " on COD, so prepaid nudge" : "")
+    : "No fresh Razorpay signal; store history only";
+  return `${timing}. ${history}, so ${offer}. ${payment}.`;
 }
 export interface CampaignView {
   campaign: StudioCampaign;
@@ -340,17 +377,25 @@ export function deriveCampaign(
         s.day - sig.asOfDay <= 7
       );
     });
-  candidates = candidates
-    .sort((a, b) => a.customer.id.localeCompare(b.customer.id))
+  // Score everyone first, then cap by expected value, so the cap keeps the best customers.
+  // Controls are hashed from the same ranked audience, keeping them comparable to treatment.
+  const ranked = candidates
+    .map((f) => ({ f, a: estimateAction(f, data, c.settings, s.day) }))
+    .sort(
+      (x, y) =>
+        (y.a?.expectedIncremental ?? -Infinity) - (x.a?.expectedIncremental ?? -Infinity) ||
+        x.f.customer.id.localeCompare(y.f.customer.id),
+    )
     .slice(0, Math.max(0, Math.min(1000, c.settings.maxAudience)));
+  candidates = ranked.map((x) => x.f);
   const holdoutIds = candidates
     .filter((f) => isHoldout(f.customer.id, c.id))
     .map((f) => f.customer.id);
+  const holdouts = new Set(holdoutIds);
   const actions: ActionRow[] = [];
   const noOutreachIds: string[] = [];
-  for (const f of candidates)
-    if (!holdoutIds.includes(f.customer.id)) {
-      const a = estimateAction(f, data, c.settings, s.day);
+  for (const { f, a } of ranked)
+    if (!holdouts.has(f.customer.id)) {
       if (a) actions.push(a);
       else noOutreachIds.push(f.customer.id);
     }

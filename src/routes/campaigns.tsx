@@ -50,6 +50,7 @@ function Campaigns() {
   const [step, setStep] = useState("Audience");
   const [channel, setChannel] = useState("WhatsApp");
   const [sample, setSample] = useState("");
+  const [offerView, setOfferView] = useState("all");
   const mutate = (fn: (s: StudioState) => StudioState) =>
     update((s) => ({ ...s, studio: fn(s.studio) }));
   const create = (goal: Goal = "replenishment", origin: "custom" | "recommended" = "custom") => {
@@ -75,6 +76,20 @@ function Campaigns() {
   const customer = a ? d.studio.byId.get(a.customerId)?.customer : undefined;
   const selectedProduct = a ? productById(a.productId) : null;
   const stats = c ? campaignSettlement(c) : null;
+  const allActions = view?.actions ?? [];
+  const isNudge = (x: (typeof allActions)[number]) =>
+    x.paymentTreatment.startsWith("Prepaid nudge");
+  const plainCount = allActions.filter((x) => x.offer === 0).length;
+  const nudgeCount = allActions.filter(isNudge).length;
+  const shownActions = allActions.filter((x) =>
+    offerView === "plain"
+      ? x.offer === 0
+      : offerView === "offer"
+        ? x.offer > 0
+        : offerView === "nudge"
+          ? isNudge(x)
+          : true,
+  );
   const approve = () => {
     if (!c) return;
     const result = approveDraft(d.data, studio, c.id);
@@ -173,7 +188,7 @@ function Campaigns() {
         )}
       </section>
       {!view || !c ? (
-        <section className="panel p-6">
+        <section data-tour="studio" className="panel p-6">
           <h2 className="section-title">Start with a goal.</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {d.studio.opportunities.map((o) => (
@@ -196,7 +211,7 @@ function Campaigns() {
         </section>
       ) : (
         <>
-          <section className="panel p-4">
+          <section data-tour="studio" className="panel p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="section-title">{c.name}</h2>
@@ -428,8 +443,33 @@ function Campaigns() {
                       </select>
                     </Field>
                   </div>
+                  <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter actions">
+                    {(
+                      [
+                        ["all", "All", view.actions.length],
+                        ["plain", "Reminder, no discount", plainCount],
+                        ["offer", "With an offer", view.actions.length - plainCount],
+                        ["nudge", "Prepaid nudge", nudgeCount],
+                      ] as const
+                    ).map(([key, label, count]) => (
+                      <button
+                        key={key}
+                        role="tab"
+                        aria-selected={offerView === key}
+                        onClick={() => setOfferView(key)}
+                        className={
+                          "rounded-lg border px-3 py-1.5 text-sm " +
+                          (offerView === key
+                            ? "border-primary bg-primary-subtle font-semibold text-primary"
+                            : "text-muted-foreground")
+                        }
+                      >
+                        {label} · {count}
+                      </button>
+                    ))}
+                  </div>
                   <DataTable
-                    rows={view.actions.slice(0, 35)}
+                    rows={shownActions.slice(0, 35)}
                     rowId={(r) => r.customerId}
                     label="Personalized campaign actions"
                     minWidth={1100}
@@ -475,10 +515,10 @@ function Campaigns() {
                     ]}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Showing the first 35 of {view.actions.length} actions.{" "}
-                    {view.noOutreachIds.length} no-outreach decisions; {view.holdoutIds.length}{" "}
-                    stable no-contact controls. Probability and contribution estimates are
-                    illustrative.
+                    Showing the top {Math.min(35, shownActions.length)} of {shownActions.length},
+                    ranked by expected additional contribution. {view.noOutreachIds.length}{" "}
+                    no-outreach decisions; {view.holdoutIds.length} stable no-contact controls.
+                    Probability and contribution estimates are illustrative.
                   </p>
                 </div>
               )}
