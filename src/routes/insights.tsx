@@ -73,10 +73,19 @@ function Insights() {
               label: "Profit",
               render: (r) => inr(r.merchantContribution),
             },
-            { key: "uplift", label: "Extra profit vs flat 20%", render: (r) => inr(r.incremental) },
+            {
+              key: "uplift",
+              label: "Extra profit vs no message",
+              render: (r) => inr(r.incremental),
+            },
+            {
+              key: "flat",
+              label: "Extra profit vs flat 20% sale",
+              render: (r) => inr(r.vsFlatSale),
+            },
             {
               key: "fee",
-              label: "Fee (25%)",
+              label: "Fee (25% of extra profit vs no message)",
               render: (r) => (r.strategy.startsWith("Agent") ? inr(r.successFee) : "—"),
             },
             {
@@ -91,16 +100,16 @@ function Insights() {
       <div className="grid gap-4 md:grid-cols-3">
         {[
           [
+            "Extra profit vs no message",
+            "What the campaign caused: profit compared with sending nothing, the same comparison as the control group in Campaigns. The 25% fee is charged on this, and only after deliveries, COD collection and the return window close.",
+          ],
+          [
+            "Extra profit vs flat 20% sale",
+            "Compared with what many stores do instead: 20% off for everyone at day 30. This is the comparison to use when deciding whether to switch.",
+          ],
+          [
             "Sales credited to a message",
-            "Any order placed after a message. It doesn't show whether the message caused it.",
-          ],
-          [
-            "Extra profit",
-            "The difference against customers who got no message: the control group.",
-          ],
-          [
-            "When the fee is charged",
-            "Only after deliveries, COD collection and the return window close, measured against the control group.",
+            "Any order placed after a message. It doesn't show whether the message caused it, so neither comparison above uses it.",
           ],
         ].map(([title, text]) => (
           <section key={title} className="panel p-5">

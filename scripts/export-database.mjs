@@ -1,37 +1,43 @@
 // Node 24+; no spreadsheet authoring dependencies. CSV tables are intermediates for SQLite.
+// Modules load through Vite so extensionless imports resolve exactly as in the app and tests.
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { stripTypeScriptTypes } from "node:module";
+import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { baseDataset, SEED, MONTHLY_ORDER_TARGETS } from "../src/retention/data.ts";
-import { databaseTables, csvFor } from "../src/retention/tables.ts";
-import { runBenchmark } from "../src/retention/benchmark.ts";
+import { runnerImport } from "vite";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.join(root, "data", "nira");
 const temporary = path.join(root, "tmp", "data-export");
 await fs.mkdir(output, { recursive: true });
 await fs.mkdir(temporary, { recursive: true });
-const featureSource = (
-  await fs.readFile(path.join(root, "src/retention/features.ts"), "utf8")
-).replaceAll(
-  'from "./data"',
-  'from "' + pathToFileURL(path.join(root, "src/retention/data.ts")).href + '"',
-);
-await fs.writeFile(path.join(temporary, "features.mjs"), stripTypeScriptTypes(featureSource));
-const { deriveFeatures } = await import(pathToFileURL(path.join(temporary, "features.mjs")).href);
+const { module: m } = await runnerImport(path.join(root, "scripts", "export-modules.ts"), {
+  configFile: false,
+  root,
+  logLevel: "error",
+  resolve: { alias: { "@": path.join(root, "src") } },
+});
+const { baseDataset, SEED, MONTHLY_ORDER_TARGETS, databaseTables, csvFor, runBenchmark } = m;
 const data = baseDataset();
-const features = deriveFeatures(
-  data,
-  { tolerancePct: 25, freqDays: 7 },
-  { excluded: new Set(), resolved: new Set(), optOuts: new Set() },
-);
+// Same customer features as the app's Compare strategies page.
+const features = m.deriveStudio(data, m.initialStudio()).features;
 const tables = databaseTables(data);
+const round = (v) => (typeof v === "number" ? Math.round(v * 100) / 100 : v);
 tables.benchmark_results = [0, 0.5, 1, 1.5].flatMap((effectiveness) =>
   runBenchmark(data, features, effectiveness).map((r) => ({
-    assumed_response_multiplier: effectiveness,
-    ...r,
+    message_influence: effectiveness,
+    approach: r.strategy,
+    customers: r.audience,
+    messaged: r.contacts,
+    orders_placed: r.purchases,
+    delivered_and_paid_orders: round(r.collectedOrders),
+    sales_inr: round(r.netSales),
+    profit_inr: round(r.merchantContribution),
+    extra_profit_vs_no_message_inr: round(r.incremental),
+    extra_profit_vs_flat_20_sale_inr: round(r.vsFlatSale),
+    fee_25pct_of_extra_profit_vs_no_message_inr: round(r.successFee),
+    merchant_keeps_inr: round(r.merchantRetains),
+    messaging_cost_inr: round(r.operatorCost),
   })),
 );
 const manifest = {

@@ -1,5 +1,12 @@
 # AI build log (factual)
 
+## 12 October 2026 — reviewer gap fixes
+
+- Tour replay: at "One decision per customer" the tour closes any open campaign so the suggested campaigns reappear; saved drafts, completed campaigns and templates are untouched. Following the step opens a fresh editable draft.
+- One fee baseline: the benchmark fee is 25% of extra profit over sending nothing, matching the in-app control group. The table also shows extra profit over the flat 20% sale, and the explanation cards define both.
+- Export repaired: scripts/export-database.mjs loads modules through Vite (runnerImport via scripts/export-modules.ts), so extensionless imports resolve as in the app. It uses the app's own customer features. benchmark_results.csv, the SQLite table, schema and manifest were regenerated with merchant-readable column names; other tables are unchanged.
+- Verification: TypeScript, 25 tests across seven files, production build and data export (SQLite integrity and reconciliation checks) passed. Replay checked in the browser with an approved campaign open.
+
 ## 12 October 2026 — merchant-language pass
 
 - First visit opens on Connect store with an intro pop-up: the four-step flow (Connect, Review, Approve, Measure) and a guided-tour invitation for whoever is reviewing the build. One-click "Connect demo store" and "Skip to today's campaigns".

@@ -33,6 +33,8 @@ export const TOUR_STOPS = [
   {
     route: "/campaigns",
     target: "studio",
+    // Show the suggested campaigns even when a saved campaign is open.
+    freshCampaign: true,
     title: "One decision per customer.",
     rationale:
       "For every customer the agent picks the product, whether a discount is worth it, and how they should pay. Full-price buyers get a plain reminder, coupon users get a code only if it adds profit, and COD buyers with RTO risk are asked to pay online. Customers are ranked by expected extra profit before the customer limit.",
@@ -44,7 +46,7 @@ export const TOUR_STOPS = [
     title: "The merchant stays in control.",
     rationale:
       "Maximum discount, minimum profit per order, discount budget and spend limit are rules, not model output. Approval locks the exact customers, discounts and messages. Any edit unlocks it, and every customer is checked again just before sending.",
-    try: "Set Maximum discount to 0% on Products & discounts, then open Budget & approval and watch the plan change.",
+    try: "In the campaign you just opened, set Maximum discount to 0% on Products & discounts, then open Budget & approval and watch the plan change.",
   },
   {
     route: "/insights",
@@ -72,7 +74,7 @@ export const TOUR_STOPS = [
   },
 ] as const;
 
-export function EvaluatorTour() {
+export function EvaluatorTour({ onFreshCampaign }: { onFreshCampaign?: () => void } = {}) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [welcome, setWelcome] = useState(false);
@@ -119,7 +121,11 @@ export function EvaluatorTour() {
   }
 
   useEffect(() => {
-    if (step !== null) void navigate({ to: TOUR_STOPS[step]!.route });
+    if (step === null) return;
+    const target = TOUR_STOPS[step]!;
+    if ("freshCampaign" in target) onFreshCampaign?.();
+    void navigate({ to: target.route });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, navigate]);
 
   useEffect(() => {

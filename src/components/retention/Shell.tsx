@@ -37,7 +37,7 @@ const CRUMB: Record<string, string> = {
 
 export function Shell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { reset, state } = useDemo();
+  const { reset, state, update } = useDemo();
   const [done, setDone] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -147,7 +147,11 @@ export function Shell({ children }: { children: ReactNode }) {
             </ol>
           </nav>
           <div className="header-controls flex min-w-0 flex-wrap items-center gap-2 xl:ml-auto">
-            <EvaluatorTour />
+            <EvaluatorTour
+              onFreshCampaign={() =>
+                update((s) => ({ ...s, studio: { ...s.studio, activeId: null } }))
+              }
+            />
             <span
               role="status"
               title="Nira Botanics is a sample store. Orders, customers and Razorpay scores are generated, and no real customer is messaged or charged."

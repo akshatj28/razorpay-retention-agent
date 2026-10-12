@@ -18,7 +18,7 @@ History: 12 April–11 October 2026. Six rolling calendar-month windows contain 
 - contacts: historical synthetic channel exposure. Email history exists, while email execution is coming soon.
 - razorpay_signals: explicitly simulated network match, risk tier, preference, confidence, timestamp and reason. No actual Vulcan features or merchant API access is asserted. Signals older than seven demo days use merchant-only fallback.
 - monthly_summary: counts and retained revenue calculated from orders, not separately seeded headline metrics.
-- benchmark_results: identical audiences across four strategies at response multipliers 0 / 0.5 / 1 / 1.5. Isolated latent outcome assumptions, independent of the recommendation forecasts. Results can favour a baseline.
+- benchmark_results: the same 2,500 customers under four approaches (Do nothing; Flat 20% off at day 30; Agent, store data only; Agent + Razorpay RTO score) at message_influence 0 / 0.5 / 1 / 1.5, matching the app's Compare strategies page. Agent rows use the Campaign Studio decision logic. extra_profit_vs_no_message_inr is the fee base (same comparison as the in-app control group); extra_profit_vs_flat_20_sale_inr compares with the typical campaign. Delivery and return outcomes are expected values. Hidden behaviour is simulated separately from the agent's forecasts, so results can favour a baseline.
 
 ## Reproduce
 

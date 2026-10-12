@@ -11,7 +11,10 @@ export interface BenchmarkRow {
   netSales: number;
   merchantContribution: number;
   operatorCost: number;
+  /** Extra profit over sending no message; the fee base. */
   incremental: number;
+  /** Extra profit over the flat 20% sale. */
+  vsFlatSale: number;
   successFee: number;
   merchantRetains: number;
   operatorContribution: number;
@@ -101,14 +104,19 @@ export function runBenchmark(
       merchantContribution,
       operatorCost,
       incremental: 0,
+      vsFlatSale: 0,
       successFee: 0,
       merchantRetains: 0,
       operatorContribution: 0,
     };
   });
-  const baseline = rows[1]!.merchantContribution;
+  // The fee is charged on profit over sending nothing, matching the control group in Campaigns.
+  // The flat sale is a second reference point: what the merchant would likely do otherwise.
+  const noMessage = rows[0]!.merchantContribution;
+  const flatSale = rows[1]!.merchantContribution;
   for (const r of rows) {
-    r.incremental = r.merchantContribution - baseline;
+    r.incremental = r.merchantContribution - noMessage;
+    r.vsFlatSale = r.merchantContribution - flatSale;
     r.successFee = r.strategy.startsWith("Agent") ? Math.max(0, r.incremental) * 0.25 : 0;
     r.merchantRetains = r.incremental - r.successFee;
     r.operatorContribution = r.successFee - r.operatorCost;

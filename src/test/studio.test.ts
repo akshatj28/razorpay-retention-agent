@@ -230,3 +230,16 @@ test("benchmark intelligence rows use the studio decision logic", () => {
   expect(network.merchantContribution).toBeGreaterThanOrEqual(merchant.merchantContribution);
   expect(merchant.contacts).toBeGreaterThan(0);
 });
+test("benchmark fee uses extra profit over sending nothing, with the flat sale as a second reference", () => {
+  const rows = runBenchmark(data, deriveStudio(data, initialStudio()).features);
+  const [nothing, flat] = rows;
+  expect(nothing!.incremental).toBe(0);
+  expect(flat!.vsFlatSale).toBe(0);
+  for (const r of rows) {
+    expect(r.incremental).toBeCloseTo(r.merchantContribution - nothing!.merchantContribution);
+    expect(r.vsFlatSale).toBeCloseTo(r.merchantContribution - flat!.merchantContribution);
+    if (r.strategy.startsWith("Agent"))
+      expect(r.successFee).toBeCloseTo(Math.max(0, r.incremental) * 0.25);
+    else expect(r.successFee).toBe(0);
+  }
+});

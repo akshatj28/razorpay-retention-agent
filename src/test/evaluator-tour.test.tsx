@@ -83,3 +83,23 @@ describe("Evaluator walkthrough", () => {
     expect(screen.queryByRole("region", { name: "Guided tour" })).not.toBeInTheDocument();
   });
 });
+
+describe("Guided tour replay", () => {
+  it("reopens the suggested campaigns at the campaign stop without other state changes", async () => {
+    const fresh = vi.fn();
+    render(
+      <BladeTheme>
+        <EvaluatorTour onFreshCampaign={fresh} />
+      </BladeTheme>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Take the guided tour" }));
+    const at = TOUR_STOPS.findIndex((s) => "freshCampaign" in s);
+    for (let i = 0; i < at; i++) {
+      expect(fresh).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    }
+    await waitFor(() => expect(fresh).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(fresh).toHaveBeenCalledTimes(1);
+  });
+});
