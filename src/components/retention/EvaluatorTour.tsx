@@ -12,7 +12,7 @@ import {
   CloseIcon,
 } from "@razorpay/blade/components";
 
-const WELCOME_KEY = "retention-evaluator-welcome-v1";
+const WELCOME_KEY = "retention-evaluator-welcome-v2";
 export const TOUR_STOPS = [
   {
     route: "/setup",

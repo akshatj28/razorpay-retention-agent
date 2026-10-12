@@ -67,7 +67,7 @@ describe("Evaluator walkthrough", () => {
   });
 
   it("can restart and exit with Escape or the exit button", () => {
-    localStorage.setItem("retention-evaluator-welcome-v1", "seen");
+    localStorage.setItem("retention-evaluator-welcome-v2", "seen");
     render(
       <BladeTheme>
         <EvaluatorTour />
