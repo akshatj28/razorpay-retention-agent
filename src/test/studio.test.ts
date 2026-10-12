@@ -225,8 +225,8 @@ test("audience is ranked by expected value before the cap, with customer-specifi
 });
 test("benchmark intelligence rows use the studio decision logic", () => {
   const rows = runBenchmark(data, deriveStudio(data, initialStudio()).features);
-  const merchant = rows.find((r) => r.strategy === "Agent, store data only")!;
-  const network = rows.find((r) => r.strategy === "Agent + Razorpay RTO score")!;
+  const merchant = rows.find((r) => r.strategy === "Retention Agent, store data only")!;
+  const network = rows.find((r) => r.strategy === "Retention Agent")!;
   expect(network.merchantContribution).toBeGreaterThanOrEqual(merchant.merchantContribution);
   expect(merchant.contacts).toBeGreaterThan(0);
 });
@@ -238,7 +238,7 @@ test("benchmark fee uses extra profit over sending nothing, with the flat sale a
   for (const r of rows) {
     expect(r.incremental).toBeCloseTo(r.merchantContribution - nothing!.merchantContribution);
     expect(r.vsFlatSale).toBeCloseTo(r.merchantContribution - flat!.merchantContribution);
-    if (r.strategy.startsWith("Agent"))
+    if (r.strategy.startsWith("Retention Agent"))
       expect(r.successFee).toBeCloseTo(Math.max(0, r.incremental) * 0.25);
     else expect(r.successFee).toBe(0);
   }

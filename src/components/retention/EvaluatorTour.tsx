@@ -51,10 +51,10 @@ export const TOUR_STOPS = [
   {
     route: "/insights",
     target: "benchmark",
-    title: "The agent is allowed to lose.",
+    title: "Measured against having no retention tool.",
     rationale:
-      "The same 2,500 customers go through four approaches. How they actually behave is simulated separately from what the agent predicts. Both agent rows use the same logic as Campaigns, with and without Razorpay's RTO score.",
-    try: "Drag How much messages influence buying to 0×. Messages stop causing orders, and the agent drops below doing nothing.",
+      "The product is judged the way a merchant would judge it: the same 2,500 customers with no retention tool, with a manual 20% sale, and with Retention Agent. How customers actually behave is simulated separately from what the agent predicts, so the agent is allowed to lose.",
+    try: "Drag How much messages influence buying to 0×. Messages stop causing orders, and the agent drops below having no tool.",
   },
   {
     route: "/database",

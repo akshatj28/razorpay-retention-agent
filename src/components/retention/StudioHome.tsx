@@ -100,7 +100,7 @@ export function StudioHome() {
               <li>{today.nudge} COD customers asked to pay online</li>
             </ul>
             <Link to="/insights" className="mt-5 flex items-center gap-2 text-sm font-semibold">
-              Compare with a flat 20% sale <ArrowRight className="size-4" />
+              See what it adds vs no retention tool <ArrowRight className="size-4" />
             </Link>
           </div>
         </div>

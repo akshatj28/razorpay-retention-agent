@@ -1,5 +1,12 @@
 # AI build log (factual)
 
+## 12 October 2026 — measured against no retention tool
+
+- Comparison page renamed Impact ("What Retention Agent adds") and framed against a merchant with no retention tool. Headline: extra profit vs no tool, what the merchant keeps after the fee, and extra profit vs a manual 20% sale.
+- One Retention Agent row (the full product, including the Razorpay RTO score) replaces the two agent rows; the store-data-only result is a note for stores on another checkout and remains in the CSV.
+- Approaches renamed in the app and export: No retention tool; Manual sale: 20% off at day 30; Retention Agent, store data only; Retention Agent. Messaging cost now says who pays. Export regenerated; numbers unchanged.
+- Verification: TypeScript, 25 tests across seven files and the data export checks passed; Impact page checked in the browser.
+
 ## 12 October 2026 — sidebar, first-party channels, non-Razorpay data
 
 - Sidebar ordered by use: Today, Campaigns, Compare strategies, Order data. Store setup moved to Connections at the bottom, with a connection status line under the store name. The Channels section with "Demo" tags is removed.

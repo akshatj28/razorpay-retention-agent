@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PageHeader, Note, Pill } from "@/components/retention/bits";
+import { PageHeader, Note, Pill, Stat } from "@/components/retention/bits";
 import { DataTable } from "@/components/retention/DataTable";
 import { useDemo } from "@/retention/store";
 import { runBenchmark } from "@/retention/benchmark";
 import { inr } from "@/retention/format";
 export const Route = createFileRoute("/insights")({
   component: Insights,
-  head: () => ({ meta: [{ title: "Compare strategies — Retention Agent" }] }),
+  head: () => ({ meta: [{ title: "Impact — Retention Agent" }] }),
 });
 function Insights() {
   const { d } = useDemo();
@@ -16,18 +16,38 @@ function Insights() {
     () => runBenchmark(d.data, d.studio.features, response),
     [d.data, d.studio.features, response],
   );
+  const [noTool, manual, storeOnly, agent] = rows;
+  // The full product includes the Razorpay RTO score; the store-data-only run is shown as a note
+  // for stores on another checkout.
+  const shown = [noTool!, manual!, agent!];
   return (
     <div className="space-y-5 animate-enter">
       <PageHeader
-        title="How does this compare with a flat sale?"
-        subtitle="The same 2,500 customers, four ways to run a campaign · simulated over 90 days"
+        title="What Retention Agent adds"
+        subtitle={`Compared with running your store without a retention tool · the same ${noTool!.audience.toLocaleString("en-IN")} customers · simulated over 90 days`}
         actions={<Pill t="warning">Simulated results</Pill>}
       />
+      <section data-tour="benchmark" className="panel grid gap-5 p-5 sm:grid-cols-3">
+        <Stat
+          label="Extra profit vs no retention tool"
+          value={inr(agent!.incremental)}
+          hint="Over 90 days, after discounts, RTO and returns"
+        />
+        <Stat
+          label="You keep after the 25% fee"
+          value={inr(agent!.merchantRetains)}
+          hint="We pay for AI, WhatsApp and calls"
+        />
+        <Stat
+          label="Extra profit vs a manual 20% sale"
+          value={inr(agent!.vsFlatSale)}
+          hint="If you would otherwise send everyone 20% off"
+        />
+      </section>
       <Note>
-        Each row runs the same {rows[0]?.audience.toLocaleString("en-IN")} customers through a
-        different approach. How customers actually behave is simulated separately from what the
-        agent predicts, so the agent can lose. Orders customers would have placed anyway, RTO,
-        returns and discounts are all counted.
+        Each row runs the same customers through a different approach. How customers actually behave
+        is simulated separately from what the agent predicts, so the agent can lose. Orders
+        customers would have placed anyway, RTO, returns and discounts are all counted.
       </Note>
       <section className="panel p-5">
         <label className="block text-sm font-semibold">
@@ -48,12 +68,12 @@ function Insights() {
           cuts RTO.
         </p>
       </section>
-      <section data-tour="benchmark" className="panel p-4">
+      <section className="panel p-4">
         <DataTable
-          rows={rows}
+          rows={shown}
           rowId={(r) => r.strategy}
           label="Results by approach"
-          minWidth={1400}
+          minWidth={1200}
           columns={[
             {
               key: "strategy",
@@ -75,41 +95,50 @@ function Insights() {
             },
             {
               key: "uplift",
-              label: "Extra profit vs no message",
+              label: "Extra profit vs no retention tool",
               render: (r) => inr(r.incremental),
             },
             {
-              key: "flat",
-              label: "Extra profit vs flat 20% sale",
-              render: (r) => inr(r.vsFlatSale),
-            },
-            {
               key: "fee",
-              label: "Fee (25% of extra profit vs no message)",
-              render: (r) => (r.strategy.startsWith("Agent") ? inr(r.successFee) : "—"),
+              label: "Fee (25%)",
+              render: (r) => (r.strategy.startsWith("Retention Agent") ? inr(r.successFee) : "—"),
             },
             {
               key: "keeps",
               label: "You keep",
               render: (r) => inr(r.merchantRetains),
             },
-            { key: "cost", label: "Messaging cost (we pay)", render: (r) => inr(r.operatorCost) },
+            {
+              key: "cost",
+              label: "Messaging cost",
+              render: (r) =>
+                !r.operatorCost
+                  ? inr(0)
+                  : inr(r.operatorCost) +
+                    (r.strategy.startsWith("Retention Agent") ? " (we pay)" : " (you pay)"),
+            },
           ]}
         />
+        <p className="mt-3 text-xs text-muted-foreground">
+          Retention Agent includes Razorpay's RTO score, which comes with Razorpay checkout: it asks
+          medium- or high-risk COD customers to pay online. A store on another checkout can still
+          use the agent with store data only, for {inr(storeOnly!.incremental)} extra profit here
+          instead of {inr(agent!.incremental)}.
+        </p>
       </section>
       <div className="grid gap-4 md:grid-cols-3">
         {[
           [
-            "Extra profit vs no message",
-            "What the campaign caused: profit compared with sending nothing, the same comparison as the control group in Campaigns. The 25% fee is charged on this, and only after deliveries, COD collection and the return window close.",
+            "Extra profit vs no retention tool",
+            "What the agent caused: profit compared with a store that sends nothing, the same comparison as the control group in Campaigns. The 25% fee is charged on this, only after deliveries, COD collection and the return window close.",
           ],
           [
-            "Extra profit vs flat 20% sale",
-            "Compared with what many stores do instead: 20% off for everyone at day 30. This is the comparison to use when deciding whether to switch.",
+            "Manual 20% sale",
+            "What a store without a tool might do instead: one WhatsApp blast with 20% off for everyone at day 30. Shown so you can see what a blanket discount costs.",
           ],
           [
             "Sales credited to a message",
-            "Any order placed after a message. It doesn't show whether the message caused it, so neither comparison above uses it.",
+            "Any order placed after a message. It doesn't show whether the message caused it, so the comparisons above don't use it.",
           ],
         ].map(([title, text]) => (
           <section key={title} className="panel p-5">
@@ -119,14 +148,8 @@ function Insights() {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Both agent rows use the same logic as Campaigns. "Store data only" uses your Shopify
-        history. "+ Razorpay RTO score" also asks medium- or high-risk COD customers to pay online
-        (we assume half of them do). Only about 8% of this store's customers carry that risk, so the
-        difference is small here.
-      </p>
-      <p className="text-xs text-muted-foreground">
-        The flat 20% sale stands in for a typical campaign; it is not a claim about every store.
-        Each customer gets one campaign, and results cover 90 days.
+        The manual sale stands in for a typical blanket discount; it is not a claim about every
+        store. Each customer gets one campaign, and results cover 90 days.
       </p>
     </div>
   );

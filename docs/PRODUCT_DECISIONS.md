@@ -48,7 +48,7 @@ Commercial billing still needs an agreed business-as-usual baseline, confidence 
 
 ## Synthetic comparison
 
-The same customer population is evaluated under four approaches: do nothing, a flat 20% sale at day 30, the agent with store data only, and the agent with the Razorpay RTO score. Agent rows use the Campaign Studio decision logic. Extra profit is reported against both sending nothing (the fee base, matching the in-app control group) and the flat sale (the typical alternative). Independent hidden demand, discount response and delivery outcomes are separated from displayed forecasts. Response sensitivity includes zero effect. Discount savings and assumed payment-risk treatment can still affect margin with zero purchase lift.
+The product is measured against a merchant with no retention tool. The same customer population is evaluated with no retention tool, a manual 20% sale at day 30, and Retention Agent (which includes the Razorpay RTO score). A store-data-only run shows what a store on another checkout gets. Agent rows use the Campaign Studio decision logic. Extra profit over no retention tool is the fee base, matching the in-app control group. Independent hidden demand, discount response and delivery outcomes are separated from displayed forecasts. Response sensitivity includes zero effect. Discount savings and assumed payment-risk treatment can still affect margin with zero purchase lift.
 
 This one-opportunity-per-customer simulator uses a 90-day evaluation interpretation; it is not a longitudinal forecast of every future order, a trained production model or measured commercial uplift.
 

@@ -34,10 +34,10 @@ export function runBenchmark(
     .filter((f) => f.offerUsage.completed > 0 && !f.reasons.some((r) => r.hard))
     .slice(0, 2500);
   const strategies = [
-    "Do nothing",
-    "Flat 20% off at day 30",
-    "Agent, store data only",
-    "Agent + Razorpay RTO score",
+    "No retention tool",
+    "Manual sale: 20% off at day 30",
+    "Retention Agent, store data only",
+    "Retention Agent",
   ];
   const rows = strategies.map((strategy, index): BenchmarkRow => {
     let contacts = 0,
@@ -110,14 +110,14 @@ export function runBenchmark(
       operatorContribution: 0,
     };
   });
-  // The fee is charged on profit over sending nothing, matching the control group in Campaigns.
-  // The flat sale is a second reference point: what the merchant would likely do otherwise.
+  // The fee is charged on profit over having no retention tool, matching the control group in
+  // Campaigns. The manual sale is a second reference point: a blanket discount sent by hand.
   const noMessage = rows[0]!.merchantContribution;
   const flatSale = rows[1]!.merchantContribution;
   for (const r of rows) {
     r.incremental = r.merchantContribution - noMessage;
     r.vsFlatSale = r.merchantContribution - flatSale;
-    r.successFee = r.strategy.startsWith("Agent") ? Math.max(0, r.incremental) * 0.25 : 0;
+    r.successFee = r.strategy.startsWith("Retention Agent") ? Math.max(0, r.incremental) * 0.25 : 0;
     r.merchantRetains = r.incremental - r.successFee;
     r.operatorContribution = r.successFee - r.operatorCost;
   }

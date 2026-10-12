@@ -20,14 +20,14 @@ import { EvaluatorTour } from "./EvaluatorTour";
 const NAV = [
   { to: "/", label: "Today", icon: LayoutGrid },
   { to: "/campaigns", label: "Campaigns", icon: ClipboardCheck },
-  { to: "/insights", label: "Compare strategies", icon: FlaskConical },
+  { to: "/insights", label: "Impact", icon: FlaskConical },
   { to: "/database", label: "Order data", icon: Store },
 ] as const;
 
 const CRUMB: Record<string, string> = {
   "/campaigns": "Campaigns",
   "/database": "Order data",
-  "/insights": "Compare strategies",
+  "/insights": "Impact",
   "/setup": "Connections",
   "/": "Today",
   "/cohort": "Cohort intelligence",
