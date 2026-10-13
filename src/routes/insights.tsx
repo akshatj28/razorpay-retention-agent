@@ -7,7 +7,7 @@ import { runBenchmark } from "@/retention/benchmark";
 import { inr } from "@/retention/format";
 export const Route = createFileRoute("/insights")({
   component: Insights,
-  head: () => ({ meta: [{ title: "Impact — Retention Agent" }] }),
+  head: () => ({ meta: [{ title: "Impact simulation — Retention Agent" }] }),
 });
 function Insights() {
   const { d } = useDemo();
@@ -23,23 +23,23 @@ function Insights() {
   return (
     <div className="space-y-5 animate-enter">
       <PageHeader
-        title="What Retention Agent adds"
+        title="Impact simulation"
         subtitle={`Compared with running your store without a retention tool · the same ${noTool!.audience.toLocaleString("en-IN")} customers · simulated over 90 days`}
         actions={<Pill t="warning">Simulated results</Pill>}
       />
       <section data-tour="benchmark" className="panel grid gap-5 p-5 sm:grid-cols-3">
         <Stat
-          label="Extra profit vs no retention tool"
+          label="Additional earnings vs no campaign outreach"
           value={inr(agent!.incremental)}
           hint="Over 90 days, after discounts, RTO and returns"
         />
         <Stat
-          label="You keep after the 25% fee"
+          label="Estimated earnings you keep"
           value={inr(agent!.merchantRetains)}
-          hint="We pay for AI, WhatsApp and calls"
+          hint="After the estimated 25% success fee"
         />
         <Stat
-          label="Extra profit vs a manual 20% sale"
+          label="Additional earnings vs a manual 20% sale"
           value={inr(agent!.vsFlatSale)}
           hint="If you would otherwise send everyone 20% off"
         />
@@ -51,9 +51,9 @@ function Insights() {
       </Note>
       <section className="panel p-5">
         <label className="block text-sm font-semibold">
-          How much messages influence buying: {response.toFixed(2)}×
+          Assumed message response: {response.toFixed(2)}×
           <input
-            aria-label="How much messages influence buying"
+            aria-label="Assumed message response"
             type="range"
             min="0"
             max="2"
@@ -64,8 +64,8 @@ function Insights() {
           />
         </label>
         <p className="mt-2 text-xs text-muted-foreground">
-          At 0×, messages don't change whether anyone buys. Asking COD customers to pay online still
-          cuts RTO.
+          At 0×, campaign messages create no additional orders. Simulated online-payment reminders
+          can still reduce return-to-origin risk for COD orders.
         </p>
       </section>
       <section className="panel p-4">
@@ -90,22 +90,22 @@ function Insights() {
             { key: "sales", label: "Sales", render: (r) => inr(r.netSales) },
             {
               key: "margin",
-              label: "Profit",
+              label: "Earnings after product and fulfilment costs",
               render: (r) => inr(r.merchantContribution),
             },
             {
               key: "uplift",
-              label: "Extra profit vs no retention tool",
+              label: "Additional earnings vs no campaign outreach",
               render: (r) => inr(r.incremental),
             },
             {
               key: "fee",
-              label: "Fee (25%)",
+              label: "Estimated success fee (25%)",
               render: (r) => (r.strategy.startsWith("Retention Agent") ? inr(r.successFee) : "—"),
             },
             {
               key: "keeps",
-              label: "You keep",
+              label: "Estimated earnings you keep",
               render: (r) => inr(r.merchantRetains),
             },
             {
@@ -120,17 +120,17 @@ function Insights() {
           ]}
         />
         <p className="mt-3 text-xs text-muted-foreground">
-          Retention Agent includes Razorpay's RTO score, which comes with Razorpay checkout: it asks
-          medium- or high-risk COD customers to pay online. A store on another checkout can still
-          use the agent with store data only, for {inr(storeOnly!.incremental)} extra profit here
-          instead of {inr(agent!.incremental)}.
+          This simulation includes a Razorpay delivery-risk estimate for checkout customers and can
+          recommend online payment for medium- or high-risk COD orders. With store data alone, the
+          simulated additional earnings are {inr(storeOnly!.incremental)}, compared with{" "}
+          {inr(agent!.incremental)} when that signal is available.
         </p>
       </section>
       <div className="grid gap-4 md:grid-cols-3">
         {[
           [
-            "Extra profit vs no retention tool",
-            "What the agent caused: profit compared with a store that sends nothing, the same comparison as the control group in Campaigns. The 25% fee is charged on this, only after deliveries, COD collection and the return window close.",
+            "Additional earnings vs no campaign outreach",
+            "The estimated difference from customers who receive no campaign messages, using the same control-group comparison as Campaigns. The simulated 25% fee applies only after delivery, payment and the return window are resolved.",
           ],
           [
             "Manual 20% sale",

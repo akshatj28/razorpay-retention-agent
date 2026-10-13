@@ -5,6 +5,25 @@ import { PageHeader, Pill, Stat, Note } from "@/components/retention/bits";
 import { DataTable } from "@/components/retention/DataTable";
 import { databaseTables, csvFor, type TableRow } from "@/retention/tables";
 import { useDemo } from "@/retention/store";
+const TABLE_LABELS: Record<string, string> = {
+  monthly_summary: "Monthly summary",
+  products: "Products",
+  customers: "Customers",
+  orders: "Orders",
+  order_items: "Order items",
+  bundle_components: "Bundle components",
+  razorpay_signals: "Razorpay delivery-risk signals",
+  contacts: "Past customer contacts",
+  refunds: "Refunds",
+};
+const columnLabel = (key: string) =>
+  key
+    .replaceAll("_inr", " (₹)")
+    .replaceAll("rto", "return to origin")
+    .replaceAll("sku", "SKU")
+    .replaceAll("id", "ID")
+    .replaceAll("_", " ")
+    .replace(/^./, (c) => c.toUpperCase());
 export const Route = createFileRoute("/database")({
   component: Database,
   head: () => ({ meta: [{ title: "Order data — Nira Botanics" }] }),
@@ -49,10 +68,10 @@ function Database() {
     <div className="space-y-5 animate-enter">
       <PageHeader
         title="Order data"
-        subtitle="Your Shopify orders and Razorpay payments · 12 Apr–11 Oct 2026 · amounts in ₹"
+        subtitle="Historical sample data plus simulated purchases · 12 Apr–11 Oct 2026 · amounts in ₹"
         actions={
           <Button variant="secondary" onClick={download}>
-            Download selected table CSV
+            Download {TABLE_LABELS[table] ?? table} CSV
           </Button>
         }
       />
@@ -66,8 +85,8 @@ function Database() {
         <Stat label="Average orders / month" value="5,000" />
       </div>
       <Note>
-        Search a customer ID to see every order, item, refund and Razorpay RTO score the agent used
-        for them. Razorpay shares a risk score only, never another store's customer data.
+        Search within the selected table. Use a customer ID across Orders, Customers, Refunds and
+        Razorpay delivery-risk signals to trace the inputs used for a recommendation.
       </Note>
       <section className="panel p-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -85,7 +104,7 @@ function Database() {
             >
               {Object.keys(tables).map((t) => (
                 <option key={t} value={t}>
-                  {t.replaceAll("_", " ")} · {tables[t]!.length.toLocaleString()}
+                  {TABLE_LABELS[t] ?? t.replaceAll("_", " ")} · {tables[t]!.length.toLocaleString()}
                 </option>
               ))}
             </select>
@@ -135,7 +154,7 @@ function Database() {
           minWidth={Math.max(700, columns.length * 160)}
           columns={columns.map((key) => ({
             key,
-            label: key.replaceAll("_", " "),
+            label: columnLabel(key),
             render: (x) =>
               x.r[key] === null
                 ? "Pending / n.a."

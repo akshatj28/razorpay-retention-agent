@@ -72,10 +72,10 @@ const START: SetupState = {
 };
 
 const STEPS: { id: StepId; title: string; hint: string }[] = [
-  { id: "store", title: "Connect your store", hint: "Orders, products, customers" },
-  { id: "razorpay", title: "Link payments", hint: "Settlements, refunds, RTO" },
-  { id: "import", title: "Import order history", hint: "Last six months + data check" },
-  { id: "channel", title: "Messaging and calls", hint: "WhatsApp, images, AI voice" },
+  { id: "store", title: "Preview store setup", hint: "Orders, products, customers" },
+  { id: "razorpay", title: "Preview payment setup", hint: "Settlements, refunds, delivery risk" },
+  { id: "import", title: "Simulate data import", hint: "Last six months + data check" },
+  { id: "channel", title: "Choose demo channels", hint: "WhatsApp, images, voice preview" },
 ];
 
 const SHOPIFY_SCOPES = [
@@ -83,7 +83,7 @@ const SHOPIFY_SCOPES = [
     icon: ShoppingBag,
     label: "Read orders and line items",
     detail:
-      "Last six months (older than 60 days requires Shopify read_all_orders approval), then live order, fulfilment and refund updates",
+      "Last six months in this simulation. A live app would request Shopify approval for older orders and ongoing updates.",
   },
   { icon: Database, label: "Read customers", detail: "Name, phone, email and marketing consent" },
   {
@@ -97,7 +97,7 @@ const CHANNELS = [
     icon: MessageCircle,
     title: "WhatsApp messages",
     detail:
-      "Sent from your WhatsApp Business number. Each customer gets their own text, product, price and discount code.",
+      "Simulated messages using a sample business number. Each customer gets their own text, product, price and discount code.",
     live: true,
   },
   {
@@ -111,7 +111,7 @@ const CHANNELS = [
     icon: Mic,
     title: "AI voice follow-ups",
     detail:
-      "Hindi or English calls with natural voices powered by ElevenLabs. The assistant follows your script and can't offer more than the approved discount.",
+      "Simulated Hindi or English follow-ups. The assistant follows your script and cannot exceed the approved discount.",
     live: false,
   },
 ];
@@ -269,7 +269,7 @@ function Setup() {
                     onChange={({ value }) => setS({ ...s, domain: value ?? "" })}
                     helpText={
                       alreadyConnected
-                        ? "This store is already connected."
+                        ? "This store already has a demo connection."
                         : "Your .myshopify.com address, found in Shopify admin → Settings → Domains"
                     }
                   />
@@ -281,17 +281,17 @@ function Setup() {
                     isDisabled={alreadyConnected || !/^[a-z0-9-]+\.myshopify\.com$/i.test(domain)}
                     onClick={() => setConsentOpen(true)}
                   >
-                    Install on Shopify
+                    Preview Shopify permissions
                   </Button>
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Lock className="size-3.5" aria-hidden />
-                    Read-only access. You approve the permissions in Shopify.
+                    Simulated permission review. No Shopify account is contacted.
                   </span>
                 </div>
                 <AppModal
                   isOpen={consentOpen}
                   onDismiss={() => setConsentOpen(false)}
-                  title="Install Retention Agent on your store?"
+                  title="Preview Retention Agent permissions"
                   subtitle={`${s.domain} · Shopify permission screen (simulated)`}
                   size="medium"
                   footer={
@@ -305,7 +305,7 @@ function Setup() {
                           save({ ...s, domain: s.domain.trim(), step: "razorpay" });
                         }}
                       >
-                        Install app
+                        Continue demo setup
                       </Button>
                     </div>
                   }
@@ -356,10 +356,10 @@ function Setup() {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">Nira Botanics</div>
                     <div className="text-xs text-muted-foreground">
-                      Razorpay account detected from your dashboard login · demo account
+                      Sample Razorpay account for this demo
                     </div>
                   </div>
-                  <Pill t="success">Signed in</Pill>
+                  <Pill t="success">Simulated connection</Pill>
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {[
@@ -379,9 +379,9 @@ function Setup() {
                 </div>
                 <div className="mt-4">
                   <Note>
-                    Payments are matched to Shopify orders by order ID, and courier updates confirm
-                    when COD cash is collected. Razorpay shares an RTO risk score only, never
-                    another store's customer data.
+                    In a live product, payments would be matched to Shopify orders by order ID and
+                    courier updates would confirm COD collection. This demo uses generated payment
+                    and delivery-risk data.
                   </Note>
                 </div>
                 <div className="mt-4 rounded-xl border p-4">
@@ -401,7 +401,7 @@ function Setup() {
                       ],
                       [
                         "What changes",
-                        "No Razorpay RTO score. The agent uses your store and courier history instead, so it can't ask risky COD buyers to pay online as precisely.",
+                        "No delivery-risk estimate. The agent uses store and courier history instead, so online-payment recommendations are less precise.",
                       ],
                     ].map(([t, x]) => (
                       <li key={t}>
@@ -431,7 +431,7 @@ function Setup() {
               <StepPanel
                 n={4}
                 title="How should the agent reach customers?"
-                subtitle="Retention Agent sends messages and makes calls itself, and only after you approve a campaign. Every message is built for one customer from their orders and payment history."
+                subtitle="This demo simulates messages and calls only after campaign approval. Every preview uses one customer's order and payment history."
               >
                 <div className="mb-5 grid gap-3 md:grid-cols-3">
                   {CHANNELS.map((x) => (
@@ -439,7 +439,7 @@ function Setup() {
                       <div className="flex items-center justify-between gap-2">
                         <x.icon className="size-5 text-primary" aria-hidden />
                         <Pill t={x.live ? "success" : "neutral"}>
-                          {x.live ? "Included" : "Not live in this demo"}
+                          {x.live ? "Included in simulation" : "Preview only"}
                         </Pill>
                       </div>
                       <div className="mt-3 font-semibold">{x.title}</div>
@@ -459,7 +459,7 @@ function Setup() {
                     value="whatsapp-voice"
                     helpText="WhatsApp first; a voice call only for customers who don't reply and agreed to calls"
                   >
-                    WhatsApp + AI voice follow-ups
+                    WhatsApp + voice follow-up preview
                   </Radio>
                   <Radio value="whatsapp" helpText="Uses your WhatsApp Business number">
                     WhatsApp only
@@ -468,7 +468,7 @@ function Setup() {
                     value="export"
                     helpText="Download the approved customers and offers and send them yourself"
                   >
-                    CSV export only
+                    Planned: export approved recipients
                   </Radio>
                 </RadioGroup>
                 <div className="mt-5 space-y-2 rounded-xl border p-4 text-sm">
@@ -477,9 +477,9 @@ function Setup() {
                       MessageCircle,
                       `Only customers who opted in to marketing in Shopify (${stats.consented} of ${stats.customers})`,
                     ],
-                    [ShieldCheck, "Every campaign waits for your approval before anything is sent"],
-                    [Mic, "Calls only to customers who agreed to be called"],
-                    [Link2, "Reorder links open a pre-filled Razorpay checkout"],
+                    [ShieldCheck, "Every campaign waits for approval before a simulated send"],
+                    [Mic, "Voice previews include only customers who agreed to calls"],
+                    [Link2, "Reorder links preview a pre-filled Razorpay checkout"],
                   ].map(([Icon, t]) => {
                     const I = Icon as typeof MessageCircle;
                     return (
@@ -507,12 +507,12 @@ function Setup() {
                   <CircleCheck className="size-6" aria-hidden />
                 </span>
                 <h2 id="done-title" className="mt-4 font-heading text-2xl font-semibold">
-                  {storeName(domain)} is connected.
+                  Demo setup complete for {storeName(domain)}
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                  {domain} is linked with read-only access. Its order history would now import in
-                  the background, and its campaigns would appear on Today. In this demo only Nira
-                  Botanics has sample orders, so Today keeps showing Nira Botanics.
+                  This simulated setup uses read-only permissions for {domain}. In a live product,
+                  order history would import in the background. This demo has sample orders only for
+                  Nira Botanics, so Today continues to show that store.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <LinkButton to="/" size="large">
@@ -586,8 +586,8 @@ function ImportStep({
   return (
     <StepPanel
       n={3}
-      title="Importing your order history"
-      subtitle="We read the last six months once, then keep up through live updates."
+      title="Simulating your order-history import"
+      subtitle="This step previews a six-month import and the checks a live connection would run."
     >
       <div className="space-y-4">
         {rows.map(([label, n, sub]) => (
@@ -621,7 +621,7 @@ function ImportStep({
             {checks.map((c) => (
               <li key={c.title} className="flex items-start gap-3 p-3">
                 <span className="mt-0.5">
-                  {c.ok ? <Pill t="success">Ready</Pill> : <Pill t="warning">Handled</Pill>}
+                  {c.ok ? <Pill t="success">Ready</Pill> : <Pill t="warning">Review</Pill>}
                 </span>
                 <div>
                   <div className="text-sm font-medium">{c.title}</div>
@@ -729,7 +729,7 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
         st.domain +
         (st.hasData ? " · " + orders.toLocaleString("en-IN") + " orders imported" : ""),
       tone: st.hasData ? ("success" as const) : ("neutral" as const),
-      status: st.hasData ? "Live" : "Connected · history not imported in this demo",
+      status: st.hasData ? "Simulated connection" : "Demo connection · no sample history",
     })),
     {
       icon: Wallet,
@@ -737,7 +737,7 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
       title: "Razorpay",
       detail: "Settlements, refunds, COD collection and RTO risk score",
       tone: "success" as const,
-      status: "Live",
+      status: "Simulated connection",
     },
     {
       icon: MessageCircle,
@@ -745,7 +745,7 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
       title: "WhatsApp Business",
       detail: "Messages from your business number, with a personalised image for each customer",
       tone: "success" as const,
-      status: "Live",
+      status: "Simulated channel",
     },
     {
       icon: Mic,
@@ -754,7 +754,7 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
       detail:
         "Hindi or English calls with ElevenLabs voices, only to customers who agreed to calls",
       tone: "neutral" as const,
-      status: "Not live in this demo",
+      status: "Preview only",
     },
   ];
   return (

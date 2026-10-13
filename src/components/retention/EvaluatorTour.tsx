@@ -16,15 +16,15 @@ export const TOUR_STOPS = [
   {
     route: "/setup",
     target: "setup",
-    title: "Start where the merchant's data already lives.",
+    title: "Connect store and payment data",
     rationale:
-      "Nira Botanics is already connected: Shopify knows what each customer bought, and Razorpay knows what was actually paid, refunded or returned to origin. Connecting a store is read-only, and nothing is sent without the merchant's approval.",
+      "Nira Botanics uses simulated Shopify and Razorpay connections. The setup shows the read-only permissions a live product would request, and campaign actions wait for merchant approval.",
     try: "Click Add store to see the four setup screens a new merchant goes through. The store menu at the top left opens the same flow.",
   },
   {
     route: "/",
     target: "opportunity",
-    title: "A decision to make, not a dashboard to read.",
+    title: "Review today's suggestions",
     rationale:
       "Each morning the agent turns six months of orders into three campaigns: reorder reminders, second orders and win-back. The merchant gets a plan to approve, not a report to interpret.",
     try: "Compare the three cards: customers to message, the control group, and how many get no discount at all.",
@@ -34,42 +34,42 @@ export const TOUR_STOPS = [
     target: "studio",
     // Show the suggested campaigns even when a saved campaign is open.
     freshCampaign: true,
-    title: "One decision per customer.",
+    title: "See each customer recommendation",
     rationale:
-      "For every customer the agent picks the product, whether a discount is worth it, and how they should pay. Full-price buyers get a plain reminder, coupon users get a code only if it adds profit, and COD buyers with RTO risk are asked to pay online. Customers are ranked by expected extra profit before the customer limit.",
+      "For every customer the agent recommends a product, whether a discount is worthwhile, and how they should pay. Full-price buyers get a plain reminder, coupon users get a code only when estimated earnings improve, and COD buyers with delivery risk are asked to pay online.",
     try: "Click Review campaign on Reorder reminder and open Products & discounts. Switch between No discount and With a discount code, and read the Why column.",
   },
   {
     route: "/campaigns",
     target: "studio",
-    title: "The merchant stays in control.",
+    title: "Set limits and approve",
     rationale:
-      "Maximum discount, minimum profit per order, discount budget and spend limit are rules, not model output. Approval locks the exact customers, discounts and messages. Any edit unlocks it, and every customer is checked again just before sending.",
+      "Maximum discount, minimum earnings per order, total discount value and spend limit are merchant rules. Editing an approved campaign before launch requires approval again; after it starts, the approved audience, offers and content are fixed.",
     try: "In the campaign you just opened, set Maximum discount to 0% on Products & discounts, then open Budget & approval and watch the plan change.",
   },
   {
     route: "/insights",
     target: "benchmark",
-    title: "Measured against having no retention tool.",
+    title: "Compare simulated impact",
     rationale:
-      "The product is judged the way a merchant would judge it: the same 2,500 customers with no retention tool, with a manual 20% sale, and with Retention Agent. How customers actually behave is simulated separately from what the agent predicts, so the agent is allowed to lose.",
-    try: "Drag How much messages influence buying to 0×. Messages stop causing orders, and the agent drops below having no tool.",
+      "The same 2,500 customers are simulated with no campaign outreach, a manual 20% sale and Retention Agent. Customer behaviour is simulated separately from the agent's estimates, so results can be better or worse.",
+    try: "Drag Assumed message response to 0×. Campaign messages stop creating additional orders so you can inspect the downside case.",
   },
   {
     route: "/database",
     target: "database",
-    title: "Trace every decision to its inputs.",
+    title: "Inspect the source data",
     rationale:
-      "30,000 orders, refunds and Razorpay RTO scores sit behind every recommendation, with source and date. Missing or old scores fall back to the store's own history instead of guessing.",
-    try: "Switch the table to razorpay_signals and search a customer ID from the campaign.",
+      "Sample orders, refunds and delivery-risk estimates sit behind each recommendation, with source and date. Missing or old estimates fall back to the store's own history.",
+    try: "Switch the table to Razorpay delivery-risk signals and search for a customer ID from the campaign.",
   },
   {
     route: "/campaigns",
     target: "studio",
-    title: "Measure what the campaign caused.",
+    title: "Review measured campaign results",
     rationale:
       "The control group gets no message. Results count only orders that were delivered and paid, after RTO and refunds, and compare them with the control group. The fee waits until that is settled. Sales credited to a message are shown, but never treated as proof.",
-    try: "Approve and start the campaign, send messages until it finishes, then click Settle deliveries and payments on the Results tab.",
+    try: "Approve and start the simulation, run each message batch, then choose Simulate delivery and payment updates on the Results tab.",
   },
 ] as const;
 
@@ -196,9 +196,12 @@ export function EvaluatorTour({ onFreshCampaign }: { onFreshCampaign?: () => voi
         <ol className="grid gap-2 sm:grid-cols-2">
           {[
             ["Connect", "Shopify orders and Razorpay payments, read-only"],
-            ["Review", "Today's campaigns: who to message, which product, discount or not"],
+            [
+              "Review",
+              "Suggested campaigns: who to message, which product and whether to discount",
+            ],
             ["Approve", "Set limits and approve. Nothing is sent before this"],
-            ["Measure", "Extra profit compared with customers who got no message"],
+            ["Measure", "Additional earnings compared with customers who got no message"],
           ].map(([title, text], i) => (
             <li key={title} className="rounded-lg border p-3">
               <span className="text-xs font-semibold text-primary">

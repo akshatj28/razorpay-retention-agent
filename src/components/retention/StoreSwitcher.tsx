@@ -74,7 +74,7 @@ export function StoreSwitcher() {
                 if (st.hasData) setOpen(false);
                 else
                   setNotice(
-                    `${st.name} is connected, but this demo only has sample orders for ${DEMO_STORE.name}.`,
+                    `${st.name} has a simulated connection, but this demo only has sample orders for ${DEMO_STORE.name}.`,
                   );
               }}
             >
@@ -82,7 +82,7 @@ export function StoreSwitcher() {
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{st.name}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {st.hasData ? "Connected" : "Connected · no sample data"}
+                  {st.hasData ? "Demo connection" : "Demo connection · no sample data"}
                 </span>
               </span>
               {st.domain === DEMO_STORE.domain && (
@@ -107,7 +107,7 @@ export function StoreSwitcher() {
             }}
           >
             <Plus className="size-4 shrink-0 text-primary" aria-hidden />
-            Add store
+            Try store setup
           </button>
           <Link
             to="/setup"

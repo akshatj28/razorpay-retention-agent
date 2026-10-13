@@ -38,14 +38,14 @@ export function StudioHome() {
   return (
     <div className="space-y-6 animate-enter">
       <PageHeader
-        title="Today's campaigns"
-        subtitle={MERCHANT_NAME + " · Skincare & haircare · " + dayToDate(s.day)}
+        title="Suggested campaigns for today"
+        subtitle={MERCHANT_NAME + " · Skincare & haircare · Demo date: " + dayToDate(s.day)}
         actions={
           <Button
             variant="secondary"
             onClick={() => update((prev) => ({ ...prev, studio: advanceDay(prev.studio, d.data) }))}
           >
-            Move to next day
+            Simulate next day
           </Button>
         }
       />
@@ -68,9 +68,8 @@ export function StudioHome() {
               Fewer wasted discounts.
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-relaxed text-blue-100">
-              Every morning the agent checks who is due to reorder, who needs a discount and who
-              doesn't, and which COD customers should pay online. You review the plan. Nothing goes
-              out until you approve it.
+              The agent suggests customers likely to reorder, suitable offers and online-payment
+              reminders for COD customers. Review and approve each campaign before it runs.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <LinkButton to="/campaigns" color="white" size="large">
@@ -89,10 +88,10 @@ export function StudioHome() {
             </p>
           </div>
           <div className="rounded-xl border border-white/15 bg-white/10 p-5">
-            <div className="text-xs text-blue-100">Across today's three campaigns</div>
+            <div className="text-xs text-blue-100">Across today's suggested campaigns</div>
             <div className="mt-3 font-heading text-5xl font-semibold">
               {inr(today.keeps)}
-              <span className="ml-2 text-base font-normal">expected extra profit</span>
+              <span className="ml-2 text-base font-normal">estimated earnings you keep</span>
             </div>
             <ul className="mt-5 space-y-3 text-sm text-blue-100">
               <li>{today.messaged} customers to message</li>
@@ -100,7 +99,7 @@ export function StudioHome() {
               <li>{today.nudge} COD customers asked to pay online</li>
             </ul>
             <Link to="/insights" className="mt-5 flex items-center gap-2 text-sm font-semibold">
-              See what it adds vs no retention tool <ArrowRight className="size-4" />
+              Compare simulated impact <ArrowRight className="size-4" />
             </Link>
           </div>
         </div>
@@ -117,19 +116,19 @@ export function StudioHome() {
           hint="What they bought, when, and how they paid"
         />
         <Stat
-          label="Customers with a Razorpay RTO score"
+          label="Customers with a recent delivery-risk estimate"
           value={freshSignals.toLocaleString("en-IN")}
-          hint="Updated in the last 7 days. The rest use your store history."
+          hint="Simulated Razorpay signal, updated in the last 7 days. Others use store history."
         />
         <Stat
           label="Your campaigns"
-          value={drafts.length + " drafts · " + active.length + " live"}
+          value={drafts.length + " not started · " + active.length + " in progress"}
           hint={s.templates.length + " saved templates"}
         />
       </section>
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="section-title">Suggested for today</h2>
+          <h2 className="section-title">Suggested campaigns</h2>
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Clock3 className="size-3.5" />
             Updated {dayToDate(s.refreshedDay)} · refreshed every morning
@@ -160,13 +159,13 @@ export function StudioHome() {
                   </div>
                   <div>
                     <div className="num text-2xl font-semibold">{inr(o.merchantKeeps)}</div>
-                    <div className="text-xs text-muted-foreground">expected extra profit</div>
+                    <div className="text-xs text-muted-foreground">estimated earnings you keep</div>
                   </div>
                 </div>
                 <p className="my-4 text-xs text-muted-foreground">
                   {o.actions.filter((a) => a.offer === 0).length} with no discount ·{" "}
                   {o.actions.filter(isPrepaidNudge).length} asked to pay online ·{" "}
-                  {o.holdoutIds.length} in control group
+                  {o.holdoutIds.length} in the control group · no campaign messages
                 </p>
                 <Button
                   variant="secondary"
@@ -184,11 +183,11 @@ export function StudioHome() {
         <section className="panel p-5">
           <h2 className="section-title flex items-center gap-2">
             <FileText className="size-5 text-primary" />
-            Your drafts are saved.
+            Drafts save automatically
           </h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Drafts save automatically. Each morning the agent updates who is eligible, but never
-            changes your message, discount or call script.
+            Saved in this browser. Each simulated day, the agent refreshes eligibility without
+            changing your message, discount or call script.
           </p>
           <Link
             to="/campaigns"
@@ -203,8 +202,8 @@ export function StudioHome() {
             See the data behind every decision.
           </h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Every order, refund and Razorpay RTO score the agent used, searchable and downloadable
-            as CSV.
+            Search and download the sample orders, refunds and delivery-risk estimates behind each
+            recommendation.
           </p>
           <Link
             to="/database"

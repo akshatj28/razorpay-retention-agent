@@ -21,14 +21,14 @@ import { EvaluatorTour } from "./EvaluatorTour";
 const NAV = [
   { to: "/", label: "Today", icon: LayoutGrid },
   { to: "/campaigns", label: "Campaigns", icon: ClipboardCheck },
-  { to: "/insights", label: "Impact", icon: FlaskConical },
+  { to: "/insights", label: "Impact simulation", icon: FlaskConical },
   { to: "/database", label: "Order data", icon: Store },
 ] as const;
 
 const CRUMB: Record<string, string> = {
   "/campaigns": "Campaigns",
   "/database": "Order data",
-  "/insights": "Impact",
+  "/insights": "Impact simulation",
   "/setup": "Connections",
   "/": "Today",
   "/cohort": "Cohort intelligence",
@@ -60,7 +60,7 @@ export function Shell({ children }: { children: ReactNode }) {
             className="mt-2 flex items-center gap-2 px-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <span className="size-2 shrink-0 rounded-full bg-success" aria-hidden />
-            Shopify + Razorpay connected
+            Shopify and Razorpay · demo connections
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-3" aria-label="Primary">
@@ -155,7 +155,7 @@ export function Shell({ children }: { children: ReactNode }) {
               className="flex items-center gap-1.5 rounded-full border bg-surface px-3 py-1.5 text-xs text-muted-foreground"
             >
               <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-              Demo store · sample data
+              Demo mode · simulated data and actions
             </span>
             <Button
               variant="secondary"
@@ -188,8 +188,8 @@ export function Shell({ children }: { children: ReactNode }) {
               }
             >
               <p className="text-sm leading-relaxed">
-                Restores the identical seeded dataset and clears all saved campaigns, templates and
-                demo events. All exclusions, approvals, sends and simulated outcomes (
+                Restores the original sample data and clears all campaigns, templates and demo
+                activity. All exclusions, approvals, simulated sends and outcomes (
                 {state.campaign.events.length} events) are cleared.
               </p>
             </AppModal>

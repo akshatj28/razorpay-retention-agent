@@ -28,21 +28,21 @@ describe("Store setup onboarding", () => {
 
     expect(await screen.findByText("Nira Botanics")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add store" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Install on Shopify" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Preview Shopify permissions" }));
     expect(await screen.findByText("Read orders and line items")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Install app" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue demo setup" }));
 
     expect(await screen.findByText("Link your payment data")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Link and continue" }));
 
-    expect(await screen.findByText("Importing your order history")).toBeInTheDocument();
+    expect(await screen.findByText("Simulating your order-history import")).toBeInTheDocument();
     expect(await screen.findByText("Data check", {}, { timeout: 5000 })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(await screen.findByText("How should the agent reach customers?")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Finish setup" }));
 
-    expect(await screen.findByText("Verde Home is connected.")).toBeInTheDocument();
+    expect(await screen.findByText("Demo setup complete for Verde Home")).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem("retention-agent-setup-v2")!).step).toBe("done");
     expect(JSON.parse(localStorage.getItem("retention-agent-stores-v1")!)[0].domain).toBe(
       "verde-home.myshopify.com",
@@ -64,11 +64,11 @@ describe("Store setup onboarding", () => {
     fireEvent.change(screen.getByLabelText("Shopify store address"), {
       target: { value: "everyday-essentials.com" },
     });
-    expect(screen.getByRole("button", { name: "Install on Shopify" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Preview Shopify permissions" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Shopify store address"), {
       target: { value: "nira-botanics.myshopify.com" },
     });
-    expect(screen.getByRole("button", { name: "Install on Shopify" })).toBeDisabled();
-    expect(screen.getByText("This store is already connected.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Preview Shopify permissions" })).toBeDisabled();
+    expect(screen.getByText("This store already has a demo connection.")).toBeInTheDocument();
   });
 });

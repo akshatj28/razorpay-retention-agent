@@ -340,7 +340,7 @@ function explainAction(
   const payment = risk
     ? `Razorpay RTO risk: ${risk}` +
       (isPrepaidNudge(a) ? " on COD, so we ask them to pay online" : "")
-    : "No recent Razorpay RTO score, so we use your store history";
+    : "No recent delivery-risk estimate, so the recommendation uses store history";
   return `${timing}. ${history}, so ${offer}. ${payment}.`;
 }
 export interface CampaignView {
@@ -424,11 +424,11 @@ export function deriveCampaign(
     !Number.isInteger(c.settings.maxAudience)
   )
     blockers.push("Choose a whole number of customers between 10 and 1,000.");
-  if (!activeActions.length) blockers.push("No customer here is worth messaging at these limits.");
+  if (!activeActions.length) blockers.push("No customers meet the current campaign limits.");
   if (operatorCost > c.settings.operatorCap)
-    blockers.push("Messaging cost is above the spend limit.");
+    blockers.push("Estimated messaging cost exceeds the campaign spend limit.");
   if (incentiveExposure > c.settings.incentiveCap)
-    blockers.push("Total discount value is above your discount budget.");
+    blockers.push("Estimated total discount value exceeds the discount limit.");
   if (c.settings.scheduleDay < s.day && c.status === "draft")
     blockers.push("Choose today or a future send date.");
   if (!c.assets.whatsapp.trim() || !c.assets.whatsapp.toUpperCase().includes("STOP"))
@@ -980,7 +980,7 @@ export function portfolioSettlement(s: StudioState) {
     reason: !cohorts.length
       ? "No campaign results yet."
       : !ready
-        ? "Results appear once deliveries and COD payments are settled and each campaign has at least 20 customers in the control group and 100 messaged."
-        : "Extra profit compared with the control group, after returns and refunds. Losses on one campaign offset gains on another before the 25% fee.",
+        ? "Results appear after delivery and payment updates are simulated, with at least 20 customers in the control group and 100 messaged customers per campaign."
+        : "Additional earnings compared with the control group, after returns and refunds. Losses offset gains before the estimated 25% success fee.",
   };
 }

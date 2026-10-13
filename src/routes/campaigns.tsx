@@ -35,6 +35,14 @@ const OUTCOME_LABEL: Record<string, string> = {
   rto: "Returned (RTO)",
   refunded: "Refunded",
 };
+const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
+  approved: "Approved · not started",
+  scheduled: "Scheduled",
+  running: "In progress",
+  paused: "Paused",
+  completed: "Sending complete",
+};
 export const Route = createFileRoute("/campaigns")({
   component: Campaigns,
   head: () => ({ meta: [{ title: "Campaigns — Nira Botanics" }] }),
@@ -117,10 +125,10 @@ function Campaigns() {
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Campaign library">
           {[
             ["all", "All campaigns"],
-            ["draft", "Drafts"],
+            ["draft", "Not started"],
             ["scheduled", "Scheduled"],
-            ["active", "Live"],
-            ["completed", "Completed"],
+            ["active", "In progress"],
+            ["completed", "Sending complete"],
             ["templates", "Templates"],
           ].map(([key, label]) => (
             <button
@@ -180,7 +188,9 @@ function Campaigns() {
                 >
                   <span className="block text-sm font-semibold">{x.name}</span>
                   <span className="mt-1 flex items-center gap-2">
-                    <Pill t={x.status === "draft" ? "neutral" : "info"}>{x.status}</Pill>
+                    <Pill t={x.status === "draft" ? "neutral" : "info"}>
+                      {STATUS_LABEL[x.status] ?? x.status}
+                    </Pill>
                     <span className="text-xs text-muted-foreground">
                       v{x.revision} · {x.origin}
                     </span>
@@ -204,8 +214,8 @@ function Campaigns() {
                 <Pill t="info">Suggested by agent</Pill>
                 <h3 className="mt-3 font-semibold">{GOALS[o.campaign.settings.goal]}</h3>
                 <p className="my-3 text-sm text-muted-foreground">
-                  {o.actions.length} customers to message · {inr(o.merchantKeeps)} expected extra
-                  profit
+                  {o.actions.length} customers to message · {inr(o.merchantKeeps)} estimated
+                  earnings you keep
                 </p>
                 <Button
                   onClick={() => create(o.campaign.settings.goal, "recommended")}
@@ -246,7 +256,9 @@ function Campaigns() {
                 </Button>
                 {c.status === "approved" && (
                   <Button onClick={() => mutate((s) => scheduleCampaign(s, c.id))}>
-                    {c.settings.scheduleDay > studio.day ? "Schedule campaign" : "Start campaign"}
+                    {c.settings.scheduleDay > studio.day
+                      ? "Schedule simulation"
+                      : "Start simulation"}
                   </Button>
                 )}
                 {["running", "paused"].includes(c.status) && (
@@ -256,28 +268,32 @@ function Campaigns() {
                 )}
                 {c.status === "running" && (
                   <Button onClick={() => mutate((s) => sendStudioBatch(d.data, s, c.id))}>
-                    Send next 12 messages
+                    Simulate next batch
                   </Button>
                 )}
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Campaign steps">
-              {["Audience", "Products & discounts", "Message", "Budget & approval", "Results"].map(
-                (x) => (
-                  <button
-                    key={x}
-                    role="tab"
-                    aria-selected={step === x}
-                    onClick={() => setStep(x)}
-                    className={
-                      "rounded-lg px-3 py-2 text-sm " +
-                      (step === x ? "bg-primary text-white" : "bg-muted")
-                    }
-                  >
-                    {x}
-                  </button>
-                ),
-              )}
+              {[
+                "Audience",
+                "Products & discounts",
+                "Messages & calls",
+                "Budget & approval",
+                "Results",
+              ].map((x) => (
+                <button
+                  key={x}
+                  role="tab"
+                  aria-selected={step === x}
+                  onClick={() => setStep(x)}
+                  className={
+                    "rounded-lg px-3 py-2 text-sm " +
+                    (step === x ? "bg-primary text-white" : "bg-muted")
+                  }
+                >
+                  {x}
+                </button>
+              ))}
             </div>
           </section>
           {view.stale && (
@@ -295,9 +311,8 @@ function Campaigns() {
           )}
           {locked && (
             <Note>
-              This campaign is approved, so its customers, discounts and messages are locked. Each
-              customer is checked again just before sending. To change it, save it as a template and
-              start a new version.
+              This campaign has started. Its approved audience, offers and content are fixed. Each
+              customer is checked again just before a simulated send.
             </Note>
           )}
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -364,11 +379,11 @@ function Campaigns() {
                       </select>
                     </Field>
                     <Field
-                      label="Maximum customers"
-                      hint="10 to 1,000. Includes the control group, who are not messaged."
+                      label="Maximum audience size"
+                      hint="10 to 1,000 people, including customers in the control group."
                     >
                       <input
-                        aria-label="Maximum customers"
+                        aria-label="Maximum audience size"
                         type="number"
                         min="10"
                         max="1000"
@@ -399,16 +414,16 @@ function Campaigns() {
                     </Field>
                   </div>
                   <Note>
-                    Your Shopify orders decide who is due and what to suggest. Razorpay's RTO score
-                    decides who should pay online. The agent only messages people who have bought
-                    from you and opted in.
+                    Store history helps estimate who may be ready to reorder and which product to
+                    suggest. The simulated Razorpay delivery-risk signal informs online-payment
+                    recommendations. Only opted-in customers are eligible.
                   </Note>
                 </div>
               )}
               {step === "Products & discounts" && (
                 <div className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Discount">
+                    <Field label="Discount selection">
                       <select
                         aria-label="Discount"
                         className={fieldClass}
@@ -423,7 +438,7 @@ function Campaigns() {
                           })
                         }
                       >
-                        <option value="recommended">Let the agent choose per customer</option>
+                        <option value="recommended">Recommended for each customer</option>
                         {[0, 10, 20, 30].map((n) => (
                           <option key={n} value={n}>
                             {n ? n + "% code for everyone" : "No discount"}
@@ -431,7 +446,7 @@ function Campaigns() {
                         ))}
                       </select>
                     </Field>
-                    <Field label="Maximum discount">
+                    <Field label="Discount limit">
                       <select
                         aria-label="Maximum discount"
                         className={fieldClass}
@@ -504,31 +519,31 @@ function Campaigns() {
                       },
                       {
                         key: "payment",
-                        label: "Payment",
+                        label: "Payment recommendation",
                         render: (r) => r.paymentTreatment,
                       },
                       {
                         key: "evidence",
-                        label: "Why",
+                        label: "Why this recommendation",
                         width: "minmax(260px, 2fr)",
                         render: (r) => <span className="text-xs leading-relaxed">{r.reason}</span>,
                       },
                       {
                         key: "value",
-                        label: "Expected extra profit",
+                        label: "Estimated additional earnings",
                         render: (r) => inr(r.expectedIncremental),
                       },
                     ]}
                   />
                   <p className="text-xs text-muted-foreground">
                     Showing the top {Math.min(35, shownActions.length)} of {shownActions.length},
-                    ranked by expected extra profit. {view.noOutreachIds.length} no-outreach
-                    decisions; {view.holdoutIds.length} stable no-contact controls. Probability and
-                    contribution estimates are illustrative.
+                    ranked by estimated additional earnings. {view.noOutreachIds.length} customers
+                    are not selected for messaging; {view.holdoutIds.length} are in the control
+                    group. All estimates are illustrative.
                   </p>
                 </div>
               )}
-              {step === "Message" && (
+              {step === "Messages & calls" && (
                 <div className="space-y-5">
                   <div className="grid gap-3 rounded-xl bg-surface p-4 sm:grid-cols-3">
                     {[
@@ -541,8 +556,8 @@ function Campaigns() {
                         "Their product and price in your brand style. Prices come from your catalogue.",
                       ],
                       [
-                        "AI voice follow-up",
-                        "Hindi or English, powered by ElevenLabs, only for customers who agreed to calls.",
+                        "Voice follow-up preview",
+                        "A simulated Hindi or English follow-up for customers who agreed to calls.",
                       ],
                     ].map(([t, x]) => (
                       <div key={t}>
@@ -563,12 +578,12 @@ function Campaigns() {
                         }
                       >
                         {x}
-                        {x === "Email" ? " · Coming soon" : ""}
+                        {x === "Email" ? " · Not available in this demo" : ""}
                       </button>
                     ))}
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <Pill t="info">AI draft</Pill>
+                    <Pill t="info">Sample draft</Pill>
                     <Button
                       variant="secondary"
                       size="small"
@@ -576,15 +591,15 @@ function Campaigns() {
                       onClick={() => {
                         asset(defaultAssets());
                         toast.show({
-                          content: "AI draft added. Review it before approving.",
+                          content: "Sample draft added. Review it before approving.",
                           color: "positive",
                         });
                       }}
                     >
-                      Write with AI
+                      Use sample draft
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      This replaces your current message and call script.
+                      Replaces the current message, image settings and call script.
                     </span>
                   </div>
                   <Field label="Preview customer">
@@ -713,10 +728,9 @@ function Campaigns() {
                         Call customers who don't reply on WhatsApp, only where it pays off
                       </label>
                       <Note>
-                        Only customers who agreed to calls, and only when the expected profit covers
-                        the call. {view.actions.filter((x) => x.callEligible).length} qualify. We
-                        pay for calls. Voices are powered by ElevenLabs; calls are not live in this
-                        demo.
+                        Only customers who agreed to calls, and only when estimated earnings cover
+                        the call. {view.actions.filter((x) => x.callEligible).length} qualify. Voice
+                        follow-ups are simulated in this demo.
                       </Note>
                       {(
                         [
@@ -754,15 +768,15 @@ function Campaigns() {
                 <div className="space-y-5">
                   <h3 className="section-title">Set your limits, then approve.</h3>
                   <Note>
-                    You pay 25% of the extra profit the campaign makes over the control group, and
-                    nothing if it makes none. We cover AI, WhatsApp and call costs. Your discounts,
-                    product, delivery and payment costs are subtracted first.
+                    This demo estimates a 25% success fee on additional earnings over the control
+                    group. No fee is charged. Discounts, product, delivery and payment costs are
+                    deducted before the estimate.
                   </Note>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {(
                       [
-                        ["minContribution", "Minimum profit per delivered order (₹)"],
-                        ["incentiveCap", "Discount budget (₹)"],
+                        ["minContribution", "Minimum earnings per delivered order (₹)"],
+                        ["incentiveCap", "Maximum total discount value (₹)"],
                       ] as const
                     ).map(([key, label]) => (
                       <Field key={key} label={label}>
@@ -786,8 +800,8 @@ function Campaigns() {
                     ))}
                     {!view.blockers.length && (
                       <li className="text-success">
-                        All checks pass: customers, minimum profit, discount budget, message and
-                        spend limit.
+                        Ready for campaign approval: audience, earnings limit, discount limit,
+                        message and spend checks have passed.
                       </li>
                     )}
                     <li>
@@ -807,8 +821,8 @@ function Campaigns() {
                     </li>{" "}
                     <li>
                       {" "}
-                      The fee is worked out only after deliveries, COD collection and the return
-                      window close.{" "}
+                      The success-fee estimate is available only after deliveries, COD collection
+                      and the return window are resolved.{" "}
                     </li>
                   </ul>
                   {c.status === "draft" && (
@@ -817,17 +831,19 @@ function Campaigns() {
                     </Button>
                   )}
                   {c.status === "approved" && (
-                    <Pill t="success">Approved. This version is locked.</Pill>
+                    <Pill t="success">
+                      Approved. Editing before launch requires approval again.
+                    </Pill>
                   )}
                 </div>
               )}
               {step === "Results" && (
                 <div className="space-y-5">
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <Stat label="Sales credited to messages" value={stats?.attributed ?? 0} />
-                    <Stat label="Delivered and paid" value={stats?.collected ?? 0} />
+                    <Stat label="Orders placed after a message" value={stats?.attributed ?? 0} />
+                    <Stat label="Orders delivered and paid" value={stats?.collected ?? 0} />
                     <Stat
-                      label="Waiting on delivery or COD"
+                      label="Orders awaiting delivery or payment"
                       value={stats?.pending ?? 0}
                       hint="Includes the control group"
                     />
@@ -837,18 +853,22 @@ function Campaigns() {
                       variant="secondary"
                       onClick={() => mutate((s) => reconcileCampaign(d.data, s, c.id))}
                     >
-                      Settle deliveries and payments
+                      Simulate delivery and payment updates
                     </Button>
                   )}
                   <Note>{d.studio.portfolio.reason}</Note>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Stat
-                      label="Extra profit vs control group, all campaigns"
-                      value={inr(d.studio.portfolio.incremental)}
+                      label="Additional earnings vs control, all campaigns"
+                      value={
+                        d.studio.portfolio.fee === null
+                          ? "Pending"
+                          : inr(d.studio.portfolio.incremental)
+                      }
                       hint="Messaged customers minus the control group, scaled to the same size. Can be negative."
                     />
                     <Stat
-                      label="Fee (25% of extra profit)"
+                      label="Estimated success fee (25%)"
                       value={
                         d.studio.portfolio.fee === null ? "Pending" : inr(d.studio.portfolio.fee)
                       }
@@ -858,7 +878,7 @@ function Campaigns() {
                   <DataTable
                     rows={c.outcomes.filter((o) => o.group === "treatment").slice(0, 30)}
                     rowId={(o) => o.customerId}
-                    label="Orders from this campaign"
+                    label="Customer outcomes"
                     columns={[
                       { key: "id", label: "Customer", render: (o) => o.customerId },
                       {
@@ -882,7 +902,7 @@ function Campaigns() {
                               variant="tertiary"
                               onClick={() => mutate((s) => refundOutcome(s, c.id, o.customerId))}
                             >
-                              Mark refunded
+                              Simulate refund
                             </Button>
                           ) : (
                             "—"
@@ -912,12 +932,12 @@ function Campaigns() {
                   view.holdoutIds.length +
                   " in control group · " +
                   view.noOutreachIds.length +
-                  " not worth messaging"
+                  " not selected for messaging"
                 }
               />
-              <Stat label="Expected extra profit" value={inr(view.expectedIncremental)} />
-              <Stat label="Fee (25%)" value={inr(view.estimatedFee)} />
-              <Stat label="You keep" value={inr(view.merchantKeeps)} />
+              <Stat label="Estimated additional earnings" value={inr(view.expectedIncremental)} />
+              <Stat label="Estimated success fee (25%)" value={inr(view.estimatedFee)} />
+              <Stat label="Estimated earnings you keep" value={inr(view.merchantKeeps)} />
               <div className="border-t pt-4">
                 <Stat
                   label="Messaging cost (we pay)"
