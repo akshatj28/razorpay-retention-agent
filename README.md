@@ -1,6 +1,6 @@
 # Retention Agent
 
-**A repeat-purchase decision agent for Razorpay Agent Studio.** It decides, for every past customer of a D2C brand, whether to reach out, when, with which product, whether a discount is needed at all, and how they should pay. It then measures what the campaign actually caused against a control group.
+**A proposed repeat-purchase decision agent for Razorpay Agent Studio.** It helps a D2C merchant review whom to contact, when, which product and offer to use, and whether to encourage online payment. The prototype demonstrates these decisions and estimates extra contribution against a simulated control group. Real causal impact still needs a live experiment.
 
 **▶ Live demo: [smart-retention-razorpay.lovable.app](https://smart-retention-razorpay.lovable.app/)** (no login needed; start with **Guided tour** in the header)
 
@@ -13,12 +13,12 @@
 
 | | |
 |---|---|
-| **Merchant** | Growth or retention manager at a mid-size Shopify D2C brand on Razorpay Magic Checkout (≈5K–50K orders a month, heavy COD) |
-| **Problem** | 70–80% of first-time D2C buyers never order again within 90 days. When brands do run retention campaigns, they send the same coupon to everyone, so discount money goes to customers who would have bought anyway, and COD orders come back as RTO |
-| **Signal** | Order history and SKU rhythm from the store, plus payment method, COD/RTO risk, refunds and settled cash from Razorpay |
+| **Merchant** | Starting persona: growth or retention manager at a mid-size Shopify D2C brand, initially with Razorpay Magic Checkout and COD orders. The demo averages 5K orders a month; the persona still needs merchant validation |
+| **Problem** | Working hypothesis: broad campaign offers can spend discounts on customers who would reorder anyway, while attributed sales can obscure COD/RTO and refund losses |
+| **Signal** | Product and purchase history from Shopify; reconciled payment, refund and delivery outcomes from connected sources; permitted Razorpay risk enrichment where available. All are simulated here |
 | **Decision** | Per customer: include or skip · product · discount or none · pay-online nudge for risky COD · channel |
 | **Merchant control** | Suggested campaigns become editable drafts. Nothing is sent until the merchant approves. Pause any time. Caps on discount, margin and budget |
-| **Proof** | Every campaign holds back a control group. Results are extra profit after discounts, RTO and refunds. Attributed sales are not counted as proof |
+| **Measurement** | Every approved campaign reserves a control group. The demo estimates extra profit after discounts, RTO and refunds; it provides a measurement workflow, not measured business proof |
 | **Demo merchant** | *Nira Botanics*, a fictional skincare and haircare brand: 30,000 orders, 12,000 customers, six months of history |
 
 ```mermaid
@@ -36,33 +36,35 @@ flowchart LR
 
 ## 1. The problem we chose
 
-**The merchant:** a growth manager at a ₹50–100 Cr Shopify D2C brand. They spend ₹800–1,200 to acquire a beauty or personal-care customer, 30–60% of orders are COD, and most of those customers never come back.
+**The merchant:** a growth or retention manager at a mid-size Shopify D2C brand. Acquisition cost, incentive spend and unsuccessful COD deliveries are the economic pressures we chose to investigate. Public market research supplied directional context; no merchant has been interviewed for this prototype, and its price, volume and response assumptions are not calibrated to a real brand.
 
-**What they do today:** they use a WhatsApp/CRM tool (BiteSpeed, LimeChat, Interakt, Klaviyo) with fixed flows such as "reorder reminder at day 30" or "win-back at day 60", plus festive broadcasts. Everyone in a flow gets the same 15–20% coupon. Success is reported as *attributed revenue*: any order placed within X days of a message is credited to the message.
+**The current-workflow hypothesis:** merchants may use WhatsApp/CRM tools, fixed-delay flows or festive broadcasts with broad offers. Existing platforms can also support richer targeting and predictive timing; we do not assume every merchant sends the same coupon. Campaign attribution credits qualifying orders under a tool's attribution rules, which does not by itself establish what the campaign caused.
 
 **Where it breaks:**
 
-1. **Discount waste.** A loyal customer who reorders every 28 days at full price gets the same coupon as someone who only buys on sale. Stacked discounts reach 25–30% of revenue for many brands.
+1. **Potential discount waste.** A customer who would reorder at full price may receive an incentive. Past coupon use alone cannot establish whether that incentive was unnecessary; the policy needs testing.
 2. **RTO hides inside "revenue".** A COD reorder that is refused at the door shows up as a campaign win and as a logistics loss.
-3. **Nobody can answer the finance question:** *"How much of that discount went to people who would have bought anyway, and how many of those orders came back?"* Attribution cannot answer it. Only a control group can.
+3. **The finance question:** *"How much extra contribution did this campaign create after discounts, delivery losses and refunds?"* Attribution alone cannot answer it. A randomised control group is the proposed way to estimate it.
 
-**Why this matters to Razorpay:** after the first order, Razorpay has the richest data it will ever have on a shopper (what they paid, how they paid, what came back, settled cash), and no Razorpay product acts on it yet.
+**Why this could matter to Razorpay:** its visible D2C investment, checkout distribution and payment intelligence suggest strategic fit. Combining Shopify product history with entitled risk signals and reconciled collections could support better retention decisions. Catalog and delivery data still require integrations; we do not claim that Razorpay already exposes every required field or that its native and partner products never address retention.
 
 ## 2. How we narrowed it down
 
-We started from the whole brief ("recover and grow revenue for Razorpay merchants") and applied four filters to every persona and journey stage:
+We started from the whole brief ("recover and grow revenue for Razorpay merchants") and compared B2B invoice blockers, cart recovery, subscription recovery and repeat-order decisions. An early B2B recommendation was challenged: merchant impact and Razorpay's strategic fit needed to lead the selection, with AI suitability assessed afterwards.
 
-1. **Razorpay already has the data.** No new data collection is needed to start.
-2. **It's a money decision that changes per customer**, so AI can beat a fixed rule.
-3. **Razorpay or a direct competitor doesn't already ship it.**
-4. **There are enough orders to prove impact against a control group.**
+Our final decision checks were:
+
+1. **Merchant importance and strategic fit.** Is the job economically meaningful for an audience Razorpay could reach?
+2. **Data and action feasibility.** Which signals exist, which require integrations or permission, and what can the merchant actually act on?
+3. **Improvement over the current workflow.** Competition and partnerships inform demand and the baseline; overlap does not automatically rule out an idea.
+4. **Measurable value and justified AI.** Can an experiment test contribution gains, and would learned estimates improve on a suitable rules baseline?
 
 ```mermaid
 flowchart TD
     A["Whole space: recover and grow revenue for Razorpay merchants"] --> B["Personas: subscription · enterprise · long-tail · D2C · shopper"]
-    B -->|"4 filters"| C["Mid-size Shopify D2C brand on Magic Checkout, heavy COD"]
+    B -->|"Strategic fit, pain, feasibility and measurement"| C["Mid-size Shopify D2C brand on Magic Checkout, with COD"]
     C --> D["Journey: browse · checkout · pay · dispatch · delivery · returns · after first order"]
-    D -->|"Rich Razorpay data, no Razorpay product acting on it"| E["After the first order"]
+    D -->|"Purchase history plus permitted payment context"| E["After the first order"]
     E --> F["Ideas tested: occasion offers · COD→prepaid · cash-truth ROAS · CRM · fixed 30/60-day reminders"]
     F --> G["Repeat-purchase decision agent"]
 ```
@@ -70,13 +72,13 @@ flowchart TD
 | Considered | Decision | Why |
 |---|---|---|
 | Subscription merchants (failed renewals) | Dropped | Razorpay's Subscription Recovery agent already covers it |
-| Enterprise merchants | Dropped | Have analysts and account managers; least need |
-| Long-tail merchants | Dropped | Too few orders to decide per customer or run a control group |
+| Enterprise merchants | Deprioritised for v1 | We hypothesised more existing analytical support and a harder initial workflow; not a claim that enterprises lack retention pain |
+| Long-tail merchants | Deprioritised for v1 | Low volume can make per-merchant experiments and economics harder; actual feasibility needs sample-size and variance assessment |
 | Cart abandonment / failed payments | Parked | Biggest pools, but Razorpay ships its own agents and 5+ vendors compete |
 | COD → prepaid before dispatch | Folded in | Scored highest, but RTO Shield and COD confirmation already ship. Kept as the agent's *payment decision* |
-| A full CRM ("BiteSpeed inside Razorpay") | Rejected | BiteSpeed became a Razorpay partner in June 2026. We decide; messaging is a channel |
+| A full CRM ("BiteSpeed inside Razorpay") | Left out | Focused the prototype on decisions, controls and contribution measurement. Existing vendors and partners inform the benchmark, rather than vetoing a native improvement |
 | Fixed 30/60-day reminders | Replaced | That's a rule that every tool already offers. The agent uses each customer's own reorder rhythm |
-| Cross-merchant targeting, ad network, lending | Rejected | Needs fresh consent under DPDP and breaks Razorpay's processor role |
+| Cross-merchant targeting, ad network, lending | Left out | Broader data permissions and operational scope than this prototype; risk enrichment is separate from marketing targeting |
 
 **Where the stages sit** (our qualitative read; sources in [docs/RESEARCH.md](docs/RESEARCH.md)):
 
@@ -86,9 +88,9 @@ flowchart TD
 | Checkout & pay | Payment method, failures, RTO score | Magic Checkout, GoKwik, Shopflo, payment retry |
 | Before dispatch (COD) | COD orders and risk | RTO Shield, COD confirmation, Shiprocket |
 | Delivery / returns | RTO, refunds and reasons | Logistics tools, Return Prime |
-| **After the first order** | **What was bought, how they paid, what came back, settled cash** | **Messaging tools send; nobody decides who needs an offer or proves impact** ← *we build here* |
+| **After the first order** | **Store product history plus connected payment, refund and delivery outcomes** | **Established retention platforms already act here. We investigate an integrated offer/payment decision and contribution-measurement workflow** |
 
-Full research, including the competitor map, merchant pain evidence and sources: **[docs/RESEARCH.md](docs/RESEARCH.md)**.
+Full research, including the competitor map, merchant pain evidence and sources: **[docs/RESEARCH.md](docs/RESEARCH.md)**. It retains some preliminary hypotheses and categorical wording; the limitations above and the [detailed AI build log](docs/AI_BUILD_LOG.md) explain how that reasoning was challenged and refined.
 
 ## 3. What the product does
 
@@ -120,7 +122,7 @@ The **Guided tour** (button in the header) takes a reviewer through the main flo
 
 ## 4. Why AI, and not a fixed rule
 
-A rule sorts customers by recency or spend and sends everyone in the segment the same coupon. It can't tell these customers apart:
+A simple recency or spend policy can apply the same offer to a broad segment. Our production hypothesis is that learned response estimates could improve the choice of reminder, offer or no outreach. The causal framework below describes possibilities to investigate; these customer types cannot be observed directly from purchase history alone:
 
 | | Buys **with** an offer | Doesn't buy with an offer |
 |---|---|---|
@@ -136,7 +138,7 @@ extra profit = P(buy | offer) × P(delivered) × margin after discount
 
 It picks the option with the highest value, which includes "no discount" and "don't contact". `P(delivered)` uses the Razorpay COD/RTO risk tier, so risky COD customers get a pay-online nudge instead of a bigger coupon.
 
-**Honest about v1.** In this prototype the response estimates are transparent formulas with stated priors. For example, a customer's discount history is shrunk toward a 25% prior worth three orders (see `estimateAction` in [src/retention/studio.ts](src/retention/studio.ts)). In production this becomes an uplift model trained on control-group results per merchant. The decision logic and the merchant experience stay the same. What changes is where the probabilities come from.
+**Honest about v1.** In this prototype the response estimates are transparent formulas with stated priors. For example, a customer's discount history is shrunk toward a 25% prior worth three orders (see `estimateAction` in [src/retention/studio.ts](src/retention/studio.ts)). This is not a trained model or an estimate of causal discount response. A production response model would require randomised evidence, calibration and comparison against a rules baseline. Payment-risk enrichment alone does not supply discount sensitivity.
 
 ## 5. How it learns from outcomes
 
@@ -218,7 +220,7 @@ Legacy routes `/cohort`, `/workbench` and `/review` are an earlier offer-maths l
 |---|---|
 | [docs/RESEARCH.md](docs/RESEARCH.md) | Narrowing, journey and competitor map, merchant pain evidence, sources, open risks |
 | [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md) | Every product, data, pricing and state decision, plus live-integration boundaries |
-| [docs/AI_BUILD_LOG.md](docs/AI_BUILD_LOG.md) | How AI tools were used, and which decisions were made by hand |
+| [docs/AI_BUILD_LOG.md](docs/AI_BUILD_LOG.md) | Detailed research and build process, tools and models, actual prompts, participant steering, AI corrections, verification and limitations |
 | [BUILD_LOG.md](BUILD_LOG.md) | Detailed, dated implementation and verification history |
 | [data/nira/README.md](data/nira/README.md) | Data dictionary, assumptions, SQL examples |
 | [docs/CREATIVE_ASSETS.md](docs/CREATIVE_ASSETS.md) | Provenance of the AI-generated campaign image |
