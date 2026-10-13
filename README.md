@@ -2,6 +2,8 @@
 
 **A repeat-purchase decision agent for Razorpay Agent Studio.** It decides, for every past customer of a D2C brand, whether to reach out, when, with which product, whether a discount is needed at all, and how they should pay. It then measures what the campaign actually caused against a control group.
 
+**▶ Live demo: [smart-retention-razorpay.lovable.app](https://smart-retention-razorpay.lovable.app/)** (no login needed; start with **Guided tour** in the header)
+
 > Razorpay × ISB AI PM Build Challenge · **Track 2: Recover and Grow with AI**
 > Independent concept prototype. Not an official Razorpay product. All merchant data is synthetic and nothing in this app contacts a real person or service.
 
@@ -178,7 +180,7 @@ Commercial idea (illustrative only): Razorpay takes 25% of positive extra profit
 
 ## 9. Run it locally
 
-Requires Node 20+ (Node 24+ for the data export).
+The hosted version is at [smart-retention-razorpay.lovable.app](https://smart-retention-razorpay.lovable.app/). To run it yourself you need Node 20+ (Node 24+ for the data export).
 
 ```bash
 npm install
