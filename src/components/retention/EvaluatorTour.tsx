@@ -18,7 +18,7 @@ export const TOUR_STOPS = [
     target: "setup",
     title: "Connect store and payment data",
     rationale:
-      "Nira Botanics uses simulated Shopify and Razorpay connections. The setup shows the read-only permissions a live product would request, and campaign actions wait for merchant approval.",
+      "The agent needs order and payment records, regardless of payment provider. A live product would connect to the store and its payment provider through authorised APIs or webhooks. Nira Botanics uses simulated data; campaign actions wait for merchant approval.",
     try: "Click Add store to see the four setup screens a new merchant goes through. The store menu at the top left opens the same flow.",
   },
   {
@@ -190,44 +190,64 @@ export function EvaluatorTour({ onFreshCampaign }: { onFreshCampaign?: () => voi
         isOpen={welcome}
         onDismiss={dismissWelcome}
         size="medium"
-        title="Win the second order without discounting everyone."
-        subtitle="Retention Agent is a proposed Razorpay Agent Studio agent for D2C brands. It reads a store's orders and payments, then decides who to message, with what, and how they should pay."
+        mobileSnapPoints={[0.8, 0.9, 0.95]}
+        title="More repeat orders. Fewer wasted discounts."
+        subtitle="Retention Agent uses your order and payment data to suggest who to contact, what to offer and when to follow up. You review and approve each campaign."
+        footer={
+          <div className="welcome-footer">
+            <div className="welcome-actions">
+              <Button onClick={start} icon={ArrowRightIcon} iconPosition="right">
+                Take the guided tour
+              </Button>
+              <Button variant="tertiary" onClick={dismissWelcome}>
+                Explore on my own
+              </Button>
+            </div>
+            <p className="welcome-demo-note">
+              Demo store: Nira Botanics · Generated data · No real messages or charges
+            </p>
+          </div>
+        }
       >
-        <ol className="grid gap-2 sm:grid-cols-2">
-          {[
-            ["Connect", "Shopify orders and Razorpay payments, read-only"],
-            [
-              "Review",
-              "Suggested campaigns: who to message, which product and whether to discount",
-            ],
-            ["Approve", "Set limits and approve. Nothing is sent before this"],
-            ["Measure", "Additional earnings compared with customers who got no message"],
-          ].map(([title, text], i) => (
-            <li key={title} className="rounded-lg border p-3">
-              <span className="text-xs font-semibold text-primary">
-                {i + 1} · {title}
-              </span>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
-            </li>
-          ))}
-        </ol>
-        <p className="rounded-lg bg-surface p-3 text-sm leading-relaxed">
-          <Compass className="mr-1.5 inline size-4 align-[-3px] text-primary" aria-hidden />
-          Reviewing this build? The guided tour takes about two minutes. At each step it explains
-          the choice I made and why.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={start} icon={ArrowRightIcon} iconPosition="right">
-            Take the guided tour
-          </Button>
-          <Button variant="tertiary" onClick={dismissWelcome}>
-            Explore on my own
-          </Button>
+        <div className="welcome-content">
+          <ol className="welcome-steps" aria-label="How Retention Agent works">
+            {[
+              [
+                "Connect your data",
+                "Read-only order and payment records from your store and payment provider.",
+              ],
+              [
+                "Review suggestions",
+                "See the audience, products and offers for each suggested campaign.",
+              ],
+              [
+                "Approve the campaign",
+                "Set your budget and discount limits. Approve before any messages are sent.",
+              ],
+              [
+                "Measure the impact",
+                "Compare earnings from delivered, paid orders with a group that received no message.",
+              ],
+            ].map(([title, text], i) => (
+              <li key={title} className="welcome-step">
+                <span className="welcome-step-number" aria-hidden>
+                  {i + 1}
+                </span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="welcome-tour-note">
+            <Compass className="size-5 shrink-0 text-primary" aria-hidden />
+            <div>
+              <p className="welcome-tour-title">A two-minute walkthrough</p>
+              <p>Follow a campaign from data to results. Restart anytime from the top bar.</p>
+            </div>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Nira Botanics is a sample store with generated data. No real customer is messaged or
-          charged. Restart the tour any time from the top bar.
-        </p>
       </AppModal>
       {stop && step !== null && (
         <>

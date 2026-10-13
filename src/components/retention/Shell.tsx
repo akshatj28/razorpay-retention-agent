@@ -61,7 +61,7 @@ export function Shell({ children }: { children: ReactNode }) {
             className="mt-2 flex items-center gap-2 px-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <span className="size-2 shrink-0 rounded-full bg-success" aria-hidden />
-            Shopify and Razorpay · demo connections
+            Store and payment data · demo connections
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-3" aria-label="Primary">

@@ -280,6 +280,8 @@ The main remaining limits are substantive:
 
 My next step would be additional merchant workflow interviews and a controlled pilot measuring incremental collected contribution per eligible customer, what the merchant retains after fees, and campaign-preparation time. The interview was conducted by me; AI helped organise the insight and verify the supporting public evidence. It did not conduct the interview or generate the practitioner's account.
 
+**Original-source check during final drafting:** I supplied the DSGCP × Meta × ViralMint playbook PDF after its download was unavailable to the agent. AI visually inspected the relevant survey pages and checked the claims against the charts: 70% cite CAC/ROAS inconsistency, 55% under-invest in CRM/retention, and 54.3% fall in the 10–30% repeat-purchase band. This led to two wording corrections: acquisition efficiency, rather than rising CAC alone, leads the growth-blocker chart; the repeat-rate chart does not establish a 90-day measurement window. AI also flagged the inconsistency between that growth-blocker chart and its adjacent prose instead of presenting them as one statistic. These survey findings support the problem framing, not the prototype's impact. Page references and limitations are recorded in [the research evidence](RESEARCH.md#practitioner-interview-and-published-evidence).
+
 ## Build records
 
 The narrative draws on the research and product conversations, the decision record, and the repository README and implementation records. The relevant decisions, prompt excerpts, verification results and limitations are included directly above. Supporting records are:

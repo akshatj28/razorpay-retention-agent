@@ -40,7 +40,7 @@ flowchart LR
 
 **Direct interview evidence:** I interviewed Vartika Mittal of NatHabit, whose experience includes D2C retention and growth. She described internal tools and the time required to define cohorts and build campaigns, the difficulty of customer-level intelligence, and the importance of retention under high acquisition costs. This is a paraphrase of my interview account, not a verbatim quote, a claim of NatHabit product adoption, or evidence of measured uplift. It supports investigating an experience that reduces preparation work and improves the decisions inside a campaign.
 
-**Published context:** the DSGCP, Meta and ViralMint playbook surveyed more than 100 consumer founders and operators; published coverage reports that 55% under-invest in CRM and retention. Founder statements from Fixderma, Traya and The Pant Project support examining contribution, cohort payback and repeat economics. Beco's counterpoint shows that acquisition can be the binding constraint in some categories. See the [evidence update](docs/RESEARCH.md#practitioner-interview-and-published-evidence) for sources and scope.
+**Published context:** the DSGCP, Meta and ViralMint playbook covers 100+ early- to mid-scale D2C brands. Its survey summary reports that 70% cite CAC/ROAS inconsistency and 55% under-invest in CRM/retention; its repeat-purchase chart places 54.3% of respondents in the 10–30% band, without specifying a common measurement window. I verified these figures against the original PDF supplied during final drafting. Founder statements from Fixderma, Traya and The Pant Project support examining contribution, cohort payback and repeat economics. Beco's counterpoint shows that acquisition can be the binding constraint in some categories. See the [evidence update](docs/RESEARCH.md#practitioner-interview-and-published-evidence) for sources and scope.
 
 **The current-workflow hypothesis:** merchants may use WhatsApp/CRM tools, fixed-delay flows or festive broadcasts with broad offers. Existing platforms can also support richer targeting and predictive timing; we do not assume every merchant sends the same coupon. Campaign attribution credits qualifying orders under a tool's attribution rules, which does not by itself establish what the campaign caused.
 
@@ -60,7 +60,7 @@ About two weeks of desk research went into this: two long-form deep-research rep
 
 | What we found | Source type |
 |---|---|
-| Only 20–30% of first-time D2C buyers order again within 90 days, so brands push repeat orders hard | Industry blogs, founder surveys |
+| 54.3% of surveyed brands report repeat-purchase rates in the 10–30% band; the report does not specify a common time window | DSGCP × Meta × ViralMint playbook, printed p. 31; PDF page 32 |
 | The usual lever is a discount, and stacked discounts reach 25–30% of revenue for many brands | Founder surveys, industry commentary |
 | Discount-led retention trains customers to wait for the next code; timely reminders tend to hold more long-term value than deep discounts | Deep-research synthesis of published studies |
 | Most retention tools headline *attributed* revenue, so an order that would have happened anyway can be credited to the message, and its discount becomes margin given away | Vendor documentation, deep-research synthesis |

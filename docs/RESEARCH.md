@@ -175,7 +175,9 @@ Some platforms, especially enterprise engagement platforms, already support rich
 
 **Direct research:** I interviewed Vartika Mittal of NatHabit. She described the time spent using internal tools to define cohorts and build retention campaigns, the difficulty of producing customer-level intelligence, and why retention receives attention when acquisition costs are high. This is my paraphrase of the interview, supplied during final drafting. It is not a verbatim transcript, an endorsement or a measured time-saving result. Her experience includes D2C retention and growth; I am not presenting that earlier role as her current job title.
 
-**Survey context:** DSGCP's December 2025 landing page confirms that its Meta and ViralMint playbook surveyed more than 100 consumer founders and operators. Published coverage reports that 55% under-invest in CRM and retention. I have not independently confirmed the proposed number-one CAC ranking or the 10–30% repeat-rate range from the original PDF, so those are not used as verified findings in the revised one-pager. [Publisher](https://www.dsgcp.com/insights/zero-to-100-cr---marketing-playbook), [published coverage](https://www.mediainfoline.com/brand/3-out-of-4-d2c-brands-now-use-creators-to-drive-sales-new-playbook-by-dsgcp-meta-viralmint-highlights-the-creator-economy-boom)
+**Survey context:** I inspected the original DSGCP × Meta × ViralMint playbook PDF supplied during final drafting on 13 October 2026. Its survey architecture describes 100+ early- to mid-scale D2C brands across beauty, personal care, food, apparel, healthcare and home (printed p. 19; PDF page 20). The summary reports 70% citing CAC/ROAS inconsistency and 55% under-investing in CRM/retention (printed p. 46; PDF page 47). The repeat-purchase chart places 11.4% in the 10–20% band and 42.9% in the 20–30% band, totalling 54.3%; it does not specify a common measurement window or establish a 90-day repeat rate (printed p. 31; PDF page 32). These findings describe the sample, not all Indian D2C brands. [Publisher and report download](https://www.dsgcp.com/insights/zero-to-100-cr---marketing-playbook)
+
+**Wording correction:** the growth-blocker chart ranks acquisition efficiency first at 38%, followed by retention/loyalty at 22% (printed p. 40; PDF page 41). The same page's prose says over half identify acquisition-related problems as their biggest blocker, without explaining how that relates to the chart. I therefore avoid stating that rising CAC alone is the number-one blocker or quoting a combined percentage from this page. The 70% CAC/ROAS finding above is the clearer statistic for the one-pager.
 
 | Published practitioner statement | Verified attribution and date | Implication and limit |
 | --- | --- | --- |
@@ -188,10 +190,10 @@ The interview supports both a workflow objective (less preparation effort) and a
 
 | # | Pain point | Evidence (secondary sources) | How the prototype responds |
 |---|---|---|---|
-| 1 | Customer acquisition cost | NatHabit interview account and published founder statements identify acquisition-cost pressure; the survey's exact ranking is not independently verified here | **Indirectly.** Profitable repeat orders can improve acquisition payback; the amount is merchant-specific |
+| 1 | Acquisition efficiency | The original survey reports 70% citing CAC/ROAS inconsistency; acquisition efficiency leads its growth-blocker chart at 38%. The NatHabit interview and published founder statements add qualitative context | **Indirectly.** Profitable repeat orders can improve acquisition payback; the amount is merchant-specific |
 | 2 | Discount spend and profit | Stacked discounts reach 25–30% of revenue; founders say discounting did long-term harm | **Directly targeted.** Compares a reminder without a discount against each offer level. Past full-price buying suggests, but doesn't prove, that a discount is unnecessary; a randomised test is needed |
 | 3 | COD and RTO | 30–60% of website orders are COD | **Partly.** Pay-online nudge for medium/high-risk COD customers |
-| 4 | Retention effort and investment | Published coverage reports 55% under-investment in CRM/retention; the NatHabit interview describes time-consuming cohort and campaign work | **Directly targeted**, with campaign-preparation time and contribution measured separately |
+| 4 | Retention effort and investment | The original survey reports 55% under-investment in CRM/retention; the NatHabit interview describes time-consuming cohort and campaign work | **Directly targeted**, with campaign-preparation time and contribution measured separately |
 | 5 | Own site losing share to quick commerce | 18–35% commission on quick commerce | **Partly.** Repeat orders on the brand's own site |
 
 **What this changed in the pitch:** repeat purchase is a known problem, but it's not the one founders name first. So we lead with **discount waste and the finance question** ("what did that discount actually earn?") and present repeat orders as the way to fix acquisition cost and discount spend together.
@@ -233,9 +235,10 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 
 | Number | Source type |
 |---|---|
-| More than 100 consumer founders and operators in the playbook's research | Publisher's landing page; not a representative estimate for all D2C brands |
+| 100+ early- to mid-scale D2C brands in the playbook's survey | Original PDF, printed p. 19; not a representative estimate for all D2C brands |
 | ₹800–1,200 to acquire a beauty / personal-care customer | Clickpost blog |
-| 55% under-invest in CRM/retention | Published coverage of the DSGCP × Meta × ViralMint playbook; original PDF figure not independently inspected |
+| 70% cite CAC/ROAS inconsistency; 55% under-invest in CRM/retention | Original DSGCP × Meta × ViralMint playbook, printed p. 46 |
+| 54.3% fall in the 10–30% repeat-purchase band | Sum of the original chart's 11.4% and 42.9% bands, printed p. 31; time window unspecified |
 | COD RTO 25–30% vs 2–3% prepaid | Logistics vendor blogs |
 | Magic Checkout case studies: conversion +5% to +110%, RTO down up to 75% | Razorpay published case studies (vendor-reported) |
 | BiteSpeed × Razorpay partnership, 16 Jun 2026 | PTI press release |

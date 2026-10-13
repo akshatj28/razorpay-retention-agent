@@ -1,9 +1,9 @@
 import { BottomSheet, BottomSheetBody, BottomSheetFooter, BottomSheetHeader, Modal, ModalBody, ModalFooter, ModalHeader, useTheme } from "@razorpay/blade/components";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 /** Blade recommends BottomSheet on mobile and Modal on desktop. */
-export function AppModal({ isOpen, onDismiss, title, subtitle, children, footer, size = "small" }: {
+export function AppModal({ isOpen, onDismiss, title, subtitle, children, footer, size = "small", mobileSnapPoints }: {
   isOpen: boolean;
   onDismiss: () => void;
   title: string;
@@ -11,6 +11,7 @@ export function AppModal({ isOpen, onDismiss, title, subtitle, children, footer,
   children: ReactNode;
   footer?: ReactNode;
   size?: "small" | "medium";
+  mobileSnapPoints?: ComponentProps<typeof BottomSheet>["snapPoints"];
 }) {
   const { theme } = useTheme();
   const [mobile, setMobile] = useState(false);
@@ -26,7 +27,7 @@ export function AppModal({ isOpen, onDismiss, title, subtitle, children, footer,
   const header = { title, ...(subtitle ? { subtitle } : {}) };
   // Blade's web BottomSheet does not portal itself. Keep it outside animated
   // page containers, whose transforms otherwise constrain its fixed position.
-  if (mobile) return createPortal(<BottomSheet isOpen onDismiss={onDismiss}>
+  if (mobile) return createPortal(<BottomSheet isOpen onDismiss={onDismiss} {...(mobileSnapPoints ? { snapPoints: mobileSnapPoints } : {})}>
     <BottomSheetHeader {...header} />
     <BottomSheetBody>{children}</BottomSheetBody>
     {footer && <BottomSheetFooter>{footer}</BottomSheetFooter>}

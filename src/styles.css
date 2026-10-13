@@ -157,7 +157,23 @@ main .grid > *, main section, main details, main .panel { min-width: 0; }
 [data-tour] { scroll-margin-top: 110px; }
 .tour-spotlight { box-shadow: 0 0 0 5px #2563eb18; }
 .tour-card { max-height: calc(100dvh - 110px); }
+.welcome-content { display: grid; gap: 24px; }
+.welcome-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.welcome-step { display: flex; align-items: flex-start; gap: 12px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; }
+.welcome-step-number { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary-subtle); color: var(--primary); font-size: 13px; font-weight: 600; }
+.welcome-step h3 { margin: 3px 0 8px; font-size: 14px; line-height: 20px; font-weight: 600; }
+.welcome-step p { margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 20px; }
+.welcome-tour-note { display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; border-radius: 12px; background: var(--surface); }
+.welcome-tour-note p { margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 20px; }
+.welcome-tour-note .welcome-tour-title { margin-bottom: 4px; color: var(--foreground); font-size: 14px; font-weight: 600; }
+.welcome-footer { display: grid; width: 100%; gap: 16px; }
+.welcome-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.welcome-demo-note { margin: 0; color: var(--muted-foreground); font-size: 12px; line-height: 18px; }
 @media (max-width: 639px) {
+  .welcome-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .welcome-step { padding: 14px; }
+  .welcome-content { gap: 20px; }
+  .welcome-actions { flex-direction: column; align-items: stretch; gap: 8px; }
   [data-tour] { scroll-margin-top: 160px; }
   .tour-card { max-height: 48dvh; right: 12px; bottom: 12px; max-width: calc(100vw - 24px); padding: 16px; }
 }

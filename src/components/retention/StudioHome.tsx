@@ -61,7 +61,7 @@ export function StudioHome() {
         <div className="relative grid items-center gap-7 lg:grid-cols-[1.3fr_1fr]">
           <div>
             <span className="text-xs tracking-widest text-blue-200 uppercase">
-              From your Shopify orders + Razorpay payments
+              From your order and payment data
             </span>
             <h2 className="mt-4 max-w-lg font-heading text-3xl font-semibold leading-tight sm:text-4xl">
               More repeat orders.

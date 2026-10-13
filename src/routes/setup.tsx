@@ -41,7 +41,7 @@ export const Route = createFileRoute("/setup")({
       {
         name: "description",
         content:
-          "Connect a Shopify store and link Razorpay data before the Retention Agent recommends anything.",
+          "Connect your store and payment records before the Retention Agent recommends campaigns.",
       },
     ],
   }),
@@ -73,7 +73,7 @@ const START: SetupState = {
 
 const STEPS: { id: StepId; title: string; hint: string }[] = [
   { id: "store", title: "Preview store setup", hint: "Orders, products, customers" },
-  { id: "razorpay", title: "Preview payment setup", hint: "Settlements, refunds, delivery risk" },
+  { id: "razorpay", title: "Preview payment setup", hint: "Payments, refunds, COD collection" },
   { id: "import", title: "Simulate data import", hint: "Last six months + data check" },
   { id: "channel", title: "Choose demo channels", hint: "WhatsApp, images, voice preview" },
 ];
@@ -356,7 +356,7 @@ function Setup() {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold">Nira Botanics</div>
                     <div className="text-xs text-muted-foreground">
-                      Sample Razorpay account for this demo
+                      Sample payment records · Simulated provider connection
                     </div>
                   </div>
                   <Pill t="success">Simulated connection</Pill>
@@ -366,7 +366,7 @@ function Setup() {
                     ["Settlements", "Net cash received per order, after fees"],
                     ["Refunds and disputes", "So refunded orders don't count as wins"],
                     ["Payment method and failures", "UPI, card, COD; failed attempts and why"],
-                    ["Magic Checkout events", "Cart, address and COD-risk signals, if enabled"],
+                    ["COD collection", "Cash collected, delivery status and returns from your shipping partner"],
                   ].map(([t, x]) => (
                     <div key={t} className="flex gap-3 rounded-lg border p-3">
                       <CircleCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
@@ -379,29 +379,29 @@ function Setup() {
                 </div>
                 <div className="mt-4">
                   <Note>
-                    In a live product, payments would be matched to Shopify orders by order ID and
-                    courier updates would confirm COD collection. This demo uses generated payment
-                    and delivery-risk data.
+                    In a live product, payment records would be matched to store orders by order ID.
+                    Your payment provider would supply payment and refund updates; your courier would
+                    confirm COD collection and returns. This demo uses generated records.
                   </Note>
                 </div>
                 <div className="mt-4 rounded-xl border p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="font-semibold">Not on Razorpay checkout?</div>
-                    <Pill>Supported by API</Pill>
+                    <div className="font-semibold">Use your existing payment provider</div>
+                    <Pill>Proposed API connection</Pill>
                   </div>
                   <ul className="mt-3 space-y-2 text-sm">
                     {[
                       [
-                        "Another payment gateway",
-                        "Send payments, refunds and failures through our Payments API or webhooks.",
+                        "Payment records",
+                        "Connect your provider through authorised APIs or webhooks for payments, refunds and failed attempts. Razorpay checkout is not required.",
                       ],
                       [
                         "Your courier or shipping partner",
-                        "Send COD collection and RTO status by API, so returns don't count as wins.",
+                        "Connect COD collection and return updates through APIs or webhooks, so uncollected orders don't count as wins.",
                       ],
                       [
-                        "What changes",
-                        "No delivery-risk estimate. The agent uses store and courier history instead, so online-payment recommendations are less precise.",
+                        "Optional delivery-risk signals",
+                        "This demo includes a simulated Razorpay risk estimate. Where no compatible estimate is available, the agent uses store and courier history.",
                       ],
                     ].map(([t, x]) => (
                       <li key={t}>
@@ -734,8 +734,8 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
     {
       icon: Wallet,
       group: "Payments",
-      title: "Razorpay",
-      detail: "Settlements, refunds, COD collection and RTO risk score",
+      title: "Payment data",
+      detail: "Payments, settlements and refunds from your provider; COD collection from your courier",
       tone: "success" as const,
       status: "Simulated connection",
     },
@@ -775,8 +775,9 @@ function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders:
         ))}
       </section>
       <Note>
-        Not on Razorpay checkout? A store on another payment provider can send payments, refunds and
-        COD outcomes by API or webhooks. Add store, step 2, shows how.
+        The proposed agent works with your existing payment provider through authorised APIs or
+        webhooks. Razorpay checkout is not required. Add store, step 2, previews the data connection;
+        all connections in this demo are simulated.
       </Note>
     </div>
   );
