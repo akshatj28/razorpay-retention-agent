@@ -1,4 +1,6 @@
-# AI build log (factual)
+# Build log (implementation history)
+
+Dated, file-level record of what was built and how it was verified. For how AI tools were used and which decisions were made by hand, see [docs/AI_BUILD_LOG.md](docs/AI_BUILD_LOG.md).
 
 ## 13 October 2026 — store switcher and Connections
 
@@ -52,7 +54,7 @@
 
 ## 12 October 2026 — Nira Botanics campaign studio
 
-- Implemented the agreed merchant, intelligence, campaign, state and outcome-pricing decisions; see docs/IMPLEMENTATION_PLAN.md and docs/PRODUCT_DECISIONS.md.
+- Implemented the agreed merchant, intelligence, campaign, state and outcome-pricing decisions; see docs/history/IMPLEMENTATION_PLAN.md and docs/PRODUCT_DECISIONS.md.
 - Replaced the mixed catalog with 18 personal-care variants and bundle components.
 - Generated 30,000 orders, 12,000 customers and 41,095 line items. CSV/SQLite joins, monthly counts, totals and database integrity reconciled.
 - Added prepared/custom campaigns, saved drafts/templates, revision-bound approval, scheduling, daily refresh, WhatsApp/voice editors and email coming soon.
