@@ -271,14 +271,14 @@ The latest recorded verification on 13 October reports 25 passing tests across s
 
 The main remaining limits are substantive:
 
-- **Merchant validation:** public research informed the hypothesis; we have not validated the persona or pain through merchant interviews.
+- **Merchant validation:** an interview with Vartika Mittal of NatHabit, added during final drafting, supports the cohort/campaign workload and customer-level-intelligence problem. This is a paraphrase of my interview account; broader prevalence, adoption and product impact remain to be tested.
 - **Learned intelligence:** response estimates are deterministic assumptions. Outcomes update history and eligibility, but automated recalibration from experiments is not implemented.
 - **Integrations:** Shopify/Razorpay connections, payment-risk enrichment, runtime drafting, messaging, calls and collection are simulated. No real customer is contacted or charged.
 - **Outcome proof:** synthetic comparisons do not establish causal commercial uplift. A pilot needs randomised assignment, an agreed baseline, uncertainty assessment, reconciliation and a delivery/return window.
 - **Operational readiness:** workflow persistence is local to the browser. A live product needs durable storage, entitled data access, channel permissions, reliable event handling and billing rules.
 - **Strength of the Razorpay advantage:** payment-risk enrichment adds only modest value in some synthetic scenarios. Its incremental benefit needs testing against the same product using store data alone. Dashboard distribution and reliable collection/refund information may matter as much as the risk score; neither advantage is quantified here.
 
-My next step would be 3-5 merchant interviews to test the workflow and current workaround, followed by a controlled pilot measuring incremental collected contribution per eligible customer and what the merchant retains after fees.
+My next step would be additional merchant workflow interviews and a controlled pilot measuring incremental collected contribution per eligible customer, what the merchant retains after fees, and campaign-preparation time. The interview was conducted by me; AI helped organise the insight and verify the supporting public evidence. It did not conduct the interview or generate the practitioner's account.
 
 ## Build records
 

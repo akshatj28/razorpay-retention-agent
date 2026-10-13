@@ -36,7 +36,11 @@ flowchart LR
 
 ## 1. The problem we chose
 
-**The merchant:** a growth or retention manager at a mid-size Shopify D2C brand. Acquisition cost, incentive spend and unsuccessful COD deliveries are the economic pressures we chose to investigate. Public market research supplied directional context; no merchant has been interviewed for this prototype, and its price, volume and response assumptions are not calibrated to a real brand.
+**The merchant:** a growth or retention manager at a mid-size Shopify D2C brand. Acquisition cost, incentive spend and unsuccessful COD deliveries are the economic pressures I chose to investigate. Public research and an initial practitioner interview support the problem direction; the demo's price, volume and response assumptions remain synthetic.
+
+**Direct interview evidence:** I interviewed Vartika Mittal of NatHabit, whose experience includes D2C retention and growth. She described internal tools and the time required to define cohorts and build campaigns, the difficulty of customer-level intelligence, and the importance of retention under high acquisition costs. This is a paraphrase of my interview account, not a verbatim quote, a claim of NatHabit product adoption, or evidence of measured uplift. It supports investigating an experience that reduces preparation work and improves the decisions inside a campaign.
+
+**Published context:** the DSGCP, Meta and ViralMint playbook surveyed more than 100 consumer founders and operators; published coverage reports that 55% under-invest in CRM and retention. Founder statements from Fixderma, Traya and The Pant Project support examining contribution, cohort payback and repeat economics. Beco's counterpoint shows that acquisition can be the binding constraint in some categories. See the [evidence update](docs/RESEARCH.md#practitioner-interview-and-published-evidence) for sources and scope.
 
 **The current-workflow hypothesis:** merchants may use WhatsApp/CRM tools, fixed-delay flows or festive broadcasts with broad offers. Existing platforms can also support richer targeting and predictive timing; we do not assume every merchant sends the same coupon. Campaign attribution credits qualifying orders under a tool's attribution rules, which does not by itself establish what the campaign caused.
 
@@ -319,6 +323,6 @@ Legacy routes `/cohort`, `/workbench` and `/review` are an earlier offer-maths l
 
 ## 13. What is simulated
 
-Merchant data, Razorpay signals (including the RTO risk tier), message and call drafting, delivery, orders placed during execution, collections and fees are **all simulated**. Response rates and costs are assumptions, not measured results. Market figures in the research are mostly vendor-reported and are labelled that way. No real merchant was interviewed for this prototype. Validation interviews are the first next step (questions in [docs/RESEARCH.md](docs/RESEARCH.md#6-open-questions-and-how-wed-validate)).
+Merchant data, Razorpay signals (including the RTO risk tier), message and call drafting, delivery, orders placed during execution, collections and fees are **all simulated**. Response rates and costs are assumptions, not measured results. An initial interview with a NatHabit practitioner supports the workflow problem; broader prevalence, willingness to adopt and product impact still need validation. Next steps are additional workflow interviews and a controlled pilot (questions in [docs/RESEARCH.md](docs/RESEARCH.md#6-open-questions-and-how-wed-validate)).
 
 UI built with Razorpay's open-source [Blade](https://github.com/razorpay/blade) design system. Fonts are self-hosted.

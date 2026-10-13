@@ -2,7 +2,7 @@
 
 How we went from the Track 2 brief to a repeat-purchase decision agent: the candidates, personas and journey stages we considered, the ideas we tested and left out, what merchants report as painful, and where the numbers come from.
 
-Research ran from 28 Sep to 8 Oct 2026. Market figures are mostly **vendor-reported or from industry blogs**, and they're labelled that way. **No merchant interviews have been done yet.** The persona and problem are working hypotheses, and section 6 lists how we'd validate them. Competitors and partners are treated as signals about demand and the current baseline, not as proof that a capability is missing or that an idea is ruled out. The [AI build log](AI_BUILD_LOG.md) shows how this reasoning was challenged and revised.
+The initial public research ran from 28 Sep to 8 Oct 2026. During final drafting I also added an interview with Vartika Mittal of NatHabit, whose experience includes D2C retention and growth. Her account supports the campaign-preparation and customer-level-intelligence problem; it does not establish its prevalence or the product's impact. Market figures are mostly vendor-reported or secondary-source findings and are labelled accordingly. Competitors and partners inform demand and the current baseline, rather than proving that a capability is absent or ruling out an idea. The [AI build log](AI_BUILD_LOG.md) records how this reasoning was challenged and revised.
 
 ---
 
@@ -171,12 +171,27 @@ Some platforms, especially enterprise engagement platforms, already support rich
 
 ## 4. Merchant pain: what Indian D2C sellers report (2025–26)
 
+### Practitioner interview and published evidence
+
+**Direct research:** I interviewed Vartika Mittal of NatHabit. She described the time spent using internal tools to define cohorts and build retention campaigns, the difficulty of producing customer-level intelligence, and why retention receives attention when acquisition costs are high. This is my paraphrase of the interview, supplied during final drafting. It is not a verbatim transcript, an endorsement or a measured time-saving result. Her experience includes D2C retention and growth; I am not presenting that earlier role as her current job title.
+
+**Survey context:** DSGCP's December 2025 landing page confirms that its Meta and ViralMint playbook surveyed more than 100 consumer founders and operators. Published coverage reports that 55% under-invest in CRM and retention. I have not independently confirmed the proposed number-one CAC ranking or the 10–30% repeat-rate range from the original PDF, so those are not used as verified findings in the revised one-pager. [Publisher](https://www.dsgcp.com/insights/zero-to-100-cr---marketing-playbook), [published coverage](https://www.mediainfoline.com/brand/3-out-of-4-d2c-brands-now-use-creators-to-drive-sales-new-playbook-by-dsgcp-meta-viralmint-highlights-the-creator-economy-boom)
+
+| Published practitioner statement | Verified attribution and date | Implication and limit |
+| --- | --- | --- |
+| ROAS does not establish sustainable or profitable growth; Fixderma also considers contribution and repeat behaviour | Shaily Mehrotra, CEO and Co-Founder, Fixderma; 25 August 2026 | Supports contribution measurement; not proof that every retention campaign loses margin. [Source](https://www.exchange4media.com/marketing-news/d2c-brands-look-beyond-roas-as-rising-cac-puts-profitability-under-the-lens-157597.html) |
+| Traya can accept first-order losses when the 12-month cohort becomes profitable | Saloni Anand, Co-Founder, Traya Health; 9 April 2026 | Supports cohort economics; not a universal claim about first-order payback. [Source](https://inc42.com/buzz/mumbai-edition-of-d2cx-converge-decodes-the-%E2%82%B9100-cr-playbook-for-d2c-brands/) |
+| Digital acquisition costs were rising, and repeats and lifetime value matter | Dhruv Toshniwal, CEO, The Pant Project; 13 February 2024 | Historical evidence of the pressure; not a current numerical CAC benchmark. [Source](https://www.exchange4media.com/digital-news/digital-cac-on-the-rise-how-are-d2c-brands-keeping-up-132495.html) |
+| For Beco, acquisition and brand engagement can be the larger constraint than repeat purchase | Aditya Ruia, Co-Founder, Beco; 9 April 2026 | Tests the category boundary: qualify merchants by their actual retention constraint, rather than treating every consumable brand as a fit. [Source](https://inc42.com/buzz/mumbai-edition-of-d2cx-converge-decodes-the-%E2%82%B9100-cr-playbook-for-d2c-brands/) |
+
+The interview supports both a workflow objective (less preparation effort) and a decision objective (better customer-level choices). The business objective remains additional collected contribution. A pilot should measure campaign-preparation time as a secondary outcome and test profit against actual business-as-usual.
+
 | # | Pain point | Evidence (secondary sources) | How the prototype responds |
 |---|---|---|---|
-| 1 | Customer acquisition cost | Biggest growth blocker in a 100+ founder survey; 70%+ rely on Meta | **Indirectly.** A profitable second order helps recover the ₹800–1,200 spent to acquire the customer |
+| 1 | Customer acquisition cost | NatHabit interview account and published founder statements identify acquisition-cost pressure; the survey's exact ranking is not independently verified here | **Indirectly.** Profitable repeat orders can improve acquisition payback; the amount is merchant-specific |
 | 2 | Discount spend and profit | Stacked discounts reach 25–30% of revenue; founders say discounting did long-term harm | **Directly targeted.** Compares a reminder without a discount against each offer level. Past full-price buying suggests, but doesn't prove, that a discount is unnecessary; a randomised test is needed |
 | 3 | COD and RTO | 30–60% of website orders are COD | **Partly.** Pay-online nudge for medium/high-risk COD customers |
-| 4 | Low repeat purchase | 20–30% buy again within 90 days; 55% under-invest in retention | **Directly targeted**, not yet measured |
+| 4 | Retention effort and investment | Published coverage reports 55% under-investment in CRM/retention; the NatHabit interview describes time-consuming cohort and campaign work | **Directly targeted**, with campaign-preparation time and contribution measured separately |
 | 5 | Own site losing share to quick commerce | 18–35% commission on quick commerce | **Partly.** Repeat orders on the brand's own site |
 
 **What this changed in the pitch:** repeat purchase is a known problem, but it's not the one founders name first. So we lead with **discount waste and the finance question** ("what did that discount actually earn?") and present repeat orders as the way to fix acquisition cost and discount spend together.
@@ -199,7 +214,7 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 
 | # | Open item | Next step |
 |---|---|---|
-| 1 | **The persona isn't validated** | 3–5 interviews with D2C growth managers (questions below) |
+| 1 | One practitioner interview supports the problem, but prevalence and adoption remain uncertain | Interview additional D2C growth managers, review their actual workflow and test the prototype |
 | 2 | Two sizing approaches disagree on reorder value (≈₹0.6 Cr vs ₹2–4 Cr a year for a ₹90–100 Cr brand) | One model from sourced inputs: repeat rate, order value, discount share, expected lift |
 | 3 | Response to discounts is assumed, not learned | Run a pilot with randomised discount levels and a control group, then fit uplift by segment |
 | 4 | The Razorpay RTO signal adds little in our simulation (it mostly changes payment treatment) | Check with real RTO data. The stronger Razorpay advantage may be settled-cash truth and distribution through the dashboard merchants already use |
@@ -218,9 +233,9 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 
 | Number | Source type |
 |---|---|
-| 70–80% of first-time D2C buyers don't buy again within 90 days | Industry blogs and founder surveys |
+| More than 100 consumer founders and operators in the playbook's research | Publisher's landing page; not a representative estimate for all D2C brands |
 | ₹800–1,200 to acquire a beauty / personal-care customer | Clickpost blog |
-| 55% of founders under-invest in retention; 70%+ rely on Meta | DSGCP × Meta × ViralMint founder survey (Dec 2025) |
+| 55% under-invest in CRM/retention | Published coverage of the DSGCP × Meta × ViralMint playbook; original PDF figure not independently inspected |
 | COD RTO 25–30% vs 2–3% prepaid | Logistics vendor blogs |
 | Magic Checkout case studies: conversion +5% to +110%, RTO down up to 75% | Razorpay published case studies (vendor-reported) |
 | BiteSpeed × Razorpay partnership, 16 Jun 2026 | PTI press release |
