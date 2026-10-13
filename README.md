@@ -59,7 +59,7 @@ About two weeks of desk research went into this: two long-form deep-research rep
 | Only 20–30% of first-time D2C buyers order again within 90 days, so brands push repeat orders hard | Industry blogs, founder surveys |
 | The usual lever is a discount, and stacked discounts reach 25–30% of revenue for many brands | Founder surveys, industry commentary |
 | Discount-led retention trains customers to wait for the next code; timely reminders tend to hold more long-term value than deep discounts | Deep-research synthesis of published studies |
-| Retention tools report *attributed* revenue, so an order that would have happened anyway is credited to the message, and its discount is pure margin loss | Vendor documentation, deep-research synthesis |
+| Most retention tools headline *attributed* revenue, so an order that would have happened anyway can be credited to the message, and its discount becomes margin given away | Vendor documentation, deep-research synthesis |
 | COD orders return at 25–30% vs 2–3% for prepaid, so a "won" COD reorder can lose money after RTO | Logistics vendor blogs |
 
 **So the question isn't "how do we get more repeat orders?". It's "which repeat orders are worth paying for, and what did we actually earn?"** That's why the product decides *who needs a discount at all*, nudges risky COD buyers to pay online, and measures extra contribution against a control group after discounts, RTO and refunds.

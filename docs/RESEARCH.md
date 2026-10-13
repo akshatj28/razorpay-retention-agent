@@ -1,8 +1,8 @@
 # Research and narrowing
 
-How we went from the Track 2 brief to a repeat-purchase decision agent: the personas and journey stages we considered, the ideas we tested and dropped, what merchants say hurts, and where the numbers come from.
+How we went from the Track 2 brief to a repeat-purchase decision agent: the candidates, personas and journey stages we considered, the ideas we tested and left out, what merchants report as painful, and where the numbers come from.
 
-Research ran from 28 Sep to 8 Oct 2026. Market figures are mostly **vendor-reported or from industry blogs**, and they're labelled that way. **No merchant interviews have been done yet.** The persona is a proto-persona, and section 6 lists how we'd validate it.
+Research ran from 28 Sep to 8 Oct 2026. Market figures are mostly **vendor-reported or from industry blogs**, and they're labelled that way. **No merchant interviews have been done yet.** The persona and problem are working hypotheses, and section 6 lists how we'd validate them. Competitors and partners are treated as signals about demand and the current baseline, not as proof that a capability is missing or that an idea is ruled out. The [AI build log](AI_BUILD_LOG.md) shows how this reasoning was challenged and revised.
 
 ---
 
@@ -24,24 +24,28 @@ Not allowed: a generic chatbot, or a dashboard that only explains information.
 
 ## 2. How we narrowed down
 
-### 2.1 Four filters
+### 2.1 Candidates and decision checks
 
-1. **Razorpay already has the data.** Magic Checkout captures the phone number (OTP), cart, payment method and COD/RTO history.
-2. **It's a money decision that changes per customer**, so AI beats a rule.
-3. **Razorpay or a direct competitor doesn't already ship it.**
-4. **There are enough orders to prove impact against a control group.**
+We compared four candidate problems: profit-aware abandoned-cart recovery, blocked B2B collections, contextual subscription recovery and post-purchase repeat-order decisions. An early AI recommendation favoured B2B collections because it gave AI a clear role. That recommendation was challenged: merchant impact and Razorpay's strategic fit had to lead the selection, with AI suitability assessed afterwards.
+
+Our final decision checks were:
+
+1. **Merchant importance and strategic fit.** Is the job economically meaningful for an audience Razorpay could reach?
+2. **Data and action feasibility.** Which signals exist, which need integrations or permission, and what can the merchant actually act on?
+3. **Improvement over the current workflow.** Competition and partnerships inform demand and the baseline; overlap does not automatically rule out an idea.
+4. **Measurable value and justified AI.** Can an experiment test contribution gains, and would learned estimates improve on a suitable rules baseline?
 
 ### 2.2 Personas
 
 | Persona | Situation | Decision |
 |---|---|---|
-| Subscription / SaaS merchant | Loses revenue to failed renewals | Dropped. Razorpay's Subscription Recovery agent covers it |
-| Large enterprise merchant | Has account managers and data teams | Dropped. Least need |
-| Small long-tail merchant | No account manager, low volume | Dropped. Too few orders to decide per customer or run a control group |
-| **Mid-size D2C on Magic Checkout** | Heavy COD, low repeat rate, discounts everyone at sale time | **Picked** |
+| Subscription / SaaS merchant | Loses revenue to failed renewals | Dropped. Razorpay's Subscription Recovery agent already covers it |
+| Large enterprise merchant | Often has account managers and data teams | Deprioritised for v1. We hypothesised more existing analytical support and a harder initial workflow; this is not a claim that enterprises lack retention pain |
+| Small long-tail merchant | Lower order volume | Deprioritised for v1. Low volume can make per-merchant experiments and economics harder; real feasibility needs a sample-size and variance check |
+| **Mid-size Shopify D2C brand, initially on Magic Checkout** | COD exposure, repeat-purchase potential, broad offers at sale time | **Picked as the starting hypothesis** |
 | End shopper | Receives offers and pays | Secondary user, not the buyer |
 
-Only the mid-size D2C merchant passes all four filters, and only at one journey stage: **after the first order**.
+The mid-size D2C brand gave the most coherent starting hypothesis: product-level purchase history, repeat-purchase potential and payment/delivery economics could support an actionable retention workflow. We chose **the period after the first order** as a focused extension to investigate, rather than reproducing a recovery agent Razorpay already showcases. This is a product choice informed by public research, not a validated ranking of Razorpay's personas.
 
 ### 2.3 The journey, and who already serves each stage
 
@@ -54,7 +58,7 @@ Only the mid-size D2C merchant passes all four filters, and only at one journey 
 | Delivery / RTO | RTO outcome if shared | Shiprocket, ClickPost | COD RTO 25–30% vs 2–3% prepaid |
 | Returns | Refunds and reasons | Return Prime, instant refunds | Up to 21% of return value kept via exchange |
 | Use, between orders | What was bought, size, price, payment, returns | Generic post-purchase flows, reminder apps | No India data found |
-| **Reorder & win-back** | **Recency, frequency, spend, COD vs prepaid, settled cash** | BiteSpeed (Razorpay partner), LimeChat, Interakt, MoEngage, Klaviyo, loyalty apps | **Reported as attributed revenue; none against a control group** |
+| **Reorder & win-back** | **Store product history plus connected payment, refund and delivery outcomes** | BiteSpeed (Razorpay partner), LimeChat, Interakt, MoEngage, Klaviyo, loyalty apps | **Mostly reported as attributed revenue; we found few public results against a control group, though enterprise platforms support them** |
 
 ```mermaid
 quadrantChart
@@ -64,7 +68,7 @@ quadrantChart
     quadrant-1 Data and already acted on
     quadrant-2 Served by others
     quadrant-3 Little data or action
-    quadrant-4 Build here
+    quadrant-4 Our focus
     Discover: [0.08, 0.85]
     Browse and cart: [0.42, 0.88]
     Checkout and pay: [0.62, 0.92]
@@ -80,15 +84,17 @@ quadrantChart
 
 | Idea | Outcome | Why |
 |---|---|---|
-| Occasion-led reorder offers | **Became the core** | Open stage; Razorpay owns the payment step and COD/RTO data. Widened into the full repeat-purchase agent |
+| Post-purchase repeat-order decisions | **Became the core** | Combines product history with payment, COD and refund outcomes, and leads to a concrete merchant decision. Widened from occasion-led offers into the full repeat-purchase agent |
+| Blocked B2B collections (acceptance evidence, invoice/PO mismatches) | Not chosen | Initially recommended for its clear AI role. After re-ranking on merchant importance and strategic fit, its fit with the reachable merchant base was less established in our research. It remains a plausible opportunity |
+| Contextual subscription recovery | Not chosen | Razorpay's Subscription Recovery agent already addresses the core job |
 | COD → prepaid before dispatch | **Folded in** as the payment decision | Scored highest, but RTO Shield and COD confirmation already ship. Kept as a pay-online nudge for risky COD customers |
 | Cash-truth ROAS | Explored | Only the payment layer sees settled cash per campaign, but it's hard to demo as an *action* |
 | Failed-payment / abandoned-cart recovery | Parked | Largest pools, but Razorpay ships its own agents and 5+ vendors compete |
 | Refund → exchange | Runner-up | Partly served by Return Prime |
 | Voice account manager | Folded in as a channel | Calling is a commodity; useful only for high-value customers who don't respond |
-| Network-enriched offers | v2 | Needs cross-merchant consent under DPDP |
-| Cross-merchant ad network, lending | Rejected | Breaks Razorpay's processor role; regulated |
-| "BiteSpeed inside Razorpay" (full CRM) | Rejected | BiteSpeed became a Razorpay partner on 16 Jun 2026. We decide; messaging is a channel |
+| Network-enriched offers | Later, if permitted | Would need separate cross-merchant consent under DPDP |
+| Cross-merchant targeting, ad network, lending | Left out | Broader data permissions and operational scope than this prototype; risk enrichment is separate from marketing targeting |
+| A full CRM ("BiteSpeed inside Razorpay") | Left out | Focused the prototype on decisions, controls and contribution measurement. Existing vendors and partners (BiteSpeed has partnered with Razorpay since Jun 2026) inform the benchmark, rather than vetoing a native improvement |
 | Fixed 30/60-day reorder campaigns | Replaced | A fixed delay is a rule, and Klaviyo and LimeChat already offer it. The agent uses each customer's own rhythm |
 
 ### 2.5 Deep-research reports
@@ -111,9 +117,9 @@ Findings that changed the design:
 
 **Demo category.** The demo leads with skincare and haircare because a replenishment rhythm is easiest to see there. The same engine covers categories without a fixed cycle (for example fashion) through "past their usual gap" and merchant-started campaigns.
 
-## 3. What tools do today vs what nobody decides
+## 3. What tools typically do, and the gap we investigate
 
-| Campaign every tool offers | How it's set today |
+| Common campaign | How it's typically set |
 |---|---|
 | Reorder / replenishment | Fixed delay; Klaviyo offers a predicted next-order date |
 | Win-back | No purchase in 60/90/120 days, plus a discount |
@@ -122,22 +128,24 @@ Findings that changed the design:
 
 ```mermaid
 flowchart LR
-    subgraph Today["What tools do today"]
+    subgraph Today["Common practice in public material"]
         T2["Group customers by rules or RFM"]
-        T4["Same discount for everyone in a flow"]
-        T5["Credit any sale within X days to the campaign"]
+        T4["One offer for everyone in a flow"]
+        T5["Credit sales within an attribution window"]
     end
-    subgraph Gap["What nobody decides"]
+    subgraph Gap["Decisions we focus on"]
         G1["Does this customer need a discount at all?"]
         G2["How should they pay? Pay online for risky COD"]
         G3["Which campaign wins when a customer qualifies for several?"]
         G4["What did the campaign cause, measured against a control group?"]
-        G5["Value ranked by settled cash, not gross sales"]
+        G5["Value ranked by collected cash, not gross sales"]
     end
     T4 -.-> G1
     T5 -.-> G4
     T2 -.-> G5
 ```
+
+Some platforms, especially enterprise engagement platforms, already support richer targeting, predictive timing and control groups. The diagram shows where this prototype concentrates, not capabilities that no tool offers.
 
 ### 3.1 Retention tool landscape
 
@@ -161,21 +169,21 @@ flowchart LR
 
 **Timing is not our claim.** Klaviyo already predicts the next order date. Our claim is the per-customer offer and payment decision, and proving the result against a control group.
 
-## 4. Merchant pain: what Indian D2C sellers say hurts (2025–26)
+## 4. Merchant pain: what Indian D2C sellers report (2025–26)
 
-| # | Pain point | Evidence | Does Retention Agent address it? |
+| # | Pain point | Evidence (secondary sources) | How the prototype responds |
 |---|---|---|---|
-| 1 | Customer acquisition cost | Biggest growth blocker in a 100+ founder survey; 70%+ rely on Meta | **Indirectly.** A second order recovers the ₹800–1,200 spent to acquire the customer |
-| 2 | Discount spend and profit | Stacked discounts reach 25–30% of revenue; founders say discounting did long-term harm | **Directly.** No discount for customers who would buy anyway |
+| 1 | Customer acquisition cost | Biggest growth blocker in a 100+ founder survey; 70%+ rely on Meta | **Indirectly.** A profitable second order helps recover the ₹800–1,200 spent to acquire the customer |
+| 2 | Discount spend and profit | Stacked discounts reach 25–30% of revenue; founders say discounting did long-term harm | **Directly targeted.** Compares a reminder without a discount against each offer level. Past full-price buying suggests, but doesn't prove, that a discount is unnecessary; a randomised test is needed |
 | 3 | COD and RTO | 30–60% of website orders are COD | **Partly.** Pay-online nudge for medium/high-risk COD customers |
-| 4 | Low repeat purchase | 20–30% buy again within 90 days; 55% under-invest in retention | **Directly** |
+| 4 | Low repeat purchase | 20–30% buy again within 90 days; 55% under-invest in retention | **Directly targeted**, not yet measured |
 | 5 | Own site losing share to quick commerce | 18–35% commission on quick commerce | **Partly.** Repeat orders on the brand's own site |
 
 **What this changed in the pitch:** repeat purchase is a known problem, but it's not the one founders name first. So we lead with **discount waste and the finance question** ("what did that discount actually earn?") and present repeat orders as the way to fix acquisition cost and discount spend together.
 
 ### Why measuring against a control group matters
 
-Messaging tools report *attributed* revenue. If a loyal customer was going to reorder on Tuesday and gets a 10% code on Monday, the campaign takes credit for the sale and the merchant loses 10% margin on an order that would have happened anyway. A control group (eligible customers who get no message) is the only way to separate what the campaign caused from what it took credit for. This is why the product reports extra profit against a control group and treats attributed sales as information, not proof.
+Messaging tools report *attributed* revenue. If a loyal customer was going to reorder on Tuesday and gets a 10% code on Monday, the campaign takes credit for the sale and the merchant loses 10% margin on an order that would have happened anyway. A randomised control group (eligible customers who get no message) is the proposed way to estimate what the campaign caused rather than what it took credit for. This is why the prototype estimates extra contribution against a control group and treats attributed sales as information, not proof. In the demo these results are simulated; real causal impact needs a live experiment.
 
 ## 5. Regulatory and trust constraints
 
@@ -196,6 +204,7 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 | 3 | Response to discounts is assumed, not learned | Run a pilot with randomised discount levels and a control group, then fit uplift by segment |
 | 4 | The Razorpay RTO signal adds little in our simulation (it mostly changes payment treatment) | Check with real RTO data. The stronger Razorpay advantage may be settled-cash truth and distribution through the dashboard merchants already use |
 | 5 | Product picks need catalog data Razorpay doesn't own | Assume Shopify catalog access; keep product choice rule-based in v1 |
+| 6 | Merchants' margin tolerance, and whether they'll trust a control group run by the platform itself | Ask in interviews; offer an agreed business-as-usual baseline and a settlement window before any outcome-based fee |
 
 **Interview questions** (about past behaviour, not opinions):
 
