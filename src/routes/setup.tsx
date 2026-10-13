@@ -1,6 +1,6 @@
 import { LinkButton } from "@/components/retention/LinkButton";
 import { AppModal } from "@/components/retention/AppModal";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   Ban,
   Check,
@@ -19,23 +19,25 @@ import {
   Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  Button,
-  Radio,
-  RadioGroup,
-  TextInput,
-  ArrowRightIcon,
-  RefreshIcon,
-} from "@razorpay/blade/components";
+import { Button, Radio, RadioGroup, TextInput, ArrowRightIcon } from "@razorpay/blade/components";
 import { Note, PageHeader, Pill } from "@/components/retention/bits";
 import { baseDataset, MIN_COMPLETED_FOR_INTERVAL } from "@/retention/data";
 import { useDemo } from "@/retention/store";
-import { SETUP_EVENT, SETUP_KEY } from "@/retention/onboarding";
+import {
+  addStore,
+  DEMO_STORE,
+  getStores,
+  SAMPLE_NEW_STORE,
+  SETUP_EVENT,
+  SETUP_KEY,
+  storeName,
+  type ConnectedStore,
+} from "@/retention/onboarding";
 
 export const Route = createFileRoute("/setup")({
   head: () => ({
     meta: [
-      { title: "Connect store — Retention Agent" },
+      { title: "Connections — Retention Agent" },
       {
         name: "description",
         content:
@@ -48,7 +50,7 @@ export const Route = createFileRoute("/setup")({
 
 type StepId = "store" | "razorpay" | "import" | "channel";
 interface SetupState {
-  step: StepId | "done";
+  step: "connections" | StepId | "done";
   domain: string;
   channel: string;
 }
@@ -64,16 +66,16 @@ interface Stats {
   withInterval: number;
 }
 const START: SetupState = {
-  step: "store",
-  domain: "nira-botanics.myshopify.com",
+  step: "connections",
+  domain: SAMPLE_NEW_STORE,
   channel: "whatsapp-voice",
 };
 
 const STEPS: { id: StepId; title: string; hint: string }[] = [
   { id: "store", title: "Connect your store", hint: "Orders, products, customers" },
-  { id: "razorpay", title: "Link Razorpay", hint: "Settlements, refunds, RTO" },
+  { id: "razorpay", title: "Link payments", hint: "Settlements, refunds, RTO" },
   { id: "import", title: "Import order history", hint: "Last six months + data check" },
-  { id: "channel", title: "Choose WhatsApp sender", hint: "Where messages go out from" },
+  { id: "channel", title: "Messaging and calls", hint: "WhatsApp, images, AI voice" },
 ];
 
 const SHOPIFY_SCOPES = [
@@ -122,14 +124,22 @@ const NOT_REQUESTED = [
 function Setup() {
   const { d } = useDemo();
   const [s, setS] = useState<SetupState>(START);
+  const [stores, setStores] = useState<ConnectedStore[]>([DEMO_STORE]);
   const [consentOpen, setConsentOpen] = useState(false);
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SETUP_KEY);
-      if (raw) setS({ ...START, ...JSON.parse(raw) });
-    } catch {
-      /* fall back to a fresh setup */
-    }
+    // Reload when the store menu starts "Add store" while this page is already open.
+    const load = () => {
+      setStores(getStores());
+      try {
+        const raw = localStorage.getItem(SETUP_KEY);
+        setS(raw ? { ...START, ...JSON.parse(raw) } : START);
+      } catch {
+        setS(START);
+      }
+    };
+    load();
+    window.addEventListener(SETUP_EVENT, load);
+    return () => window.removeEventListener(SETUP_EVENT, load);
   }, []);
   const save = (next: SetupState) => {
     setS(next);
@@ -138,7 +148,6 @@ function Setup() {
     } catch {
       /* storage unavailable */
     }
-    window.dispatchEvent(new Event(SETUP_EVENT));
   };
   const go = (step: SetupState["step"]) => save({ ...s, step });
 
@@ -166,344 +175,358 @@ function Setup() {
   }, [d.features]);
 
   const idx = s.step === "done" ? STEPS.length : STEPS.findIndex((x) => x.id === s.step);
+  const inWizard = s.step !== "connections";
+  const domain = s.domain.trim().toLowerCase();
+  const alreadyConnected = stores.some((x) => x.domain === domain);
 
   return (
     <div className="space-y-6 animate-enter">
       <PageHeader
-        title="Connect your store to get started."
-        subtitle="About 5 minutes · Read-only access · Disconnect any time"
+        title={inWizard ? "Add a store" : "Connections"}
+        subtitle={
+          inWizard
+            ? "About 5 minutes · Read-only access · Disconnect any time"
+            : "Your store, payments and messaging · Read-only access · Disconnect any time"
+        }
+        actions={
+          inWizard ? (
+            <Button variant="tertiary" onClick={() => go("connections")}>
+              {s.step === "done" ? "Back to connections" : "Cancel"}
+            </Button>
+          ) : (
+            <Button onClick={() => save({ ...START, step: "store" })}>Add store</Button>
+          )
+        }
       />
 
-      {s.step !== "done" && (
-        <section className="panel flex flex-wrap items-center gap-4 p-4">
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold">Use the Nira Botanics demo store</div>
-            <p className="text-sm text-muted-foreground">
-              Connect its Shopify store and Razorpay account in one click, or go through each screen
-              below.
-            </p>
-          </div>
-          <Button onClick={() => save({ ...s, domain: s.domain.trim(), step: "done" })}>
-            Connect demo store
-          </Button>
-          <Link to="/" className="text-sm font-semibold text-primary">
-            Skip to today's campaigns
-          </Link>
-        </section>
-      )}
+      {!inWizard && <ConnectionsView stores={stores} orders={stats.orders} />}
 
-      <div data-tour="setup" className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <ol className="panel h-fit space-y-1 p-3" aria-label="Setup steps">
-          {STEPS.map((x, i) => {
-            const state = i < idx ? "done" : i === idx ? "current" : "next";
-            return (
-              <li
-                key={x.id}
-                aria-current={state === "current" ? "step" : undefined}
-                className={`flex items-start gap-3 rounded-lg px-2 py-2.5 ${state === "current" ? "bg-primary-subtle" : ""}`}
-              >
-                <span
-                  className={`num mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${state === "done" ? "bg-success text-white" : state === "current" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+      {inWizard && (
+        <div data-tour="setup" className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <ol className="panel h-fit space-y-1 p-3" aria-label="Setup steps">
+            {STEPS.map((x, i) => {
+              const state = i < idx ? "done" : i === idx ? "current" : "next";
+              return (
+                <li
+                  key={x.id}
+                  aria-current={state === "current" ? "step" : undefined}
+                  className={`flex items-start gap-3 rounded-lg px-2 py-2.5 ${state === "current" ? "bg-primary-subtle" : ""}`}
                 >
-                  {state === "done" ? <Check className="size-3.5" aria-label="Done" /> : i + 1}
-                </span>
-                <span className="min-w-0">
                   <span
-                    className={`block text-sm ${state === "next" ? "text-muted-foreground" : "font-semibold"}`}
+                    className={`num mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${state === "done" ? "bg-success text-white" : state === "current" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
-                    {x.title}
+                    {state === "done" ? <Check className="size-3.5" aria-label="Done" /> : i + 1}
                   </span>
-                  <span className="block text-xs text-muted-foreground">{x.hint}</span>
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-
-        <div className="min-w-0">
-          {s.step === "store" && (
-            <StepPanel
-              n={1}
-              title="Where do you sell?"
-              subtitle="The agent needs to know what each customer bought and when. That comes from your store, not from payments."
-            >
-              <div
-                className="grid gap-3 sm:grid-cols-3"
-                role="radiogroup"
-                aria-label="Store platform"
-              >
-                <PlatformCard
-                  icon={ShoppingBag}
-                  name="Shopify"
-                  detail="1-click app install"
-                  selected
-                  tag={<Pill t="success">Recommended</Pill>}
-                />
-                <PlatformCard
-                  icon={Plug}
-                  name="WooCommerce"
-                  detail="Plugin"
-                  tag={<Pill>Coming soon</Pill>}
-                />
-                <PlatformCard
-                  icon={Code2}
-                  name="Custom or headless"
-                  detail="Orders API or CSV upload"
-                  tag={<Pill>Coming soon</Pill>}
-                />
-              </div>
-              <div className="mt-5 max-w-md">
-                <TextInput
-                  label="Shopify store address"
-                  value={s.domain}
-                  onChange={({ value }) => setS({ ...s, domain: value ?? "" })}
-                  helpText="Your .myshopify.com address, found in Shopify admin → Settings → Domains"
-                />
-              </div>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <Button
-                  icon={ArrowRightIcon}
-                  iconPosition="right"
-                  isDisabled={!/^[a-z0-9-]+\.myshopify\.com$/i.test(s.domain.trim())}
-                  onClick={() => setConsentOpen(true)}
-                >
-                  Install on Shopify
-                </Button>
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Lock className="size-3.5" aria-hidden />
-                  Read-only access. You approve the permissions in Shopify.
-                </span>
-              </div>
-              <AppModal
-                isOpen={consentOpen}
-                onDismiss={() => setConsentOpen(false)}
-                title="Install Retention Agent on your store?"
-                subtitle={`${s.domain} · Shopify permission screen (simulated)`}
-                size="medium"
-                footer={
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => setConsentOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setConsentOpen(false);
-                        save({ ...s, domain: s.domain.trim(), step: "razorpay" });
-                      }}
+                  <span className="min-w-0">
+                    <span
+                      className={`block text-sm ${state === "next" ? "text-muted-foreground" : "font-semibold"}`}
                     >
-                      Install app
-                    </Button>
-                  </div>
-                }
-              >
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <div className="label-text mb-2">THE APP WILL BE ABLE TO</div>
-                    <ul className="space-y-2.5">
-                      {SHOPIFY_SCOPES.map((x) => (
-                        <li key={x.label} className="flex gap-3">
-                          <x.icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-                          <span>
-                            <span className="font-medium">{x.label}</span>
-                            <span className="block text-xs text-muted-foreground">{x.detail}</span>
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="border-t pt-3">
-                    <div className="label-text mb-2">IT WILL NOT</div>
-                    <ul className="space-y-1.5 text-muted-foreground">
-                      {NOT_REQUESTED.map((x) => (
-                        <li key={x} className="flex items-center gap-2">
-                          <Ban className="size-3.5 shrink-0" aria-hidden />
-                          {x}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </AppModal>
-            </StepPanel>
-          )}
+                      {x.title}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">{x.hint}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
 
-          {s.step === "razorpay" && (
-            <StepPanel
-              n={2}
-              title="Link your payment data"
-              subtitle="Your store knows what was ordered. Your payment provider knows what was actually paid, refunded or never collected."
-            >
-              <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-surface p-4">
-                <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Wallet className="size-5" aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold">Nira Botanics</div>
-                  <div className="text-xs text-muted-foreground">
-                    Razorpay account detected from your dashboard login · demo account
-                  </div>
+          <div className="min-w-0">
+            {s.step === "store" && (
+              <StepPanel
+                n={1}
+                title="Where do you sell?"
+                subtitle="The agent needs to know what each customer bought and when. That comes from your store, not from payments."
+              >
+                <div
+                  className="grid gap-3 sm:grid-cols-3"
+                  role="radiogroup"
+                  aria-label="Store platform"
+                >
+                  <PlatformCard
+                    icon={ShoppingBag}
+                    name="Shopify"
+                    detail="1-click app install"
+                    selected
+                    tag={<Pill t="success">Recommended</Pill>}
+                  />
+                  <PlatformCard
+                    icon={Plug}
+                    name="WooCommerce"
+                    detail="Plugin"
+                    tag={<Pill>Coming soon</Pill>}
+                  />
+                  <PlatformCard
+                    icon={Code2}
+                    name="Custom or headless"
+                    detail="Orders API or CSV upload"
+                    tag={<Pill>Coming soon</Pill>}
+                  />
                 </div>
-                <Pill t="success">Signed in</Pill>
-              </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {[
-                  ["Settlements", "Net cash received per order, after fees"],
-                  ["Refunds and disputes", "So refunded orders don't count as wins"],
-                  ["Payment method and failures", "UPI, card, COD; failed attempts and why"],
-                  ["Magic Checkout events", "Cart, address and COD-risk signals, if enabled"],
-                ].map(([t, x]) => (
-                  <div key={t} className="flex gap-3 rounded-lg border p-3">
-                    <CircleCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                <div className="mt-5 max-w-md">
+                  <TextInput
+                    label="Shopify store address"
+                    value={s.domain}
+                    onChange={({ value }) => setS({ ...s, domain: value ?? "" })}
+                    helpText={
+                      alreadyConnected
+                        ? "This store is already connected."
+                        : "Your .myshopify.com address, found in Shopify admin → Settings → Domains"
+                    }
+                  />
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Button
+                    icon={ArrowRightIcon}
+                    iconPosition="right"
+                    isDisabled={alreadyConnected || !/^[a-z0-9-]+\.myshopify\.com$/i.test(domain)}
+                    onClick={() => setConsentOpen(true)}
+                  >
+                    Install on Shopify
+                  </Button>
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Lock className="size-3.5" aria-hidden />
+                    Read-only access. You approve the permissions in Shopify.
+                  </span>
+                </div>
+                <AppModal
+                  isOpen={consentOpen}
+                  onDismiss={() => setConsentOpen(false)}
+                  title="Install Retention Agent on your store?"
+                  subtitle={`${s.domain} · Shopify permission screen (simulated)`}
+                  size="medium"
+                  footer={
+                    <div className="flex justify-end gap-2">
+                      <Button variant="secondary" onClick={() => setConsentOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setConsentOpen(false);
+                          save({ ...s, domain: s.domain.trim(), step: "razorpay" });
+                        }}
+                      >
+                        Install app
+                      </Button>
+                    </div>
+                  }
+                >
+                  <div className="space-y-4 text-sm">
                     <div>
-                      <div className="text-sm font-medium">{t}</div>
-                      <div className="text-xs text-muted-foreground">{x}</div>
+                      <div className="label-text mb-2">THE APP WILL BE ABLE TO</div>
+                      <ul className="space-y-2.5">
+                        {SHOPIFY_SCOPES.map((x) => (
+                          <li key={x.label} className="flex gap-3">
+                            <x.icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                            <span>
+                              <span className="font-medium">{x.label}</span>
+                              <span className="block text-xs text-muted-foreground">
+                                {x.detail}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="border-t pt-3">
+                      <div className="label-text mb-2">IT WILL NOT</div>
+                      <ul className="space-y-1.5 text-muted-foreground">
+                        {NOT_REQUESTED.map((x) => (
+                          <li key={x} className="flex items-center gap-2">
+                            <Ban className="size-3.5 shrink-0" aria-hidden />
+                            {x}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <Note>
-                  Payments are matched to Shopify orders by order ID, and courier updates confirm
-                  when COD cash is collected. Razorpay shares an RTO risk score only, never another
-                  store's customer data.
-                </Note>
-              </div>
-              <div className="mt-4 rounded-xl border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="font-semibold">Not on Razorpay checkout?</div>
-                  <Pill>Supported by API</Pill>
+                </AppModal>
+              </StepPanel>
+            )}
+
+            {s.step === "razorpay" && (
+              <StepPanel
+                n={2}
+                title="Link your payment data"
+                subtitle="Your store knows what was ordered. Your payment provider knows what was actually paid, refunded or never collected."
+              >
+                <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-surface p-4">
+                  <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <Wallet className="size-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold">Nira Botanics</div>
+                    <div className="text-xs text-muted-foreground">
+                      Razorpay account detected from your dashboard login · demo account
+                    </div>
+                  </div>
+                  <Pill t="success">Signed in</Pill>
                 </div>
-                <ul className="mt-3 space-y-2 text-sm">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {[
+                    ["Settlements", "Net cash received per order, after fees"],
+                    ["Refunds and disputes", "So refunded orders don't count as wins"],
+                    ["Payment method and failures", "UPI, card, COD; failed attempts and why"],
+                    ["Magic Checkout events", "Cart, address and COD-risk signals, if enabled"],
+                  ].map(([t, x]) => (
+                    <div key={t} className="flex gap-3 rounded-lg border p-3">
+                      <CircleCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                      <div>
+                        <div className="text-sm font-medium">{t}</div>
+                        <div className="text-xs text-muted-foreground">{x}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4">
+                  <Note>
+                    Payments are matched to Shopify orders by order ID, and courier updates confirm
+                    when COD cash is collected. Razorpay shares an RTO risk score only, never
+                    another store's customer data.
+                  </Note>
+                </div>
+                <div className="mt-4 rounded-xl border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-semibold">Not on Razorpay checkout?</div>
+                    <Pill>Supported by API</Pill>
+                  </div>
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {[
+                      [
+                        "Another payment gateway",
+                        "Send payments, refunds and failures through our Payments API or webhooks.",
+                      ],
+                      [
+                        "Your courier or shipping partner",
+                        "Send COD collection and RTO status by API, so returns don't count as wins.",
+                      ],
+                      [
+                        "What changes",
+                        "No Razorpay RTO score. The agent uses your store and courier history instead, so it can't ask risky COD buyers to pay online as precisely.",
+                      ],
+                    ].map(([t, x]) => (
+                      <li key={t}>
+                        <span className="font-medium">{t}.</span>{" "}
+                        <span className="text-muted-foreground">{x}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <StepNav
+                  onBack={() => go("store")}
+                  onNext={() => go("import")}
+                  next="Link and continue"
+                />
+              </StepPanel>
+            )}
+
+            {s.step === "import" && (
+              <ImportStep
+                stats={stats}
+                onBack={() => go("razorpay")}
+                onNext={() => go("channel")}
+              />
+            )}
+
+            {s.step === "channel" && (
+              <StepPanel
+                n={4}
+                title="How should the agent reach customers?"
+                subtitle="Retention Agent sends messages and makes calls itself, and only after you approve a campaign. Every message is built for one customer from their orders and payment history."
+              >
+                <div className="mb-5 grid gap-3 md:grid-cols-3">
+                  {CHANNELS.map((x) => (
+                    <div key={x.title} className="rounded-xl border p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <x.icon className="size-5 text-primary" aria-hidden />
+                        <Pill t={x.live ? "success" : "neutral"}>
+                          {x.live ? "Included" : "Not live in this demo"}
+                        </Pill>
+                      </div>
+                      <div className="mt-3 font-semibold">{x.title}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {x.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <RadioGroup
+                  label="Send campaigns by"
+                  name="channel"
+                  value={s.channel}
+                  onChange={({ value }) => setS({ ...s, channel: value })}
+                >
+                  <Radio
+                    value="whatsapp-voice"
+                    helpText="WhatsApp first; a voice call only for customers who don't reply and agreed to calls"
+                  >
+                    WhatsApp + AI voice follow-ups
+                  </Radio>
+                  <Radio value="whatsapp" helpText="Uses your WhatsApp Business number">
+                    WhatsApp only
+                  </Radio>
+                  <Radio
+                    value="export"
+                    helpText="Download the approved customers and offers and send them yourself"
+                  >
+                    CSV export only
+                  </Radio>
+                </RadioGroup>
+                <div className="mt-5 space-y-2 rounded-xl border p-4 text-sm">
                   {[
                     [
-                      "Another payment gateway",
-                      "Send payments, refunds and failures through our Payments API or webhooks.",
+                      MessageCircle,
+                      `Only customers who opted in to marketing in Shopify (${stats.consented} of ${stats.customers})`,
                     ],
-                    [
-                      "Your courier or shipping partner",
-                      "Send COD collection and RTO status by API, so returns don't count as wins.",
-                    ],
-                    [
-                      "What changes",
-                      "No Razorpay RTO score. The agent uses your store and courier history instead, so it can't ask risky COD buyers to pay online as precisely.",
-                    ],
-                  ].map(([t, x]) => (
-                    <li key={t}>
-                      <span className="font-medium">{t}.</span>{" "}
-                      <span className="text-muted-foreground">{x}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <StepNav
-                onBack={() => go("store")}
-                onNext={() => go("import")}
-                next="Link and continue"
-              />
-            </StepPanel>
-          )}
+                    [ShieldCheck, "Every campaign waits for your approval before anything is sent"],
+                    [Mic, "Calls only to customers who agreed to be called"],
+                    [Link2, "Reorder links open a pre-filled Razorpay checkout"],
+                  ].map(([Icon, t]) => {
+                    const I = Icon as typeof MessageCircle;
+                    return (
+                      <div key={t as string} className="flex items-center gap-2.5">
+                        <I className="size-4 shrink-0 text-primary" aria-hidden />
+                        {t as string}
+                      </div>
+                    );
+                  })}
+                </div>
+                <StepNav
+                  onBack={() => go("import")}
+                  onNext={() => {
+                    addStore(domain);
+                    go("done");
+                  }}
+                  next="Finish setup"
+                />
+              </StepPanel>
+            )}
 
-          {s.step === "import" && (
-            <ImportStep stats={stats} onBack={() => go("razorpay")} onNext={() => go("channel")} />
-          )}
-
-          {s.step === "channel" && (
-            <StepPanel
-              n={4}
-              title="How should the agent reach customers?"
-              subtitle="Retention Agent sends messages and makes calls itself, and only after you approve a campaign. Every message is built for one customer from their orders and payment history."
-            >
-              <div className="mb-5 grid gap-3 md:grid-cols-3">
-                {CHANNELS.map((x) => (
-                  <div key={x.title} className="rounded-xl border p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <x.icon className="size-5 text-primary" aria-hidden />
-                      <Pill t={x.live ? "success" : "neutral"}>
-                        {x.live ? "Included" : "Not live in this demo"}
-                      </Pill>
-                    </div>
-                    <div className="mt-3 font-semibold">{x.title}</div>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{x.detail}</p>
-                  </div>
-                ))}
-              </div>
-              <RadioGroup
-                label="Send campaigns by"
-                name="channel"
-                value={s.channel}
-                onChange={({ value }) => setS({ ...s, channel: value })}
-              >
-                <Radio
-                  value="whatsapp-voice"
-                  helpText="WhatsApp first; a voice call only for customers who don't reply and agreed to calls"
-                >
-                  WhatsApp + AI voice follow-ups
-                </Radio>
-                <Radio value="whatsapp" helpText="Uses your WhatsApp Business number">
-                  WhatsApp only
-                </Radio>
-                <Radio
-                  value="export"
-                  helpText="Download the approved customers and offers and send them yourself"
-                >
-                  CSV export only
-                </Radio>
-              </RadioGroup>
-              <div className="mt-5 space-y-2 rounded-xl border p-4 text-sm">
-                {[
-                  [
-                    MessageCircle,
-                    `Only customers who opted in to marketing in Shopify (${stats.consented} of ${stats.customers})`,
-                  ],
-                  [ShieldCheck, "Every campaign waits for your approval before anything is sent"],
-                  [Mic, "Calls only to customers who agreed to be called"],
-                  [Link2, "Reorder links open a pre-filled Razorpay checkout"],
-                ].map(([Icon, t]) => {
-                  const I = Icon as typeof MessageCircle;
-                  return (
-                    <div key={t as string} className="flex items-center gap-2.5">
-                      <I className="size-4 shrink-0 text-primary" aria-hidden />
-                      {t as string}
-                    </div>
-                  );
-                })}
-              </div>
-              <StepNav onBack={() => go("import")} onNext={() => go("done")} next="Finish setup" />
-            </StepPanel>
-          )}
-
-          {s.step === "done" && (
-            <section className="panel p-6 sm:p-8" aria-labelledby="done-title">
-              <span className="flex size-11 items-center justify-center rounded-xl bg-success-subtle text-success">
-                <CircleCheck className="size-6" aria-hidden />
-              </span>
-              <h2 id="done-title" className="mt-4 font-heading text-2xl font-semibold">
-                Retention Agent is ready.
-              </h2>
-              <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                {s.domain} and your Razorpay account are linked. The agent found{" "}
-                <span className="font-semibold text-foreground">
-                  {d.studio.opportunities.reduce((n, o) => n + o.actions.length, 0)} customers
-                </span>{" "}
-                worth messaging today across three campaigns. Nothing is sent until you approve.
-              </p>
-              <div className="mt-5 grid max-w-xl gap-3 sm:grid-cols-3">
-                <MiniStat label="Orders imported" value={stats.orders} />
-                <MiniStat label="Customers" value={stats.customers} />
-                <MiniStat label="Repeat products" value={stats.repeatSkus} />
-              </div>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <LinkButton to="/" size="large">
-                  See today's campaigns
-                </LinkButton>
-                <Button variant="tertiary" icon={RefreshIcon} onClick={() => save(START)}>
-                  Run setup again
-                </Button>
-              </div>
-            </section>
-          )}
+            {s.step === "done" && (
+              <section className="panel p-6 sm:p-8" aria-labelledby="done-title">
+                <span className="flex size-11 items-center justify-center rounded-xl bg-success-subtle text-success">
+                  <CircleCheck className="size-6" aria-hidden />
+                </span>
+                <h2 id="done-title" className="mt-4 font-heading text-2xl font-semibold">
+                  {storeName(domain)} is connected.
+                </h2>
+                <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                  {domain} is linked with read-only access. Its order history would now import in
+                  the background, and its campaigns would appear on Today. In this demo only Nira
+                  Botanics has sample orders, so Today keeps showing Nira Botanics.
+                </p>
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <LinkButton to="/" size="large">
+                    See today's campaigns
+                  </LinkButton>
+                  <Button variant="tertiary" onClick={() => go("connections")}>
+                    Back to connections
+                  </Button>
+                </div>
+              </section>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -695,11 +718,66 @@ function PlatformCard({
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
+function ConnectionsView({ stores, orders }: { stores: ConnectedStore[]; orders: number }) {
+  const rows = [
+    ...stores.map((st) => ({
+      icon: ShoppingBag,
+      group: "Store",
+      title: st.name,
+      detail:
+        "Shopify · " +
+        st.domain +
+        (st.hasData ? " · " + orders.toLocaleString("en-IN") + " orders imported" : ""),
+      tone: st.hasData ? ("success" as const) : ("neutral" as const),
+      status: st.hasData ? "Live" : "Connected · history not imported in this demo",
+    })),
+    {
+      icon: Wallet,
+      group: "Payments",
+      title: "Razorpay",
+      detail: "Settlements, refunds, COD collection and RTO risk score",
+      tone: "success" as const,
+      status: "Live",
+    },
+    {
+      icon: MessageCircle,
+      group: "Messaging",
+      title: "WhatsApp Business",
+      detail: "Messages from your business number, with a personalised image for each customer",
+      tone: "success" as const,
+      status: "Live",
+    },
+    {
+      icon: Mic,
+      group: "Calls",
+      title: "AI voice follow-ups",
+      detail:
+        "Hindi or English calls with ElevenLabs voices, only to customers who agreed to calls",
+      tone: "neutral" as const,
+      status: "Not live in this demo",
+    },
+  ];
   return (
-    <div className="rounded-lg border p-3">
-      <div className="num font-heading text-2xl font-semibold">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+    <div className="space-y-4">
+      <section data-tour="setup" className="panel divide-y" aria-label="Connections">
+        {rows.map((r) => (
+          <div key={r.group + r.title} className="flex flex-wrap items-center gap-4 p-4">
+            <span className="flex size-10 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+              <r.icon className="size-5" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="label-text">{r.group}</div>
+              <div className="font-semibold">{r.title}</div>
+              <div className="text-xs text-muted-foreground">{r.detail}</div>
+            </div>
+            <Pill t={r.tone}>{r.status}</Pill>
+          </div>
+        ))}
+      </section>
+      <Note>
+        Not on Razorpay checkout? A store on another payment provider can send payments, refunds and
+        COD outcomes by API or webhooks. Add store, step 2, shows how.
+      </Note>
     </div>
   );
 }

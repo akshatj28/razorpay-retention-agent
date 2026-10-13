@@ -28,8 +28,7 @@ describe("Evaluator walkthrough", () => {
       timeout: 5000,
     });
     expect(screen.queryByRole("region", { name: "Guided tour" })).not.toBeInTheDocument();
-    expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith({ to: "/setup" });
+    expect(navigate).not.toHaveBeenCalled();
     view.unmount();
     render(
       <BladeTheme>

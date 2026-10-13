@@ -3,7 +3,6 @@ import { AppModal } from "./AppModal";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check, Compass, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { isStoreConnected } from "@/retention/onboarding";
 import {
   Button,
   ArrowRightIcon,
@@ -19,8 +18,8 @@ export const TOUR_STOPS = [
     target: "setup",
     title: "Start where the merchant's data already lives.",
     rationale:
-      "Shopify knows what each customer bought. Razorpay knows what was actually paid, refunded or returned to origin. Connecting both, read-only, is the only setup, and nothing is sent without the merchant's approval.",
-    try: "Click Connect demo store for a one-click setup, or step through the four screens a merchant would see.",
+      "Nira Botanics is already connected: Shopify knows what each customer bought, and Razorpay knows what was actually paid, refunded or returned to origin. Connecting a store is read-only, and nothing is sent without the merchant's approval.",
+    try: "Click Add store to see the four setup screens a new merchant goes through. The store menu at the top left opens the same flow.",
   },
   {
     route: "/",
@@ -97,9 +96,6 @@ export function EvaluatorTour({ onFreshCampaign }: { onFreshCampaign?: () => voi
       /* Treat a browser without storage as a first visit. */
     }
     setWelcome(first);
-    // A first visit opens on store setup, where a merchant would begin.
-    if (first && path === "/" && !isStoreConnected()) void navigate({ to: "/setup" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function dismissWelcome() {

@@ -1,5 +1,14 @@
 # AI build log (factual)
 
+## 13 October 2026 — store switcher and Connections
+
+- The demo starts with Nira Botanics already connected; a first visit lands on Today with the intro pop-up (no redirect to setup).
+- The store name in the sidebar is a menu: current store, any added stores, Add store, Manage connections.
+- Connections lists live connections (Nira Botanics on Shopify, Razorpay, WhatsApp Business) and AI voice as not live, with an Add store button.
+- Add store runs the four setup screens, pre-filled with a second sample store. It then appears in Connections and the store menu as connected without sample data; choosing it explains that only Nira Botanics has sample orders. Already-connected addresses are blocked.
+- Step labels: "Link payments", "Messaging and calls". Tour stop 1 now points to Add store.
+- Verification: TypeScript, 25 tests across seven files and the production build passed; first visit, store menu, add-store flow and Connections checked in the browser.
+
 ## 12 October 2026 — measured against no retention tool
 
 - Comparison page renamed Impact ("What Retention Agent adds") and framed against a merchant with no retention tool. Headline: extra profit vs no tool, what the merchant keeps after the fee, and extra profit vs a manual 20% sale.

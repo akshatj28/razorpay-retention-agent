@@ -10,10 +10,11 @@ import {
   RotateCcw,
   Store,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button, RefreshIcon } from "@razorpay/blade/components";
 import { useDemo } from "@/retention/store";
-import { isStoreConnected, SETUP_EVENT } from "@/retention/onboarding";
+import { StoreSwitcher } from "./StoreSwitcher";
+import { showConnections } from "@/retention/onboarding";
 import { EvaluatorTour } from "./EvaluatorTour";
 
 // Ordered by how often a merchant uses them; connections are set once and live at the bottom.
@@ -41,13 +42,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const [done, setDone] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
-  const [connected, setConnected] = useState(false);
-  useEffect(() => {
-    const check = () => setConnected(isStoreConnected());
-    check();
-    window.addEventListener(SETUP_EVENT, check);
-    return () => window.removeEventListener(SETUP_EVENT, check);
-  }, [path]);
   return (
     <div className="app-shell flex min-h-screen flex-col lg:flex-row">
       <aside className="app-sidebar flex w-full shrink-0 flex-col border-b bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:border-r">
@@ -59,25 +53,14 @@ export function Shell({ children }: { children: ReactNode }) {
             Agent Studio
           </div>
           <div className="label-text mb-2 px-1">YOUR WORKSPACE</div>
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-sm font-medium"
-            aria-label="Merchant: Nira Botanics (only demo merchant)"
-            title="Only one demo merchant available"
-          >
-            <Store className="size-4 text-muted-foreground" aria-hidden />
-            <span className="flex-1 truncate">Nira Botanics</span>
-            <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
-          </button>
+          <StoreSwitcher />
           <Link
             to="/setup"
+            onClick={showConnections}
             className="mt-2 flex items-center gap-2 px-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            <span
-              className={`size-2 shrink-0 rounded-full ${connected ? "bg-success" : "bg-warning"}`}
-              aria-hidden
-            />
-            {connected ? "Shopify + Razorpay connected" : "Store not connected yet"}
+            <span className="size-2 shrink-0 rounded-full bg-success" aria-hidden />
+            Shopify + Razorpay connected
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto p-3" aria-label="Primary">
@@ -107,6 +90,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="space-y-1 border-t p-3 text-xs text-muted-foreground">
           <Link
             to="/setup"
+            onClick={showConnections}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${path === "/setup" ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground" : "text-foreground hover:bg-muted"}`}
             aria-current={path === "/setup" ? "page" : undefined}
           >
