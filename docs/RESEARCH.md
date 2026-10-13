@@ -91,6 +91,24 @@ quadrantChart
 | "BiteSpeed inside Razorpay" (full CRM) | Rejected | BiteSpeed became a Razorpay partner on 16 Jun 2026. We decide; messaging is a channel |
 | Fixed 30/60-day reorder campaigns | Replaced | A fixed delay is a rule, and Klaviyo and LimeChat already offer it. The agent uses each customer's own rhythm |
 
+### 2.5 Deep-research reports
+
+Two long-form deep-research reports were run with focused prompts and then source-checked before any direction was chosen:
+
+| Report | What it covered | What we took from it |
+|---|---|---|
+| *AI-native growth and revenue recovery for payment platforms* | Global landscape (smart retries, recovery SaaS, conversational AI), case studies, a use-case matrix, India's regulatory brief (TRAI 140/1600 series, DPDP, WhatsApp pricing), product patterns and failure modes | Failed-payment and COD recovery are proven but crowded and already shipped by Razorpay. Promotional outreach in India carries real compliance and cost constraints |
+| *Feasibility of AI-personalised reorders using payment-platform data* | Razorpay's ecosystem and its proactive gap, predictive-commerce case studies, incrementality, timing and pricing research, data reality, DPDP/RBI/TRAI constraints, design patterns, a worked D2C example | Measure against a control group; prefer reminders and timing over deep discounts; anchor in the checkout layer; keep v1 to one merchant's first-party data |
+
+Findings that changed the design:
+
+- **Attribution flatters retention tools.** If a loyal customer was going to reorder anyway, a 10% code just gives away margin while the campaign takes credit. → A control group in every campaign.
+- **Discounts train customers to wait.** Reminder-led replenishment tends to hold more long-term value than deep discounting. → "Reminder, no discount" is a first-class option.
+- **A payment gateway alone is blind to items.** The advantage comes from checkout integration plus store catalog data. → Shopify product history plus Razorpay payment outcomes.
+- **Cross-merchant pooling is a legal and trust risk.** → Single-merchant decisions; network signals used for payment risk only.
+- **Messages cost money.** At about ₹0.86 per WhatsApp marketing message, contacting low-probability customers destroys ROI. → Cost is part of every decision, and "don't contact" is allowed.
+- **Opaque personalised pricing risks backlash.** → Only merchant-approved discount levels within a cap, and every decision shows its reason.
+
 **Demo category.** The demo leads with skincare and haircare because a replenishment rhythm is easiest to see there. The same engine covers categories without a fixed cycle (for example fashion) through "past their usual gap" and merchant-started campaigns.
 
 ## 3. What tools do today vs what nobody decides
@@ -120,6 +138,26 @@ flowchart LR
     T5 -.-> G4
     T2 -.-> G5
 ```
+
+### 3.1 Retention tool landscape
+
+| Category | Examples | What it decides | How results are usually reported |
+|---|---|---|---|
+| Customer engagement platforms | CleverTap, MoEngage, WebEngage, Netcore, Klaviyo | Predictive segments (likely to buy, churn risk), product recommendations | Attributed revenue; enterprise plans also support control groups and AI offer selection |
+| WhatsApp CRMs for Shopify | BiteSpeed, Interakt, AiSensy, Wati | Which flow a customer enters; mostly rules set by the marketer | Attributed revenue (e.g. "3x repeat orders") |
+| Checkout + engagement | GoKwik KwikEngage, Shiprocket Engage 360 | Who to nudge; RTO risk | Attributed revenue, RTO reduction |
+| Loyalty | Razorpay Engage, Nector, Flits | Earn-and-burn rules; nothing per customer | Points redeemed |
+| On-site bundles | Rebuy, Shopify bundle apps | Which bundle to show, on the website only | On-site conversion |
+| Razorpay + BiteSpeed (Jun 2026) | Magic Checkout + BiteSpeed AI CRM | Checkout identity feeding CRM campaigns | As for WhatsApp CRMs |
+
+| Gap | Typical today | Retention Agent |
+|---|---|---|
+| Who gets a discount | The whole segment gets the same code | Per-customer choice, including no discount |
+| Payment step | The message links to the site | A pay-online nudge for medium/high-risk COD buyers |
+| Proof | Attributed revenue | Extra contribution against a control group, after discounts, RTO and refunds |
+| Pricing | Monthly SaaS fee (BiteSpeed is reported at roughly ₹15–30K a month) | Illustrative: a share of positive extra contribution |
+
+**A correction this research forced:** an earlier draft said Razorpay had no retention product. That was wrong, because Razorpay Engage and the BiteSpeed partnership exist. The defensible claim is narrower: no tool we found combines payment-side outcomes, margin-aware per-customer offers and contribution measurement for mid-size D2C brands. The biggest threat is GoKwik or Shiprocket adding this decision layer to the checkout, RTO and WhatsApp data they already hold.
 
 **Timing is not our claim.** Klaviyo already predicts the next order date. Our claim is the per-customer offer and payment decision, and proving the result against a control group.
 
@@ -190,6 +228,8 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 **Competitors and partners**
 - [BiteSpeed](https://www.bitespeed.co/) · [BiteSpeed × Razorpay (PTI)](https://www.tribuneindia.com/news/business/bitespeed-partners-with-razorpay-to-launch-unified-ai-conversion-and-retention-stack-for-d2c-brands-2-2/) · [BiteSpeed funding](https://india.entrepreneur.com/news-and-trends/bitespeed-raises-usd-35-mn-funding-led-by-peak-xvs-surge/482896)
 - [GoKwik × Honasa](https://www.cxodigitalpulse.com/?p=35818) · [GoKwik RTO savings 2023](https://cxotoday.com/media-coverage/gokwik-has-helped-ecommerce-brands-save-over-rs-130-cr-worth-of-rto-losses-in-2023/) · [Shopflo case studies](https://www.shopflo.com/customers/gunam-beauty) · [Return Prime](https://apps.shopify.com/return-prime)
+- [GoKwik KwikEngage](https://www.gokwik.co/uk/product/kwikengage) · [Shiprocket Engage 360](https://www.shiprocket.in/engage360/) · [YourStory: Engage 360 launch](https://yourstory.com/2024/08/shiprocket-engage-360-data-omnichannel-marketing-automation) · [Razorpay Engage docs](https://github.com/razorpay/markdown-docs/blob/master/engage.md)
+- [CleverTap vs MoEngage 2026 (Sortment)](https://sortment.com/blogs/clevertap-vs-moengage) · [CleverTap festive personalisation](https://clevertap.com/blog/maximizing-festive-season-sales-with-clevertaps-personalization-schema/) · [BiteSpeed pricing comparison (Chatmitra)](https://chatmitra.com/chatmitra-vs-bitespeed/) · [BiteSpeed × Razorpay (Business Upturn)](https://www.businessupturn.com/brand-post/bitespeed-partners-with-razorpay-to-launch-unified-ai-conversion-and-retention-stack-for-d2c-brands-2)
 - [Klaviyo flows guide](https://help.klaviyo.com/hc/en-us/articles/115002774932-Guide-to-flows) · [Klaviyo expected date of next order](https://community.klaviyo.com/marketing-30/create-a-replenishment-flow-using-predictive-analytics-expected-date-of-next-order-19085) · [Klaviyo campaign workflow](https://help.klaviyo.com/hc/en-us/articles/115005054847) · [Klaviyo attribution](https://help.klaviyo.com/hc/en-us/articles/115005248128) · [LimeChat store notifications](https://docs.limechat.ai/re-engagement/store-notifications)
 
 **Market and merchant pain**

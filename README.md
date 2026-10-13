@@ -48,7 +48,108 @@ flowchart LR
 
 **Why this could matter to Razorpay:** its visible D2C investment, checkout distribution and payment intelligence suggest strategic fit. Combining Shopify product history with entitled risk signals and reconciled collections could support better retention decisions. Catalog and delivery data still require integrations; we do not claim that Razorpay already exposes every required field or that its native and partner products never address retention.
 
-## 2. How we narrowed it down
+## 2. What the research found
+
+About two weeks of desk research went into this: two long-form deep-research reports, a stage-by-stage map of the D2C customer journey, a scan of the retention tools available in India, and around 30 published Magic Checkout case studies. Figures are mostly vendor-reported or from industry blogs, and they're labelled that way. Full detail and sources: **[docs/RESEARCH.md](docs/RESEARCH.md)**.
+
+### 2.1 The core insight: retention is not the same as *profitable* retention
+
+| What we found | Source type |
+|---|---|
+| Only 20–30% of first-time D2C buyers order again within 90 days, so brands push repeat orders hard | Industry blogs, founder surveys |
+| The usual lever is a discount, and stacked discounts reach 25–30% of revenue for many brands | Founder surveys, industry commentary |
+| Discount-led retention trains customers to wait for the next code; timely reminders tend to hold more long-term value than deep discounts | Deep-research synthesis of published studies |
+| Retention tools report *attributed* revenue, so an order that would have happened anyway is credited to the message, and its discount is pure margin loss | Vendor documentation, deep-research synthesis |
+| COD orders return at 25–30% vs 2–3% for prepaid, so a "won" COD reorder can lose money after RTO | Logistics vendor blogs |
+
+**So the question isn't "how do we get more repeat orders?". It's "which repeat orders are worth paying for, and what did we actually earn?"** That's why the product decides *who needs a discount at all*, nudges risky COD buyers to pay online, and measures extra contribution against a control group after discounts, RTO and refunds.
+
+### 2.2 The customer journey and how crowded each stage is
+
+We mapped a shopper's path through a Shopify D2C brand on Magic Checkout. For each stage we noted what Razorpay can see and which tools already act there.
+
+```mermaid
+flowchart LR
+    S1["01 Discover"] --> S2["02 Browse & cart"] --> S3["03 Checkout & pay"] --> S4["04 Before dispatch<br/>(COD)"] --> S5["05 Delivery / RTO"] --> S6["06 Returns"] --> S7["07 Use, between<br/>orders"] --> S8["08 Reorder &<br/>win-back"]
+
+    classDef outside fill:#eceef1,stroke:#8a929c,color:#3d434b
+    classDef crowded fill:#f9e6e1,stroke:#b0412c,color:#6e2516
+    classDef partly fill:#f8eed6,stroke:#94680f,color:#5c4008
+    classDef open fill:#e9efff,stroke:#2350d2,color:#0c2a80
+    class S1 outside
+    class S2,S3,S4 crowded
+    class S5,S6 partly
+    class S7,S8 open
+```
+
+*Grey = outside Razorpay's data · Red = crowded · Amber = partly served · Blue = where we focus*
+
+| Stage | What the shopper does | What Razorpay can see | Tools already acting | How crowded |
+|---|---|---|---|---|
+| 01 Discover | Sees an ad or creator post | Nothing first-party | Meta, Google, creators | ●●● (outside Razorpay) |
+| 02 Browse & cart | Adds to cart; many leave | Cart + phone (Magic Checkout OTP) | Razorpay cart-recovery agent, GoKwik, BiteSpeed, KwikEngage | ●●● |
+| 03 Checkout & pay | Picks UPI, card or COD | Payment method, failure code, RTO score | Magic Checkout, GoKwik, Shopflo, payment retry | ●●● |
+| 04 Before dispatch | A COD order waits to ship | COD orders and risk | RTO Shield, COD confirmation agent, GoKwik, Shiprocket | ●●● |
+| 05 Delivery / RTO | Accepts or refuses the parcel | RTO outcome, if shared | Shiprocket, ClickPost, RTO insights | ●●○ |
+| 06 Returns | Returns, exchanges or keeps | Refunds and reasons | Return Prime, instant refunds | ●●○ |
+| 07 Use, between orders | Uses the product; it runs out | What was bought, size, price, payment | Generic post-purchase flows | ●○○ |
+| **08 Reorder & win-back** | **Buys again, or silently stops** | **Recency, spend, COD vs prepaid, refunds, settled cash** | **Many tools *send* messages; few *decide* who needs an offer or *prove* impact** | **●●● for sending · ●○○ for deciding and proving** |
+
+*How crowded each stage is reflects our qualitative read of public material, not a measured market share.*
+
+### 2.3 The retention tools available today
+
+| Category | Examples | What it decides | How results are usually reported |
+|---|---|---|---|
+| Customer engagement platforms | CleverTap, MoEngage, WebEngage, Netcore, Klaviyo | Predictive segments, product recommendations, timing | Attributed revenue; enterprise plans also support control groups |
+| WhatsApp CRMs for Shopify | BiteSpeed, Interakt, AiSensy, Wati | Which flow a customer enters; rules set by the marketer | Attributed revenue |
+| Checkout + engagement | GoKwik KwikEngage, Shiprocket Engage 360 | Who to nudge, RTO risk | Attributed revenue, RTO reduction |
+| Loyalty | Razorpay Engage, Nector, Flits | Earn-and-burn rules; nothing per customer | Points redeemed |
+| On-site bundles | Rebuy, Shopify bundle apps | Which bundle to show on the website | On-site conversion |
+| Razorpay + BiteSpeed (since Jun 2026) | Magic Checkout + BiteSpeed CRM | Checkout identity feeding CRM campaigns | As for WhatsApp CRMs |
+
+Most of these follow the same loop: *segment → template → send to everyone in the segment → credit any sale that follows → report ROI*.
+
+```mermaid
+quadrantChart
+    title Retention tools: data used vs what gets decided
+    x-axis Marketing data only --> Payment and checkout outcomes
+    y-axis Same offer for a segment --> Per-customer offer decision
+    quadrant-1 Our target position
+    quadrant-2 Enterprise decisioning
+    quadrant-3 Rules and broadcasts
+    quadrant-4 Checkout-led engagement
+    CleverTap and MoEngage: [0.25, 0.72]
+    WhatsApp CRMs: [0.2, 0.25]
+    Loyalty apps: [0.12, 0.12]
+    On-site bundles: [0.32, 0.4]
+    GoKwik KwikEngage: [0.68, 0.38]
+    Shiprocket Engage 360: [0.62, 0.3]
+    Razorpay and BiteSpeed: [0.78, 0.28]
+    Retention Agent: [0.86, 0.82]
+```
+
+*These positions are our qualitative judgment from public material.*
+
+**What the landscape changed.** Retention isn't untouched ground: Razorpay has Engage and the BiteSpeed partnership, and enterprise platforms already support control groups and AI offer selection. Our claim is therefore narrow: **no tool we found combines payment-side outcomes (COD, RTO, refunds), margin-aware per-customer offer decisions and contribution measurement for mid-size D2C brands.** The biggest competitive threat is checkout players such as GoKwik and Shiprocket adding this decision layer, since they already combine checkout, RTO and WhatsApp.
+
+### 2.4 Deep research: findings that shaped the design
+
+Two deep-research reports were commissioned and then source-checked:
+1. *AI-native growth and revenue recovery for payment platforms*: global landscape, case studies, the India regulatory brief (TRAI, DPDP, WhatsApp pricing) and product patterns.
+2. *Feasibility of AI-personalised reorders using payment-platform data*: incrementality, timing models, data reality, regulatory and trust constraints, and a worked D2C example.
+
+| Finding | What we did with it |
+|---|---|
+| Last-click attribution credits organic reorders; merchant trust needs test-vs-control measurement | Every campaign reserves a control group; attributed sales are shown but never used as proof |
+| Reminder-led replenishment tends to beat deep discounting over time; discounts train customers to wait | "Reminder, no discount" is a first-class option, not a fallback |
+| The advantage sits in the checkout layer; a payment gateway alone doesn't see item-level data | Shopify product history plus Razorpay payment, COD and refund outcomes; catalog access is a stated integration |
+| Cross-merchant data pooling carries consent and legal risk (DPDP Act, recent platform litigation) | Single-merchant, first-party decisions; network signals used only for payment/delivery risk |
+| Marketing messages cost about ₹0.86 each on WhatsApp in India, so spraying low-probability customers destroys ROI | Message cost is part of every decision, and "don't contact" is allowed |
+| Opaque personalised pricing risks a consumer backlash | Offers come only from merchant-approved discount levels within a cap, and every decision shows its reason |
+| Open questions: merchants' margin tolerance, and whether they'll trust a control group the platform runs itself | Listed in the [validation plan](docs/RESEARCH.md#6-open-questions-and-how-wed-validate) |
+
+## 3. How we narrowed it down
 
 We started from the whole brief ("recover and grow revenue for Razorpay merchants") and compared B2B invoice blockers, cart recovery, subscription recovery and repeat-order decisions. An early B2B recommendation was challenged: merchant impact and Razorpay's strategic fit needed to lead the selection, with AI suitability assessed afterwards.
 
@@ -80,19 +181,9 @@ flowchart TD
 | Fixed 30/60-day reminders | Replaced | That's a rule that every tool already offers. The agent uses each customer's own reorder rhythm |
 | Cross-merchant targeting, ad network, lending | Left out | Broader data permissions and operational scope than this prototype; risk enrichment is separate from marketing targeting |
 
-**Where the stages sit** (our qualitative read; sources in [docs/RESEARCH.md](docs/RESEARCH.md)):
-
-| Journey stage | What Razorpay sees | Who already acts |
-|---|---|---|
-| Browse & cart | Cart + phone (Magic Checkout OTP) | Razorpay cart agent, GoKwik, BiteSpeed |
-| Checkout & pay | Payment method, failures, RTO score | Magic Checkout, GoKwik, Shopflo, payment retry |
-| Before dispatch (COD) | COD orders and risk | RTO Shield, COD confirmation, Shiprocket |
-| Delivery / returns | RTO, refunds and reasons | Logistics tools, Return Prime |
-| **After the first order** | **Store product history plus connected payment, refund and delivery outcomes** | **Established retention platforms already act here. We investigate an integrated offer/payment decision and contribution-measurement workflow** |
-
 Full research, including the competitor map, merchant pain evidence and sources: **[docs/RESEARCH.md](docs/RESEARCH.md)**. It retains some preliminary hypotheses and categorical wording; the limitations above and the [detailed AI build log](docs/AI_BUILD_LOG.md) explain how that reasoning was challenged and refined.
 
-## 3. What the product does
+## 4. What the product does
 
 Open the app and the merchant lands on **Today**: three suggested campaigns, each with an audience, expected extra earnings and a control group.
 
@@ -120,7 +211,7 @@ For every customer it shows a one-line reason, built only from that customer's d
 
 The **Guided tour** (button in the header) takes a reviewer through the main flow in about 2 minutes, explaining each product choice along the way.
 
-## 4. Why AI, and not a fixed rule
+## 5. Why AI, and not a fixed rule
 
 A simple recency or spend policy can apply the same offer to a broad segment. Our production hypothesis is that learned response estimates could improve the choice of reminder, offer or no outreach. The causal framework below describes possibilities to investigate; these customer types cannot be observed directly from purchase history alone:
 
@@ -140,7 +231,7 @@ It picks the option with the highest value, which includes "no discount" and "do
 
 **Honest about v1.** In this prototype the response estimates are transparent formulas with stated priors. For example, a customer's discount history is shrunk toward a 25% prior worth three orders (see `estimateAction` in [src/retention/studio.ts](src/retention/studio.ts)). This is not a trained model or an estimate of causal discount response. A production response model would require randomised evidence, calibration and comparison against a rules baseline. Payment-risk enrichment alone does not supply discount sensitivity.
 
-## 5. How it learns from outcomes
+## 6. How it learns from outcomes
 
 Every approved campaign reserves a control group (customers who are eligible but get no message), and the system records:
 
@@ -149,7 +240,7 @@ Every approved campaign reserves a control group (customers who are eligible but
 
 **Built in the prototype:** control groups, outcome reconciliation, and per-campaign and portfolio results. **Next step (not built):** feed those results back to update each merchant's buy-anyway rate and discount response by segment, so the next plan needs fewer discounts.
 
-## 6. Trust, permissions and failure cases
+## 7. Trust, permissions and failure cases
 
 | Risk | What the product does |
 |---|---|
@@ -160,7 +251,7 @@ Every approved campaign reserves a control group (customers who are eligible but
 | LLM-written prices | Prices, discounts and products come from the catalog and rules. Generated content never changes them |
 | Over-claiming impact | Attributed sales are shown but never used as proof. Results are labelled as estimates; the demo's minimum group sizes are guardrails, not statistical significance |
 
-## 7. What we measure
+## 8. What we measure
 
 | Metric | Role |
 |---|---|
@@ -172,15 +263,15 @@ Every approved campaign reserves a control group (customers who are eligible but
 
 Commercial idea (illustrative only): Razorpay takes 25% of positive extra profit after campaign losses offset wins, and absorbs AI and messaging costs.
 
-## 8. What we deliberately didn't build
+## 9. What we deliberately didn't build
 
 - **A CRM or messaging platform.** That's a crowded market, and partners already exist.
 - **Sending without merchant approval.**
 - **Cross-merchant targeting.** Razorpay network signals are used only for payment/delivery risk, never to infer discount sensitivity.
 - **Live integrations.** Shopify OAuth, Razorpay signal APIs, WhatsApp/voice delivery and invoicing are all simulated. The boundaries are listed in [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md).
-- **A trained model.** See section 4. The prototype shows the decision and the merchant experience, not a fitted model.
+- **A trained model.** See section 5. The prototype shows the decision and the merchant experience, not a fitted model.
 
-## 9. Run it locally
+## 10. Run it locally
 
 The hosted version is at [smart-retention-razorpay.lovable.app](https://smart-retention-razorpay.lovable.app/). To run it yourself you need Node 20+ (Node 24+ for the data export).
 
@@ -194,7 +285,7 @@ npm run build
 
 Everything runs offline: no API keys, no external calls. **Reset demo** in the header restores the exact starting state. Merchant edits are saved in browser localStorage only.
 
-## 10. Repository map
+## 11. Repository map
 
 ```
 src/retention/          Pure decision logic (no UI)
@@ -214,7 +305,7 @@ The UI reads one derived state (`deriveStudio`), so numbers agree across screens
 
 Legacy routes `/cohort`, `/workbench` and `/review` are an earlier offer-maths lab. They're kept for reference and aren't in the navigation.
 
-## 11. Documentation
+## 12. Documentation
 
 | Doc | What's in it |
 |---|---|
@@ -226,7 +317,7 @@ Legacy routes `/cohort`, `/workbench` and `/review` are an earlier offer-maths l
 | [docs/CREATIVE_ASSETS.md](docs/CREATIVE_ASSETS.md) | Provenance of the AI-generated campaign image |
 | [docs/history/](docs/history/README.md) | Earlier plans and UI notes, superseded |
 
-## 12. What is simulated
+## 13. What is simulated
 
 Merchant data, Razorpay signals (including the RTO risk tier), message and call drafting, delivery, orders placed during execution, collections and fees are **all simulated**. Response rates and costs are assumptions, not measured results. Market figures in the research are mostly vendor-reported and are labelled that way. No real merchant was interviewed for this prototype. Validation interviews are the first next step (questions in [docs/RESEARCH.md](docs/RESEARCH.md#6-open-questions-and-how-wed-validate)).
 
