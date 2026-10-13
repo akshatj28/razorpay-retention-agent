@@ -8,6 +8,8 @@ The app, CSV and SQLite use one deterministic history generator. Generated histo
 
 ## Intelligence boundaries
 
+The product explains demo scope beside suggested campaigns, in the products/discounts step and in About this prototype. Six months is synthetic demo coverage, not a production retention limit. Current recommendations use rules and illustrative assumptions; no live predictive AI is connected. Proposed models would rank products and estimate timing/response from catalog information, personal history and comparable-customer patterns. This is planned capability, not implemented learning or validated uplift. Orders, inventory, consent and payment outcomes remain integration inputs; costs remain merchant-provided or confirmed estimates. Policy checks remain explicit rules. Evidence, uncertainty, predictive validation and controlled experiments are required for production claims.
+
 Shopify supplies merchant purchase history. Proposed Razorpay enrichment supplies permitted derived payment/delivery-risk context where access is available. Vulcan is a structured-payments foundation model, not an LLM or an exportable database of raw cross-merchant customer history.
 
 Network risk informs payment treatment and expected delivery economics. It does not imply sensitivity to a particular discount. Offer responsiveness, product relevance and timing belong to the retention layer and need task-specific validation. Missing/unmatched/stale signals fall back to merchant history. Stores not on Razorpay checkout can send payments, refunds and COD/RTO outcomes through a Payments API, webhooks or courier APIs; they lose only the Razorpay RTO score. Every demo signal is explicitly simulated.

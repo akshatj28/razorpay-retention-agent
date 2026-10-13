@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { PageHeader, Pill, Stat } from "./bits";
 import { LinkButton } from "./LinkButton";
+import { DemoScope } from "./DemoScope";
 import { useDemo } from "@/retention/store";
 import { MERCHANT_NAME } from "@/retention/data";
 import { GOALS, advanceDay, createDraft, isPrepaidNudge, type Goal } from "@/retention/studio";
@@ -126,6 +127,7 @@ export function StudioHome() {
           hint={s.templates.length + " saved templates"}
         />
       </section>
+      <DemoScope />
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="section-title">Suggested campaigns</h2>

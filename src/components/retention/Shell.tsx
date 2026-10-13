@@ -16,6 +16,7 @@ import { useDemo } from "@/retention/store";
 import { StoreSwitcher } from "./StoreSwitcher";
 import { showConnections } from "@/retention/onboarding";
 import { EvaluatorTour } from "./EvaluatorTour";
+import { RecommendationScope } from "./DemoScope";
 
 // Ordered by how often a merchant uses them; connections are set once and live at the bottom.
 const NAV = [
@@ -112,11 +113,8 @@ export function Shell({ children }: { children: ReactNode }) {
                 Retention Agent is a proposed extension for Razorpay Agent Studio. It is not an
                 official Razorpay product, is not endorsed by Razorpay, and has no live integration.
               </p>
-              <p>
-                All merchants, customers and orders are generated. Recommendations come from a
-                rule-based model standing in for the AI; messages, deliveries and payments are
-                simulated. No external services are contacted.
-              </p>
+              <RecommendationScope />
+              <p>Messages, deliveries and payments are simulated. No external services are contacted.</p>
               <p>
                 Built using Razorpay's open-source Blade components and theme tokens, with custom
                 application layouts. Fonts are self-hosted copies of Blade's TASA Orbiter and Inter

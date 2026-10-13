@@ -83,7 +83,7 @@ const SHOPIFY_SCOPES = [
     icon: ShoppingBag,
     label: "Read orders and line items",
     detail:
-      "Last six months in this simulation. A live app would request Shopify approval for older orders and ongoing updates.",
+      "Six months of synthetic history for this demo. The proposed live product would use all available, authorized history, with Shopify approval for older orders and ongoing updates.",
   },
   { icon: Database, label: "Read customers", detail: "Name, phone, email and marketing consent" },
   {

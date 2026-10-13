@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { Button, useToast } from "@razorpay/blade/components";
 import { PageHeader, Pill, Note, Stat } from "@/components/retention/bits";
 import { DataTable } from "@/components/retention/DataTable";
+import { DemoScope } from "@/components/retention/DemoScope";
 import { useDemo } from "@/retention/store";
 import { inr, dayToDate } from "@/retention/format";
 import { productById, MERCHANT_NAME } from "@/retention/data";
@@ -422,6 +423,7 @@ function Campaigns() {
               )}
               {step === "Products & discounts" && (
                 <div className="space-y-4">
+                  <DemoScope />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Discount selection">
                       <select
