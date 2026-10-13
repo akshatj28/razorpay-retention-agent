@@ -1,7 +1,7 @@
 // Independent counterfactual simulator. Synthetic sensitivity study, not evidence of commercial uplift.
-import type { Dataset } from "./data";
+import { baseDataset, type Dataset } from "./data";
 import type { CustomerFeature } from "./features";
-import { DEFAULT_SETTINGS, estimateAction, isPrepaidNudge } from "./studio";
+import { DEFAULT_SETTINGS, deriveStudio, estimateAction, initialStudio, isPrepaidNudge } from "./studio";
 export interface BenchmarkRow {
   strategy: string;
   audience: number;
@@ -24,6 +24,11 @@ const unit = (s: string) => {
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
   return (h >>> 0) / 4294967296;
 };
+/** Reproducible pitch comparison, independent of the merchant's saved demo work. */
+export function runReferenceBenchmark(responseScale = 1): BenchmarkRow[] {
+  const data = baseDataset();
+  return runBenchmark(data, deriveStudio(data, initialStudio()).features, responseScale);
+}
 export function runBenchmark(
   data: Dataset,
   features: CustomerFeature[],

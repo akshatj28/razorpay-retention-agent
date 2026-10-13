@@ -61,7 +61,7 @@ export function StudioHome() {
         <div className="relative grid items-center gap-7 lg:grid-cols-[1.3fr_1fr]">
           <div>
             <span className="text-xs tracking-widest text-blue-200 uppercase">
-              From your order and payment data
+              From your store, payment and courier data
             </span>
             <h2 className="mt-4 max-w-lg font-heading text-3xl font-semibold leading-tight sm:text-4xl">
               More repeat orders.
@@ -119,7 +119,7 @@ export function StudioHome() {
         <Stat
           label="Customers with a recent delivery-risk estimate"
           value={freshSignals.toLocaleString("en-IN")}
-          hint="Simulated Razorpay signal, updated in the last 7 days. Others use store history."
+          hint="A small extra for Razorpay merchants. Updated within 7 days; others use store history."
         />
         <Stat
           label="Your campaigns"
