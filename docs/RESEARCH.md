@@ -110,7 +110,7 @@ Findings that changed the design:
 
 - **Attribution flatters retention tools.** If a loyal customer was going to reorder anyway, a 10% code just gives away margin while the campaign takes credit. → A control group in every campaign.
 - **Discounts train customers to wait.** Reminder-led replenishment tends to hold more long-term value than deep discounting. → "Reminder, no discount" is a first-class option.
-- **A payment gateway alone is blind to items.** The advantage comes from checkout integration plus store catalog data. → Shopify product history plus Razorpay payment outcomes.
+- **Joined records support the product.** Store catalog and order history, payment/refund records and courier outcomes support customer-level decisions and collected-profit measurement.
 - **Cross-merchant pooling is a legal and trust risk.** → Single-merchant decisions; network signals used for payment risk only.
 - **Messages cost money.** At about ₹0.86 per WhatsApp marketing message, contacting low-probability customers destroys ROI. → Cost is part of every decision, and "don't contact" is allowed.
 - **Opaque personalised pricing risks backlash.** → Only merchant-approved discount levels within a cap, and every decision shows its reason.
@@ -219,7 +219,7 @@ Messaging tools report *attributed* revenue. If a loyal customer was going to re
 | 1 | One practitioner interview supports the problem, but prevalence and adoption remain uncertain | Interview additional D2C growth managers, review their actual workflow and test the prototype |
 | 2 | Two sizing approaches disagree on reorder value (≈₹0.6 Cr vs ₹2–4 Cr a year for a ₹90–100 Cr brand) | One model from sourced inputs: repeat rate, order value, discount share, expected lift |
 | 3 | Response to discounts is assumed, not learned | Run a pilot with randomised discount levels and a control group, then fit uplift by segment |
-| 4 | The Razorpay RTO signal adds little in our simulation (it mostly changes payment treatment) | Check with real RTO data. The stronger Razorpay advantage may be settled-cash truth and distribution through the dashboard merchants already use |
+| 4 | The Razorpay RTO signal adds little in our simulation (it mostly changes payment treatment) | Check with real RTO data. The product advantage is joining store, payment and courier data and measuring collected profit against a control. Razorpay's strategic opportunity is distribution to merchants on other providers and a reason to move processing to Razorpay |
 | 5 | Product picks need catalog data Razorpay doesn't own | Assume Shopify catalog access; keep product choice rule-based in v1 |
 | 6 | Merchants' margin tolerance, and whether they'll trust a control group run by the platform itself | Ask in interviews; offer an agreed business-as-usual baseline and a settlement window before any outcome-based fee |
 

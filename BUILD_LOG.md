@@ -73,3 +73,10 @@ Session on 10 Oct 2026, built by the Lovable AI agent from the uploaded brief.
 4. Ran a script to check counts: 48 eligible, 235 excluded, 17 needs review at defaults; hero Rs 39/44/35; second fixture prefers no discount. Set default budget to Rs 1500 (plan exposure Rs 1125).
 5. Built four screens and the shell. Wrote `src/test/retention-acceptance.test.ts` covering checks 2–14 (passing).
 6. Checked with headless Chromium at 1440×900: both fonts report loaded, no non-localhost requests, no console errors; walked approve → launch → send batch → purchase.
+
+
+## Pitch update 13 October 2026
+
+In a synthetic 90-day scenario with one campaign opportunity per customer across the same 2,500 customers, the agent raised collected earnings by 7.2% before the fee and 5.4% after it over no outreach, under default response assumptions. A blanket 20%-off sale raised them by 0.3%. If messages create no additional orders, the sale loses 4.3% to discounts while the agent loses 0.4%.
+
+The sale is a simple stand-in for broad blanket-discount campaigns; a pilot should compare against a credible rules baseline. Both percentages use the no-outreach control's collected contribution as denominator; 7.2% and 0.3% are before the fee, 5.4% after it. The product joins store, payment and courier data, chooses customer-level outreach and measures profit actually collected against a control group. Razorpay's strategic opportunity is distribution: offer the product to merchants using other payment providers, then give them a reason to move payment processing to Razorpay. Processing conversion is a hypothesis to validate. The delivery-risk signal is a small extra for Razorpay merchants where available. The INR66 signal ablation stays in internal analysis.

@@ -276,7 +276,7 @@ The main remaining limits are substantive:
 - **Integrations:** Shopify/Razorpay connections, payment-risk enrichment, runtime drafting, messaging, calls and collection are simulated. No real customer is contacted or charged.
 - **Outcome proof:** synthetic comparisons do not establish causal commercial uplift. A pilot needs randomised assignment, an agreed baseline, uncertainty assessment, reconciliation and a delivery/return window.
 - **Operational readiness:** workflow persistence is local to the browser. A live product needs durable storage, entitled data access, channel permissions, reliable event handling and billing rules.
-- **Strength of the Razorpay advantage:** payment-risk enrichment adds only modest value in some synthetic scenarios. Its incremental benefit needs testing against the same product using store data alone. Dashboard distribution and reliable collection/refund information may matter as much as the risk score; neither advantage is quantified here.
+- **Razorpay strategy:** distribution beyond existing Razorpay merchants and an incentive to move processing; adoption and conversion need validation. Optional risk enrichment is a small extra. The product value comes from joined records and collected-profit measurement.
 
 My next step would be additional merchant workflow interviews and a controlled pilot measuring incremental collected contribution per eligible customer, what the merchant retains after fees, and campaign-preparation time. The interview was conducted by me; AI helped organise the insight and verify the supporting public evidence. It did not conduct the interview or generate the practitioner's account.
 
@@ -293,3 +293,10 @@ The narrative draws on the research and product conversations, the decision reco
 - [Historical interface revisions](https://github.com/akshatj28/razorpay-retention-agent/blob/main/docs/history/UI_REFRESH_NOTES.md)
 - [Image prompt and provenance](https://github.com/akshatj28/razorpay-retention-agent/blob/main/docs/CREATIVE_ASSETS.md)
 - [Synthetic data dictionary](https://github.com/akshatj28/razorpay-retention-agent/blob/main/data/nira/README.md)
+
+
+## Pitch update 13 October 2026
+
+In a synthetic 90-day scenario with one campaign opportunity per customer across the same 2,500 customers, the agent raised collected earnings by 7.2% before the fee and 5.4% after it over no outreach, under default response assumptions. A blanket 20%-off sale raised them by 0.3%. If messages create no additional orders, the sale loses 4.3% to discounts while the agent loses 0.4%.
+
+The sale is a simple stand-in for broad blanket-discount campaigns; a pilot should compare against a credible rules baseline. Both percentages use the no-outreach control's collected contribution as denominator; 7.2% and 0.3% are before the fee, 5.4% after it. The product joins store, payment and courier data, chooses customer-level outreach and measures profit actually collected against a control group. Razorpay's strategic opportunity is distribution: offer the product to merchants using other payment providers, then give them a reason to move payment processing to Razorpay. Processing conversion is a hypothesis to validate. The delivery-risk signal is a small extra for Razorpay merchants where available. The INR66 signal ablation stays in internal analysis.

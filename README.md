@@ -2,7 +2,15 @@
 
 **A proposed repeat-purchase decision agent for Razorpay Agent Studio.** It helps a D2C merchant review whom to contact, when, which product and offer to use, and whether to encourage online payment. The prototype demonstrates these decisions and estimates extra contribution against a simulated control group. Real causal impact still needs a live experiment.
 
+> **In a synthetic 90-day scenario with one campaign opportunity per customer across the same 2,500 customers, the agent raised collected earnings by 7.2% before the fee and 5.4% after it over no outreach, under default response assumptions. A blanket 20%-off sale raised them by 0.3%.** If messages create no additional orders, the sale loses 4.3% to discounts while the agent loses 0.4%.
+
+Collected earnings means contribution profit after product and fulfilment costs, discounts, RTO and returns. Both percentages use the same no-outreach baseline.
+
+The agent works from three sources: Shopify orders, the payment provider's payments and refunds, and the courier's COD and return outcomes. In the prototype these connections are simulated, and Razorpay checkout is not required.
+
 **▶ Live demo: [smart-retention-razorpay.lovable.app](https://smart-retention-razorpay.lovable.app/)** (no login needed; start with **Guided tour** in the header)
+
+**One-page product note:** [PDF](docs/submission/Retention_Agent_Product_Note.pdf)
 
 > Razorpay × ISB AI PM Build Challenge · **Track 2: Recover and Grow with AI**
 > Independent concept prototype. Not an official Razorpay product. All merchant data is synthetic and nothing in this app contacts a real person or service.
@@ -13,7 +21,7 @@
 
 | | |
 |---|---|
-| **Merchant** | Starting persona: growth or retention manager at a mid-size Shopify D2C brand, initially with Razorpay Magic Checkout and COD orders. The demo averages 5K orders a month; the persona still needs merchant validation |
+| **Merchant** | Starting persona: growth or retention manager at a mid-size Shopify skincare or haircare brand with many COD orders. Razorpay checkout is not required; Magic Checkout brands are a natural first pilot group. The demo averages 5K orders a month; the persona still needs merchant validation |
 | **Problem** | Working hypothesis: broad campaign offers can spend discounts on customers who would reorder anyway, while attributed sales can obscure COD/RTO and refund losses |
 | **Signal** | Product and purchase history from Shopify; reconciled payment, refund and delivery outcomes from connected sources; permitted Razorpay risk enrichment where available. All are simulated here |
 | **Decision** | Per customer: include or skip · product · discount or none · pay-online nudge for risky COD · channel |
@@ -23,7 +31,7 @@
 
 ```mermaid
 flowchart LR
-    A["Store orders<br/>+ Razorpay payment,<br/>COD/RTO and refund signals"] --> B["Customer profile<br/>rhythm · spend · discount use · risk"]
+    A["Store orders<br/>+ payment records<br/>+ courier outcomes"] --> B["Customer profile<br/>rhythm · spend · discount use · risk"]
     B --> C["Decision per customer<br/>skip · product · offer or none · payment"]
     C --> D["Guardrails<br/>consent · frequency · stock · margin · cap"]
     D --> E["Merchant review<br/>edit · approve · pause"]
@@ -42,7 +50,7 @@ flowchart LR
 
 **Published context:** the DSGCP, Meta and ViralMint playbook covers 100+ early- to mid-scale D2C brands. Its survey summary reports that 70% cite CAC/ROAS inconsistency and 55% under-invest in CRM/retention; its repeat-purchase chart places 54.3% of respondents in the 10–30% band, without specifying a common measurement window. I verified these figures against the original PDF supplied during final drafting. Founder statements from Fixderma, Traya and The Pant Project support examining contribution, cohort payback and repeat economics. Beco's counterpoint shows that acquisition can be the binding constraint in some categories. See the [evidence update](docs/RESEARCH.md#practitioner-interview-and-published-evidence) for sources and scope.
 
-**The current-workflow hypothesis:** merchants may use WhatsApp/CRM tools, fixed-delay flows or festive broadcasts with broad offers. Existing platforms can also support richer targeting and predictive timing; we do not assume every merchant sends the same coupon. Campaign attribution credits qualifying orders under a tool's attribution rules, which does not by itself establish what the campaign caused.
+**What the merchant does today:** often runs broad campaigns with blanket discounts and judges them by attributed sales. Some tools support richer targeting; we do not assume every merchant sends the same coupon. Attribution can credit orders customers would have placed anyway and can hide refunds and RTO. The simulation uses a blanket 20%-off sale at day 30 as a simple stand-in for this workflow; a pilot should compare against a credible rules baseline.
 
 **Where it breaks:**
 
@@ -50,7 +58,7 @@ flowchart LR
 2. **RTO hides inside "revenue".** A COD reorder that is refused at the door shows up as a campaign win and as a logistics loss.
 3. **The finance question:** *"How much extra contribution did this campaign create after discounts, delivery losses and refunds?"* Attribution alone cannot answer it. A randomised control group is the proposed way to estimate it.
 
-**Why this could matter to Razorpay:** its visible D2C investment, checkout distribution and payment intelligence suggest strategic fit. Combining Shopify product history with entitled risk signals and reconciled collections could support better retention decisions. Catalog and delivery data still require integrations; we do not claim that Razorpay already exposes every required field or that its native and partner products never address retention.
+**Why this could matter to Razorpay:** Razorpay's strategic opportunity is distribution: offer the product to merchants using other payment providers, then give them a reason to move payment processing to Razorpay. Processing conversion is a hypothesis to validate. The delivery-risk signal is a small extra for Razorpay merchants where available. Store catalog and courier outcomes still require integrations.
 
 ## 2. What the research found
 
@@ -147,7 +155,7 @@ Two deep-research reports were commissioned and then source-checked:
 |---|---|
 | Last-click attribution credits organic reorders; merchant trust needs test-vs-control measurement | Every campaign reserves a control group; attributed sales are shown but never used as proof |
 | Reminder-led replenishment tends to beat deep discounting over time; discounts train customers to wait | "Reminder, no discount" is a first-class option, not a fallback |
-| The advantage sits in the checkout layer; a payment gateway alone doesn't see item-level data | Shopify product history plus Razorpay payment, COD and refund outcomes; catalog access is a stated integration |
+| The product needs a joined view of store, payment and courier records | Connect product history, payments/refunds and courier COD/RTO outcomes; measure collected profit against a control group |
 | Cross-merchant data pooling carries consent and legal risk (DPDP Act, recent platform litigation) | Single-merchant, first-party decisions; network signals used only for payment/delivery risk |
 | Marketing messages cost about ₹0.86 each on WhatsApp in India, so spraying low-probability customers destroys ROI | Message cost is part of every decision, and "don't contact" is allowed |
 | Opaque personalised pricing risks a consumer backlash | Offers come only from merchant-approved discount levels within a cap, and every decision shows its reason |
@@ -209,15 +217,15 @@ For every customer it shows a one-line reason, built only from that customer's d
 |---|---|
 | `/` **Today** | Suggested campaigns, expected extra earnings, saved drafts |
 | `/campaigns` | Campaign editor: audience → products & offers → message → budget & approval → results |
-| `/insights` **Impact simulation** | The same 2,500 customers under: no retention tool · a manual 20% sale · Retention Agent |
+| `/insights` **Impact simulation** | The same 2,500 customers under: no outreach · a blanket 20%-off sale · Retention Agent |
 | `/database` **Order data** | Every order, refund and risk signal behind the decisions; searchable, downloadable as CSV |
-| `/setup` **Connections** | Simulated Shopify + Razorpay + WhatsApp onboarding |
+| `/setup` **Connections** | Simulated onboarding: Shopify store, your payment provider, your courier, WhatsApp |
 
 The **Guided tour** (button in the header) takes a reviewer through the main flow in about 2 minutes, explaining each product choice along the way.
 
-## 5. Why AI, and not a fixed rule
+## 5. Why AI, and how it differs from rules
 
-A simple recency or spend policy can apply the same offer to a broad segment. Our production hypothesis is that learned response estimates could improve the choice of reminder, offer or no outreach. The causal framework below describes possibilities to investigate; these customer types cannot be observed directly from purchase history alone:
+From catalog information, each customer's history and patterns among comparable buyers, the intelligence layer is designed to produce three estimates: which products a customer is most likely to buy next, when they are likely to reorder, and how likely they are to buy with and without each permitted offer. Margins, costs and payment/delivery risk then translate those estimates into an action: the permitted option with the highest estimated additional contribution. A larger discount is chosen when it earns more. Rules can personalise timing and segment offers too; the proposed models estimate response for each customer and action, and a pilot would test their value against a credible rules baseline. The causal framework below describes possibilities to investigate; these customer types cannot be observed directly from purchase history alone:
 
 | | Buys **with** an offer | Doesn't buy with an offer |
 |---|---|---|
@@ -231,7 +239,7 @@ extra profit = P(buy | offer) × P(delivered) × margin after discount
              − P(buy anyway) × P(delivered) × full margin
 ```
 
-It picks the option with the highest value, which includes "no discount" and "don't contact". `P(delivered)` uses the Razorpay COD/RTO risk tier, so risky COD customers get a pay-online nudge instead of a bigger coupon.
+It picks the option with the highest value, which includes "no discount" and "don't contact". `P(delivered)` uses delivery history and an optional Razorpay COD/RTO risk tier, so risky COD customers get a pay-online nudge instead of a bigger coupon.
 
 **Honest about v1.** In this prototype the response estimates are transparent formulas with stated priors. For example, a customer's discount history is shrunk toward a 25% prior worth three orders (see `estimateAction` in [src/retention/studio.ts](src/retention/studio.ts)). This is not a trained model or an estimate of causal discount response. A production response model would require randomised evidence, calibration and comparison against a rules baseline. Payment-risk enrichment alone does not supply discount sensitivity.
 
@@ -259,20 +267,20 @@ Every approved campaign reserves a control group (customers who are eligible but
 
 | Metric | Role |
 |---|---|
-| Extra profit vs the control group, after discounts, RTO and refunds | **Primary** |
-| Discount ₹ per extra order | Should fall |
+| Additional collected contribution retained by the merchant after fees, per eligible customer, against the control group (net of discounts, product, fulfilment and payment costs, refunds and RTO) | **Primary** |
+| Discount ₹ per extra order | Diagnostic, not a target: a larger discount is justified when it earns more |
 | 90-day repeat rate (baseline 20–30%) | Should rise |
 | Share of repeat orders paid online | Should rise |
-| Opt-out rate | Guardrail: must not rise |
+| Opt-outs per delivered message | Guardrail: monitored against an agreed threshold; no contact without consent |
 
-Commercial idea (illustrative only): Razorpay takes 25% of positive extra profit after campaign losses offset wins, and absorbs AI and messaging costs.
+Commercial idea (illustrative only): a 25% success fee on positive additional contribution after campaign losses offset gains, charged only after the return window; the operator absorbs AI and messaging costs.
 
 ## 9. What we deliberately didn't build
 
 - **A CRM or messaging platform.** That's a crowded market, and partners already exist.
 - **Sending without merchant approval.**
 - **Cross-merchant targeting.** Razorpay network signals are used only for payment/delivery risk, never to infer discount sensitivity.
-- **Live integrations.** Shopify OAuth, Razorpay signal APIs, WhatsApp/voice delivery and invoicing are all simulated. The boundaries are listed in [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md).
+- **Live integrations.** Shopify OAuth, payment-provider and courier connections, Razorpay signal APIs, WhatsApp/voice delivery and invoicing are all simulated. The boundaries are listed in [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md).
 - **A trained model.** See section 5. The prototype shows the decision and the merchant experience, not a fitted model.
 
 ## 10. Run it locally

@@ -50,7 +50,13 @@ Commercial billing still needs an agreed business-as-usual baseline, confidence 
 
 ## Synthetic comparison
 
-The product is measured against a merchant with no retention tool. The same customer population is evaluated with no retention tool, a manual 20% sale at day 30, and Retention Agent (which includes the Razorpay RTO score). A store-data-only run shows what a store on another checkout gets. Agent rows use the Campaign Studio decision logic. Extra profit over no retention tool is the fee base, matching the in-app control group. Independent hidden demand, discount response and delivery outcomes are separated from displayed forecasts. Response sensitivity includes zero effect. Discount savings and assumed payment-risk treatment can still affect margin with zero purchase lift.
+In a synthetic 90-day scenario with one campaign opportunity per customer across the same 2,500 customers, the agent raised collected earnings by 7.2% before the fee and 5.4% after it over no outreach, under default response assumptions. A blanket 20%-off sale raised them by 0.3%. If messages create no additional orders, the sale loses 4.3% to discounts while the agent loses 0.4%.
+
+The blanket sale is a simple stand-in for broad blanket-discount campaigns; a pilot should compare against a credible rules baseline. Both uplift figures divide additional collected contribution profit by the no-outreach control's collected profit; 7.2% and 0.3% are before the success fee, 5.4% is what the merchant keeps after it. The fee base remains incremental profit over no outreach. Fee and merchant-retained amounts are supporting economics, not additional headline comparisons.
+
+The product joins store, payment and courier data, chooses customer-level outreach and measures profit actually collected against a control group. Razorpay's strategic opportunity is distribution: offer the product to merchants using other payment providers, then give them a reason to move payment processing to Razorpay. Processing conversion is a hypothesis to validate. The delivery-risk signal is a small extra for Razorpay merchants where available.
+
+The store-data-only ablation remains in the internal CSV/SQLite benchmark for sensitivity analysis, not the headline comparison. Independent hidden demand, discount response and delivery outcomes remain separate from displayed forecasts. Response sensitivity includes zero effect; results can favour a baseline.
 
 This one-opportunity-per-customer simulator uses a 90-day evaluation interpretation; it is not a longitudinal forecast of every future order, a trained production model or measured commercial uplift.
 
